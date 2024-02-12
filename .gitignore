@@ -20,7 +20,8 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
-ios/.xcode.env.local
+ios/.xcode.env.
+ios/GoogleService-Info.plist
 
 # Android/IntelliJ
 #
@@ -33,6 +34,7 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
+/android/app/google-services.json
 
 #react-native-config
 ios/tmp.xcconfig
