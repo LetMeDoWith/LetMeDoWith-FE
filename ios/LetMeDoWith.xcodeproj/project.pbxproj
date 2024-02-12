@@ -15,6 +15,8 @@
 		9298D8AC41DE803316858382 /* libPods-LetMeDoWith.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C5B0123D4430F1FFBC30089A /* libPods-LetMeDoWith.a */; };
 		99B2D6A4E1068EBCFA799C8E /* libPods-LetMeDoWith-LetMeDoWithTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2011623B8BF974AEAE0295F /* libPods-LetMeDoWith-LetMeDoWithTests.a */; };
 		F61F819E2B77759C00AB4F5F /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = F61F819D2B77759C00AB4F5F /* main.jsbundle */; };
+		F65652D02B7A478100B54887 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = F65652CF2B7A478100B54887 /* FirebaseAnalytics */; };
+		F65652D22B7A4D2F00B54887 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F65652D12B7A4D2F00B54887 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +50,7 @@
 		D2011623B8BF974AEAE0295F /* libPods-LetMeDoWith-LetMeDoWithTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LetMeDoWith-LetMeDoWithTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F61F819D2B77759C00AB4F5F /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
+		F65652D12B7A4D2F00B54887 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		F67BE2A12B7678F4006D11D9 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		F67BE2A22B77352D006D11D9 /* hermes.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = hermes.xcframework; path = "Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework"; sourceTree = "<group>"; };
 		F67BE2A42B77353C006D11D9 /* libReact-hermes.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-hermes.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -68,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F65652D02B7A478100B54887 /* FirebaseAnalytics in Frameworks */,
 				9298D8AC41DE803316858382 /* libPods-LetMeDoWith.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -95,6 +99,7 @@
 		13B07FAE1A68108700A75B9A /* LetMeDoWith */ = {
 			isa = PBXGroup;
 			children = (
+				F65652D12B7A4D2F00B54887 /* GoogleService-Info.plist */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -206,6 +211,9 @@
 			dependencies = (
 			);
 			name = LetMeDoWith;
+			packageProductDependencies = (
+				F65652CF2B7A478100B54887 /* FirebaseAnalytics */,
+			);
 			productName = LetMeDoWith;
 			productReference = 13B07F961A680F5B00A75B9A /* LetMeDoWith.app */;
 			productType = "com.apple.product-type.application";
@@ -237,6 +245,9 @@
 				Base,
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
+			packageReferences = (
+				F65652CE2B7A478100B54887 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -260,6 +271,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F61F819E2B77759C00AB4F5F /* main.jsbundle in Resources */,
+				F65652D22B7A4D2F00B54887 /* GoogleService-Info.plist in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 			);
@@ -600,7 +612,10 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = false;
@@ -669,7 +684,10 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = false;
@@ -708,6 +726,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F65652CE2B7A478100B54887 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F65652CF2B7A478100B54887 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F65652CE2B7A478100B54887 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
 }
