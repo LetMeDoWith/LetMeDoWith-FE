@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, SafeAreaView } from 'react-native';
+import { Alert, Button, SafeAreaView } from 'react-native';
 
 import { login } from '@react-native-seoul/kakao-login';
 
@@ -7,6 +7,7 @@ const signInWithKakao = async () => {
   return await login()
     .then(result => {
       console.log('result: ', result);
+      Alert.alert('result', JSON.stringify(result, null, 2));
       return result;
     })
     .catch(error => {

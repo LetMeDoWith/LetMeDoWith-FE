@@ -34,6 +34,9 @@ local.properties
 *.keystore
 !debug.keystore
 
+#react-native-config
+ios/tmp.xcconfig
+
 # node.js
 #
 node_modules/

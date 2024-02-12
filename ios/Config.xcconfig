@@ -1,0 +1,10 @@
+//
+//  Config.xcconfig
+//  LetMeDoWith
+//
+//  Created by 이진희 on 2024/02/10.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+#include? "tmp.xcconfig"
