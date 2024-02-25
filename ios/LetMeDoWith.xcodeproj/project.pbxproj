@@ -17,6 +17,7 @@
 		F61F819E2B77759C00AB4F5F /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = F61F819D2B77759C00AB4F5F /* main.jsbundle */; };
 		F65652D02B7A478100B54887 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = F65652CF2B7A478100B54887 /* FirebaseAnalytics */; };
 		F65652D22B7A4D2F00B54887 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F65652D12B7A4D2F00B54887 /* GoogleService-Info.plist */; };
+		E72FBCE5B643443495B04653 /* Roboto-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +57,7 @@
 		F67BE2A42B77353C006D11D9 /* libReact-hermes.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-hermes.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6D7839D2B777B4200B632D3 /* libReact-hermes.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-hermes.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6F1ADF42B77440E0028D224 /* libReact-hermes.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-hermes.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */ = {isa = PBXFileReference; name = "Roboto-Medium.ttf"; path = "../src/assets/fonts/Roboto-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,6 +144,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				24264A48C70841488437D34B /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -169,6 +172,15 @@
 			);
 			path = Pods;
 			sourceTree = "<group>";
+		};
+		24264A48C70841488437D34B /* Resources */ = {
+			isa = "PBXGroup";
+			children = (
+				73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+			path = "";
 		};
 /* End PBXGroup section */
 
@@ -274,6 +286,7 @@
 				F65652D22B7A4D2F00B54887 /* GoogleService-Info.plist in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				E72FBCE5B643443495B04653 /* Roboto-Medium.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
