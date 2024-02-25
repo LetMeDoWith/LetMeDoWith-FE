@@ -1,16 +1,10 @@
 import React from 'react';
-import { Alert, Button, Dimensions, StyleSheet, Text, View } from 'react-native';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { Button, Dimensions, StyleSheet, Text, View } from 'react-native';
 
 import { KakaoLoginButton } from '@components/Login/KakaoLoginButton';
+import { GoogleLoginButton } from '@components/Login/GoogleLoginButton';
 
 const Login = () => {
-  const signInWithGoogle = async () => {
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-    const result = await GoogleSignin.signIn();
-    Alert.alert('google result', JSON.stringify(result, null, 2));
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
@@ -25,7 +19,7 @@ const Login = () => {
       </View>
       <View style={styles.buttonContainer}>
         <KakaoLoginButton />
-        <Button title="구글 로그인" onPress={signInWithGoogle} />
+        <GoogleLoginButton />
         <Button title="애플 로그인(구현 예정)" />
       </View>
     </View>
