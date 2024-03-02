@@ -7,7 +7,6 @@ const KakaoLoginButton = () => {
   const signInWithKakao = async () => {
     return await login()
       .then(result => {
-        console.log('result: ', result);
         Alert.alert('result', JSON.stringify(result, null, 2));
         return result;
       })

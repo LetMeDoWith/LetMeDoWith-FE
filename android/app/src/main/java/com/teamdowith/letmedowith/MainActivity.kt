@@ -1,4 +1,4 @@
-package com.letmedowith
+package com.teamdowith.letmedowith
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
