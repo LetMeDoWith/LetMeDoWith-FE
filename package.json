@@ -13,9 +13,13 @@
     "@invertase/react-native-apple-authentication": "^2.3.0",
     "@react-native-google-signin/google-signin": "^11.0.0",
     "@react-native-seoul/kakao-login": "^5.3.1",
+    "@react-navigation/bottom-tabs": "^6.5.16",
+    "@react-navigation/native": "^6.1.14",
     "react": "18.2.0",
     "react-native": "0.73.3",
     "react-native-config": "^1.5.1",
+    "react-native-safe-area-context": "^4.9.0",
+    "react-native-screens": "^3.29.0",
     "react-native-svg": "^14.1.0"
   },
   "devDependencies": {
