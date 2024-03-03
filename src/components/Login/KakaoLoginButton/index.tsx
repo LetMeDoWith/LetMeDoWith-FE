@@ -1,3 +1,4 @@
+import React from 'react';
 import { Alert, Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import { login } from '@react-native-seoul/kakao-login';
 
