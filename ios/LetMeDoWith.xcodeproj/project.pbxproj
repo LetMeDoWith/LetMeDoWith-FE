@@ -14,10 +14,10 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		9298D8AC41DE803316858382 /* libPods-LetMeDoWith.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C5B0123D4430F1FFBC30089A /* libPods-LetMeDoWith.a */; };
 		99B2D6A4E1068EBCFA799C8E /* libPods-LetMeDoWith-LetMeDoWithTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2011623B8BF974AEAE0295F /* libPods-LetMeDoWith-LetMeDoWithTests.a */; };
+		E72FBCE5B643443495B04653 /* Roboto-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */; };
 		F61F819E2B77759C00AB4F5F /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = F61F819D2B77759C00AB4F5F /* main.jsbundle */; };
 		F65652D02B7A478100B54887 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = F65652CF2B7A478100B54887 /* FirebaseAnalytics */; };
-		F65652D22B7A4D2F00B54887 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F65652D12B7A4D2F00B54887 /* GoogleService-Info.plist */; };
-		E72FBCE5B643443495B04653 /* Roboto-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */; };
+		F6B419D02B93608F00C3ADA9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F6B419CF2B93608F00C3ADA9 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,6 +42,7 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = LetMeDoWith/main.m; sourceTree = "<group>"; };
 		656737286A1496EA5E395AA9 /* Pods-LetMeDoWith.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LetMeDoWith.debug.xcconfig"; path = "Target Support Files/Pods-LetMeDoWith/Pods-LetMeDoWith.debug.xcconfig"; sourceTree = "<group>"; };
 		6D58F3E9849032AA95F49F6F /* Pods-LetMeDoWith-LetMeDoWithTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LetMeDoWith-LetMeDoWithTests.debug.xcconfig"; path = "Target Support Files/Pods-LetMeDoWith-LetMeDoWithTests/Pods-LetMeDoWith-LetMeDoWithTests.debug.xcconfig"; sourceTree = "<group>"; };
+		73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Medium.ttf"; path = "../src/assets/fonts/Roboto-Medium.ttf"; sourceTree = "<group>"; };
 		75043EA8D5371436191E0876 /* Pods-LetMeDoWithTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LetMeDoWithTests.debug.xcconfig"; path = "Target Support Files/Pods-LetMeDoWithTests/Pods-LetMeDoWithTests.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = LetMeDoWith/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B60CC30F15B9A9209C57988A /* Pods-LetMeDoWithTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LetMeDoWithTests.release.xcconfig"; path = "Target Support Files/Pods-LetMeDoWithTests/Pods-LetMeDoWithTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -51,13 +52,12 @@
 		D2011623B8BF974AEAE0295F /* libPods-LetMeDoWith-LetMeDoWithTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LetMeDoWith-LetMeDoWithTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F61F819D2B77759C00AB4F5F /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
-		F65652D12B7A4D2F00B54887 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		F67BE2A12B7678F4006D11D9 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		F67BE2A22B77352D006D11D9 /* hermes.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = hermes.xcframework; path = "Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework"; sourceTree = "<group>"; };
 		F67BE2A42B77353C006D11D9 /* libReact-hermes.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-hermes.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F6B419CF2B93608F00C3ADA9 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		F6D7839D2B777B4200B632D3 /* libReact-hermes.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-hermes.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6F1ADF42B77440E0028D224 /* libReact-hermes.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-hermes.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */ = {isa = PBXFileReference; name = "Roboto-Medium.ttf"; path = "../src/assets/fonts/Roboto-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,7 +101,7 @@
 		13B07FAE1A68108700A75B9A /* LetMeDoWith */ = {
 			isa = PBXGroup;
 			children = (
-				F65652D12B7A4D2F00B54887 /* GoogleService-Info.plist */,
+				F6B419CF2B93608F00C3ADA9 /* GoogleService-Info.plist */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -110,6 +110,14 @@
 				13B07FB71A68108700A75B9A /* main.m */,
 			);
 			name = LetMeDoWith;
+			sourceTree = "<group>";
+		};
+		24264A48C70841488437D34B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */,
+			);
+			name = Resources;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -172,15 +180,6 @@
 			);
 			path = Pods;
 			sourceTree = "<group>";
-		};
-		24264A48C70841488437D34B /* Resources */ = {
-			isa = "PBXGroup";
-			children = (
-				73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */,
-			);
-			name = Resources;
-			sourceTree = "<group>";
-			path = "";
 		};
 /* End PBXGroup section */
 
@@ -283,8 +282,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F61F819E2B77759C00AB4F5F /* main.jsbundle in Resources */,
-				F65652D22B7A4D2F00B54887 /* GoogleService-Info.plist in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
+				F6B419D02B93608F00C3ADA9 /* GoogleService-Info.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				E72FBCE5B643443495B04653 /* Roboto-Medium.ttf in Resources */,
 			);
@@ -522,7 +521,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.letmedowith;
+				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith;
 				PRODUCT_NAME = LetMeDoWith;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -548,7 +547,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.letmedowith;
+				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith;
 				PRODUCT_NAME = LetMeDoWith;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

@@ -1,13 +1,25 @@
+import { useEffect } from 'react';
 import { Alert, Dimensions, Pressable, StyleSheet, Text } from 'react-native';
+import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 import SvgIcon from '@components/common/SvgIcon';
 
 const GoogleLoginButton = () => {
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: Config.GOOGLE_WEB_CLIENT_ID,
+    });
+  }, []);
+
   const signInWithGoogle = async () => {
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-    const result = await GoogleSignin.signIn();
-    Alert.alert('google result', JSON.stringify(result, null, 2));
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const result = await GoogleSignin.signIn();
+      Alert.alert('google result', JSON.stringify(result, null, 2));
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
