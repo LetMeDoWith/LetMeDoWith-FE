@@ -1,8 +1,9 @@
 import React from 'react';
-import { Button, Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 
 import { KakaoLoginButton } from '@components/Login/KakaoLoginButton';
 import { GoogleLoginButton } from '@components/Login/GoogleLoginButton';
+import { AppleLoginButton } from '@components/Login/AppleLoginButton';
 
 const Login = () => {
   return (
@@ -20,7 +21,7 @@ const Login = () => {
       <View style={styles.buttonContainer}>
         <KakaoLoginButton />
         <GoogleLoginButton />
-        <Button title="애플 로그인(구현 예정)" />
+        {Platform.OS === 'ios' && <AppleLoginButton />}
       </View>
     </View>
   );
