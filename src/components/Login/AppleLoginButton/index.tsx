@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Alert, Dimensions, Pressable, StyleSheet, Text } from 'react-native';
-import appleAuth, { AppleError } from '@invertase/react-native-apple-authentication';
+import appleAuth from '@invertase/react-native-apple-authentication';
 
 import SvgIcon from '@components/common/SvgIcon';
 
