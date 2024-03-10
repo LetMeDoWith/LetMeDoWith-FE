@@ -1,4 +1,3 @@
-// src/components/SvgIcon.tsx
 import React from 'react';
 import { SvgProps } from 'react-native-svg';
 
@@ -11,7 +10,15 @@ interface IconProps extends SvgProps {
   size?: number;
 }
 
-const SvgIcon = ({ name, fill = '#000', width: _width, height: _height, size, ...props }: IconProps) => {
+const SvgIcon = ({
+  name,
+  fill = 'none',
+  stroke = '#AEB6BE',
+  width: _width,
+  height: _height,
+  size,
+  ...props
+}: IconProps) => {
   const Component = Icons[name];
   const width = _width ?? size;
   const height = _height ?? size;
@@ -21,14 +28,7 @@ const SvgIcon = ({ name, fill = '#000', width: _width, height: _height, size, ..
     ...(height !== undefined ? { height } : {}),
   };
 
-  return (
-    <Component
-      {...props}
-      //`.svgrrc`의 설정으로 `fill` prop 을 사용 가능하게 함
-      fill={fill}
-      {...sizeProps}
-    />
-  );
+  return <Component {...props} fill={fill} stroke={stroke} {...sizeProps} />;
 };
 
 export default SvgIcon;
