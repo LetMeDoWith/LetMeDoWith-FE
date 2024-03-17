@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+import useTheme from '@hooks/shared/useTheme';
 import { Feed } from '@screens/Feed';
 import { Home } from '@screens/Home';
 import { Mypage } from '@screens/Mypage';
@@ -10,13 +11,16 @@ import { MypageIcon } from '@components/common/icons/MypageIcon';
 
 const BottomTabNavigator = () => {
   const { Navigator, Screen } = createBottomTabNavigator();
+  const {
+    COLORS: { DEFAULT, PRIMARY, GRAY_SCALE },
+  } = useTheme();
 
   return (
     <Navigator
       initialRouteName="마이투두"
       screenOptions={{
         headerTitleAlign: 'center',
-        tabBarActiveTintColor: '#FB4930',
+        tabBarActiveTintColor: PRIMARY.RED_500,
       }}
     >
       <Screen
@@ -25,9 +29,9 @@ const BottomTabNavigator = () => {
         options={{
           tabBarIcon: ({ focused }) => (
             <FeedIcon
-              fill={focused ? '#FB493D' : '#FFF'}
-              stroke={focused ? '#FB4930' : '#AEB6BE'}
-              fillRect={focused ? '#FFF' : '#AEB6BE'}
+              fill={focused ? PRIMARY.RED_500 : DEFAULT.WHITE}
+              stroke={focused ? PRIMARY.RED_500 : GRAY_SCALE.GRAY_600}
+              fillRect={focused ? DEFAULT.WHITE : GRAY_SCALE.GRAY_600}
             />
           ),
         }}
@@ -37,7 +41,10 @@ const BottomTabNavigator = () => {
         component={Home}
         options={{
           tabBarIcon: ({ focused }) => (
-            <HomeIcon fill={focused ? '#FB493D' : '#FFF'} stroke={focused ? '#FB4930' : '#AEB6BE'} />
+            <HomeIcon
+              fill={focused ? PRIMARY.RED_500 : DEFAULT.WHITE}
+              stroke={focused ? PRIMARY.RED_500 : GRAY_SCALE.GRAY_600}
+            />
           ),
         }}
       />
@@ -46,7 +53,10 @@ const BottomTabNavigator = () => {
         component={Mypage}
         options={{
           tabBarIcon: ({ focused }) => (
-            <MypageIcon fill={focused ? '#FB493D' : '#FFF'} stroke={focused ? '#FB4930' : '#AEB6BE'} />
+            <MypageIcon
+              fill={focused ? PRIMARY.RED_500 : DEFAULT.WHITE}
+              stroke={focused ? PRIMARY.RED_500 : GRAY_SCALE.GRAY_600}
+            />
           ),
         }}
       />
