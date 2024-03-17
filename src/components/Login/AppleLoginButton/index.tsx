@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import appleAuth from '@invertase/react-native-apple-authentication';
 
-import SvgIcon from '@components/common/SvgIcon';
+import { AppleSymbol } from '@components/common/icons/AppleSymbol';
 import { Props } from '@screens/Login';
 
 const AppleLoginButton = ({ setIsLoggedIn }: Props) => {
@@ -34,7 +34,7 @@ const AppleLoginButton = ({ setIsLoggedIn }: Props) => {
 
   return (
     <Pressable style={styles.container} onPress={signInWithApple}>
-      <SvgIcon name="AppleSymbol" size={44} />
+      <AppleSymbol width={44} height={44} />
       <Text style={styles.title}>애플 계정으로 로그인</Text>
     </Pressable>
   );

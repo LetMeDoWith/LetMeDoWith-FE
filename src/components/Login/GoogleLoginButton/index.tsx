@@ -3,7 +3,7 @@ import { Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
-import SvgIcon from '@components/common/SvgIcon';
+import { GoogleSymbol } from '@components/common/icons/GoogleSymbol';
 import { Props } from '@screens/Login';
 
 const GoogleLoginButton = ({ setIsLoggedIn }: Props) => {
@@ -28,7 +28,7 @@ const GoogleLoginButton = ({ setIsLoggedIn }: Props) => {
 
   return (
     <Pressable style={styles.container} onPress={signInWithGoogle}>
-      <SvgIcon name="GoogleSymbol" size={18} />
+      <GoogleSymbol width={18} height={18} />
       <Text style={styles.label}>구글 계정으로 로그인</Text>
     </Pressable>
   );
