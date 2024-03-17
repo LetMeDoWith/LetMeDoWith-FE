@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import { Alert, Dimensions, Pressable, StyleSheet, Text } from 'react-native';
+import { Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 import SvgIcon from '@components/common/SvgIcon';
+import { Props } from '@screens/Login';
 
-const GoogleLoginButton = () => {
+const GoogleLoginButton = ({ setIsLoggedIn }: Props) => {
   useEffect(() => {
     GoogleSignin.configure({
       webClientId: Config.GOOGLE_WEB_CLIENT_ID,
@@ -16,7 +17,10 @@ const GoogleLoginButton = () => {
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const result = await GoogleSignin.signIn();
-      Alert.alert('google result', JSON.stringify(result, null, 2));
+      if (!result.idToken) {
+        throw 'identify token이 존재하지 않습니다.';
+      }
+      setIsLoggedIn(true);
     } catch (error) {
       console.error(error);
     }
