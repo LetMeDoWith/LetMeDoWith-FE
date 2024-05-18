@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import { Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import appleAuth from '@invertase/react-native-apple-authentication';
 
-import { AppleSymbol } from '@components/common/icons/AppleSymbol';
-import { Props } from '@screens/Login';
+import { AppleSymbol } from 'components/common/icons/AppleSymbol';
+import { Props } from 'screens/Login';
 
 const AppleLoginButton = ({ setIsLoggedIn }: Props) => {
   const signInWithApple = async () => {

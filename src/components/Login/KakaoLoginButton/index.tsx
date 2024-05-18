@@ -2,8 +2,8 @@ import React from 'react';
 import { Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import { login } from '@react-native-seoul/kakao-login';
 
-import { KakaoSymbol } from '@components/common/icons/KakaoSymbol';
-import { Props } from '@screens/Login';
+import { KakaoSymbol } from 'components/common/icons/KakaoSymbol';
+import { Props } from 'screens/Login';
 
 const KakaoLoginButton = ({ setIsLoggedIn }: Props) => {
   const signInWithKakao = async () => {

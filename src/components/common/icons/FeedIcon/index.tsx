@@ -1,6 +1,6 @@
 import Svg, { Path, Rect, SvgProps } from 'react-native-svg';
 
-import { theme } from '@styles/theme';
+import { theme } from 'styles/theme';
 
 const FeedIcon = ({
   width = 22,

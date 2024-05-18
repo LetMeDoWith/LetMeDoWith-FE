@@ -3,8 +3,8 @@ import { Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
-import { GoogleSymbol } from '@components/common/icons/GoogleSymbol';
-import { Props } from '@screens/Login';
+import { GoogleSymbol } from 'components/common/icons/GoogleSymbol';
+import { Props } from 'screens/Login';
 
 const GoogleLoginButton = ({ setIsLoggedIn }: Props) => {
   useEffect(() => {

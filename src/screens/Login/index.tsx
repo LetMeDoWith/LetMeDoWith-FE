@@ -1,9 +1,9 @@
 import React, { Dispatch, SetStateAction } from 'react';
 import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 
-import { KakaoLoginButton } from '@components/Login/KakaoLoginButton';
-import { GoogleLoginButton } from '@components/Login/GoogleLoginButton';
-import { AppleLoginButton } from '@components/Login/AppleLoginButton';
+import { KakaoLoginButton } from 'components/Login/KakaoLoginButton';
+import { GoogleLoginButton } from 'components/Login/GoogleLoginButton';
+import { AppleLoginButton } from 'components/Login/AppleLoginButton';
 
 export interface Props {
   setIsLoggedIn: Dispatch<SetStateAction<boolean>>;
