@@ -1,3 +1,4 @@
+import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import { ServiceAgree } from 'components/Signup/ServiceAgree';

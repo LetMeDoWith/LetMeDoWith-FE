@@ -1,3 +1,4 @@
+import React from 'react';
 import Svg, { Path, Rect, SvgProps } from 'react-native-svg';
 
 import { theme } from 'styles/theme';

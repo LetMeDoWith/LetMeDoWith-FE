@@ -1,3 +1,4 @@
+import React from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { SignupStackNavigator } from 'components/navigators/Stack/Signup';
