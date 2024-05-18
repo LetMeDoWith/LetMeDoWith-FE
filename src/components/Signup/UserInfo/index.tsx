@@ -1,10 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Controller, useFormContext } from 'react-hook-form';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { NativeStackScreenProps } from 'react-native-screens/native-stack';
 import { HelperText } from 'react-native-paper';
+import DatePicker from 'react-native-date-picker';
+import dayjs from 'dayjs';
 
 import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
@@ -23,6 +25,7 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
   } = useFormContext();
 
   const [selectBoxOpen, setSelectBoxOpen] = useState<boolean>(false);
+  const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
 
   const nickname = watch('nickname');
   const birthday = watch('birthday');
@@ -35,23 +38,12 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
     { label: '여성', value: 'female' },
   ];
 
-  const onChangeBirthday = (inputText: string) => {
-    // 입력된 텍스트에서 숫자만 추출하여 변환
-    const formattedInput = inputText.replace(/\D/g, '');
-    // 형식에 맞게 변환된 텍스트 설정
-    if (formattedInput.length >= 4 && formattedInput.length < 6) {
-      // 월까지 입력된 경우
-      setValue('birthday', formattedInput.replace(/(\d{4})(\d{1,2})/, '$1. $2'));
-    } else if (formattedInput.length === 6) {
-      setValue('birthday', formattedInput.replace(/(\d{4})(\d{2})/, '$1. $2'));
-    } else if (formattedInput.length > 6) {
-      // 일까지 입력된 경우
-      setValue('birthday', formattedInput.replace(/(\d{4})(\d{2})(\d{1,2})/, '$1. $2. $3'));
-    } else {
-      // 연도만 입력된 경우
-      setValue('birthday', formattedInput);
-    }
-  };
+  const toggleDatePicker = useCallback((isOpen: boolean) => () => setDatePickerOpen(isOpen), []);
+
+  const handleDateChange = useCallback((date: Date) => {
+    setValue('birthday', dayjs(date).format('YYYY / MM / DD'));
+    toggleDatePicker(false);
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -122,18 +114,29 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
           <Controller
             name="birthday"
             control={control}
-            rules={{ required: true, maxLength: 12 }}
-            render={({ field: { onBlur, value } }) => (
+            render={({ field: { value } }) => (
               <>
                 <Text style={[styles.label, errors.birthday && styles.error]}>생년월일</Text>
-                <TextInput
-                  style={[styles.input, errors.birthday && styles.error]}
-                  placeholder="YYYY / MM / DD"
-                  keyboardType="numeric"
-                  value={value}
-                  maxLength={12}
-                  onChangeText={onChangeBirthday}
-                  onBlur={onBlur}
+                <Pressable onPress={toggleDatePicker(true)}>
+                  <TextInput
+                    style={[styles.input, errors.birthday && styles.error]}
+                    pointerEvents="none"
+                    editable={false}
+                    placeholder="YYYY / MM / DD"
+                    value={value}
+                  />
+                </Pressable>
+                <HelperText type="info" padding="none" style={[styles.message, styles.default]}>
+                  * 14세 미만은 가입대상이 아닙니다.
+                </HelperText>
+                <DatePicker
+                  modal
+                  open={datePickerOpen}
+                  mode="date"
+                  date={dayjs().toDate()}
+                  minimumDate={dayjs().subtract(14, 'year').toDate()}
+                  onConfirm={handleDateChange}
+                  onCancel={toggleDatePicker(false)}
                 />
               </>
             )}
@@ -142,7 +145,6 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
         <View style={styles.formContainer}>
           <Controller
             control={control}
-            rules={{ required: true, maxLength: 12 }}
             render={({ field }) => (
               <>
                 <Text style={[styles.label, errors.gender && styles.error]}>성별</Text>
