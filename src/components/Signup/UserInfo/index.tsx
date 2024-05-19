@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Controller, useFormContext } from 'react-hook-form';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -34,7 +34,7 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
         ? Dimensions.get('screen').height
         : Dimensions.get('screen').height - getStatusBarHeight() - top - bottom,
     }),
-    [isAos, top, bottom],
+    [top, bottom],
   );
 
   const [selectBoxOpen, setSelectBoxOpen] = useState<boolean>(false);
