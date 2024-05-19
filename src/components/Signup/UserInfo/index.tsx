@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Dimensions, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Controller, useFormContext } from 'react-hook-form';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
@@ -26,6 +27,16 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
     clearErrors,
   } = useFormContext();
 
+  const { top, bottom } = useSafeAreaInsets();
+  const heightStyle = useMemo(
+    () => ({
+      height: isAos
+        ? Dimensions.get('screen').height
+        : Dimensions.get('screen').height - getStatusBarHeight() - top - bottom,
+    }),
+    [isAos, top, bottom],
+  );
+
   const [selectBoxOpen, setSelectBoxOpen] = useState<boolean>(false);
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
 
@@ -51,7 +62,7 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
   );
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, heightStyle]}>
       <View style={styles.inputSection}>
         <View>
           <Text style={styles.titleBold}>사용자 정보를</Text>
@@ -207,7 +218,6 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'space-between',
-    height: isAos ? Dimensions.get('screen').height : Dimensions.get('screen').height - getStatusBarHeight() - 66,
     paddingVertical: 32,
     paddingHorizontal: 24,
   },

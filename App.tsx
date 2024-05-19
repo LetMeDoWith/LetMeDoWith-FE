@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Login } from 'screens/Login';
 import { BottomTabNavigator } from 'components/navigators/BottomTabNavigator';
@@ -14,13 +15,15 @@ function App(): React.JSX.Element {
 
   return (
     <ThemeContext.Provider value={theme}>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         {isLoggedIn ? (
-          <NavigationContainer>{isNeedSignUp ? <Signup /> : <BottomTabNavigator />}</NavigationContainer>
+          <SafeAreaProvider>
+            <NavigationContainer>{isNeedSignUp ? <Signup /> : <BottomTabNavigator />}</NavigationContainer>
+          </SafeAreaProvider>
         ) : (
           <Login setIsLoggedIn={setIsLoggedIn} />
         )}
-      </SafeAreaView>
+      </View>
     </ThemeContext.Provider>
   );
 }
