@@ -207,14 +207,12 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'space-between',
-    height: isAos
-      ? Dimensions.get('window').height - getStatusBarHeight()
-      : Dimensions.get('window').height - getStatusBarHeight() - 34,
+    height: isAos ? Dimensions.get('screen').height : Dimensions.get('screen').height - getStatusBarHeight() - 66,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
   },
   inputSection: {
     gap: 40,
-    paddingHorizontal: 24,
-    paddingVertical: 32,
   },
   labelWrap: { flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
   popoverStyle: { backgroundColor: theme.COLORS.DEFAULT.BLACK, paddingVertical: 12, paddingHorizontal: 8 },
@@ -266,8 +264,6 @@ const styles = StyleSheet.create({
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_400,
   },
   button: {
-    marginBottom: 32,
-    marginHorizontal: 24,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
