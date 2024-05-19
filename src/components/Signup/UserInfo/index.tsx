@@ -7,10 +7,12 @@ import { NativeStackScreenProps } from 'react-native-screens/native-stack';
 import { HelperText } from 'react-native-paper';
 import DatePicker from 'react-native-date-picker';
 import dayjs from 'dayjs';
+import Popover from 'react-native-popover-view';
 
 import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
 import { RootStackParamList } from 'types/shared';
+import { QuestionCircle } from 'components/common/icons/QuestionCircle';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SIGN_UP_USER_INFO'>;
 
@@ -40,28 +42,45 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
 
   const toggleDatePicker = useCallback((isOpen: boolean) => () => setDatePickerOpen(isOpen), []);
 
-  const handleDateChange = useCallback((date: Date) => {
-    setValue('birthday', dayjs(date).format('YYYY / MM / DD'));
-    toggleDatePicker(false);
-  }, []);
+  const handleDateChange = useCallback(
+    (date: Date) => {
+      setValue('birthday', dayjs(date).format('YYYY / MM / DD'));
+      toggleDatePicker(false);
+    },
+    [setValue, toggleDatePicker],
+  );
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.inputSection}>
-        <View style={styles.titleWrap}>
+        <View>
           <Text style={styles.titleBold}>사용자 정보를</Text>
           <Text style={styles.titleNormal}>입력해주세요</Text>
         </View>
         <View style={styles.formContainer}>
-          <Text
-            style={[
-              styles.label,
-              errors.nickname && styles.error,
-              !errors.nickname && dirtyFields.nickname && styles.valid,
-            ]}
-          >
-            닉네임
-          </Text>
+          <View style={styles.labelWrap}>
+            <Text
+              style={[
+                styles.label,
+                errors.nickname && styles.error,
+                !errors.nickname && dirtyFields.nickname && styles.valid,
+              ]}
+            >
+              닉네임
+            </Text>
+            <Popover
+              from={
+                <Pressable>
+                  <QuestionCircle />
+                </Pressable>
+              }
+              backgroundStyle={styles.popoverBackground}
+              offset={4}
+              popoverStyle={styles.popoverStyle}
+            >
+              <Text style={styles.popoverTitle}>{'닉네임은 회원가입 이후 \n내 정보에서 변경할 수 있습니다.'}</Text>
+            </Popover>
+          </View>
           <Controller
             name="nickname"
             control={control}
@@ -92,7 +111,6 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
                   }}
                   value={value}
                 />
-                {/*{errors.nickname && <HelperText type="error">{errors.nickname?.message}</HelperText>}*/}
               </>
             )}
           />
@@ -198,6 +216,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 32,
   },
+  labelWrap: { flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
+  popoverStyle: { backgroundColor: theme.COLORS.DEFAULT.BLACK, paddingVertical: 12, paddingHorizontal: 8 },
+  popoverBackground: { opacity: 0 },
+  popoverTitle: { color: theme.COLORS.DEFAULT.WHITE, textAlign: 'center' },
   default: {
     color: theme.COLORS.GRAY_SCALE.GRAY_600,
   },
@@ -205,7 +227,6 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     fontSize: 12,
   },
-  titleWrap: {},
   titleBold: {
     fontSize: 28,
     fontWeight: 'bold',
