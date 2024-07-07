@@ -3,16 +3,18 @@ import { Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import { login } from '@react-native-seoul/kakao-login';
 
 import { KakaoSymbol } from 'components/common/icons/KakaoSymbol';
-import { Props } from 'screens/Login';
+import { useAuthToken } from 'hooks/auth/useAuthToken';
 
-const KakaoLoginButton = ({ setIsLoggedIn }: Props) => {
+const KakaoLoginButton = () => {
+  const [_, setIdToken] = useAuthToken();
+
   const signInWithKakao = async () => {
     return await login()
       .then(result => {
         if (!result.idToken) {
           throw 'identify token이 존재하지 않습니다.';
         }
-        setIsLoggedIn(true);
+        setIdToken(result.idToken);
       })
       .catch(error => {
         console.log('Error: ', error);

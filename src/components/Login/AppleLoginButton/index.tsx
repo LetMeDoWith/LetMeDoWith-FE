@@ -3,9 +3,11 @@ import { Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import appleAuth from '@invertase/react-native-apple-authentication';
 
 import { AppleSymbol } from 'components/common/icons/AppleSymbol';
-import { Props } from 'screens/Login';
+import { useAuthToken } from 'hooks/auth/useAuthToken';
 
-const AppleLoginButton = ({ setIsLoggedIn }: Props) => {
+const AppleLoginButton = () => {
+  const [_, setIdToken] = useAuthToken();
+
   const signInWithApple = async () => {
     try {
       const appleAuthRequestResponse = await appleAuth.performRequest({
@@ -16,7 +18,7 @@ const AppleLoginButton = ({ setIsLoggedIn }: Props) => {
       if (!appleAuthRequestResponse.identityToken) {
         throw 'identify token이 존재하지 않습니다.';
       }
-      setIsLoggedIn(true);
+      setIdToken(appleAuthRequestResponse.identityToken);
     } catch (e: any) {
       if (e.code === appleAuth.Error.CANCELED) {
         console.warn('사용자가 로그인을 취소하였습니다.');

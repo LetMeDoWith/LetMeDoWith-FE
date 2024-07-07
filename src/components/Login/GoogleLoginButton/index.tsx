@@ -4,14 +4,10 @@ import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 import { GoogleSymbol } from 'components/common/icons/GoogleSymbol';
-import { Props } from 'screens/Login';
+import { useAuthToken } from 'hooks/auth/useAuthToken';
 
-const GoogleLoginButton = ({ setIsLoggedIn }: Props) => {
-  useEffect(() => {
-    GoogleSignin.configure({
-      webClientId: Config.GOOGLE_WEB_CLIENT_ID,
-    });
-  }, []);
+const GoogleLoginButton = () => {
+  const [_, setIdToken] = useAuthToken();
 
   const signInWithGoogle = async () => {
     try {
@@ -20,11 +16,17 @@ const GoogleLoginButton = ({ setIsLoggedIn }: Props) => {
       if (!result.idToken) {
         throw 'identify token이 존재하지 않습니다.';
       }
-      setIsLoggedIn(true);
+      setIdToken(result.idToken);
     } catch (error) {
       console.error(error);
     }
   };
+
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: Config.GOOGLE_WEB_CLIENT_ID,
+    });
+  }, []);
 
   return (
     <Pressable style={styles.container} onPress={signInWithGoogle}>

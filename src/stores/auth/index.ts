@@ -49,6 +49,7 @@ const useAuthStore = create<State & Action>()(
       getTokenInfo: async () => {
         try {
           const data = await EncryptedStorage.getItem('tokenInfoStorage');
+
           if (data) {
             const {
               state: { tokenInfo },
@@ -80,9 +81,9 @@ const useAuthStore = create<State & Action>()(
         set({ tokenInfo: { ...get().tokenInfo, ...info } });
       },
       removeTokenInfo: async () => {
-        set(initialState);
         try {
           await EncryptedStorage.removeItem('tokenInfoStorage');
+          set(initialState);
         } catch (error) {
           console.error('Failed to remove token info:', error);
         }
@@ -91,7 +92,6 @@ const useAuthStore = create<State & Action>()(
     {
       name: 'tokenInfoStorage',
       storage: createJSONStorage(() => EncryptedStorage),
-      // state를 저장할 때 호출되는 함수
       onRehydrateStorage: () => {
         console.log('Rehydrating state from encrypted storage');
       },
