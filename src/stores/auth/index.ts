@@ -8,26 +8,24 @@ type Token = {
   expireAt: string;
 };
 
-type RefreshToken = Token & {
-  memberId: number;
-};
-
 type State = {
   tokenInfo: {
     signup: Token | null;
     access: Token | null;
-    refresh: RefreshToken | null;
+    refresh: Token | null;
   };
   isLoggedIn: boolean;
   isNeedSignUp: boolean;
+  isNeedRefreshToken: boolean;
 };
 
 type Action = {
-  getTokenInfo: () => Promise<void>;
+  validateTokenInfo: () => Promise<void>;
   setTokenInfo: (token: Partial<State['tokenInfo']>) => void;
   removeTokenInfo: () => void;
   setIsLoggedIn: (value: boolean) => void;
   setIsNeedSignUp: (value: boolean) => void;
+  setIsNeedRefreshToken: (value: boolean) => void;
 };
 
 const initialState = {
@@ -38,6 +36,7 @@ const initialState = {
   },
   isLoggedIn: false,
   isNeedSignUp: false,
+  isNeedRefreshToken: false,
 };
 
 const useAuthStore = create<State & Action>()(
@@ -46,7 +45,8 @@ const useAuthStore = create<State & Action>()(
       ...initialState,
       setIsLoggedIn: (isLoggedIn: boolean) => set({ isLoggedIn }),
       setIsNeedSignUp: (isNeedSignUp: boolean) => set({ isNeedSignUp }),
-      getTokenInfo: async () => {
+      setIsNeedRefreshToken: (isNeedRefreshToken: boolean) => set({ isNeedRefreshToken }),
+      validateTokenInfo: async () => {
         try {
           const data = await EncryptedStorage.getItem('tokenInfoStorage');
 
@@ -55,19 +55,27 @@ const useAuthStore = create<State & Action>()(
               state: { tokenInfo },
             } = JSON.parse(data);
 
-            // 액세스 토큰이 존재하는 경우
-            if (tokenInfo.access) {
+            // 액세스 토큰, refresh 토큰이 존재하는 경우
+            if (tokenInfo.access && tokenInfo.refresh) {
               // 액세스 토큰이 만료 된 경우
               if (dayjs().isBefore(tokenInfo.access.expireAt)) {
-                set({ isLoggedIn: false, isNeedSignUp: true });
-                // TODO: 토큰 Refresh API 연동
-              } else {
-                set({ isLoggedIn: true, isNeedSignUp: false });
+                set({ isLoggedIn: false, isNeedSignUp: false });
+                // refresh 토큰이 만료된 경우
+                if (dayjs().isBefore(tokenInfo.refresh.expireAt)) {
+                  set({ isNeedRefreshToken: false });
+                } else {
+                  set({ isNeedRefreshToken: true });
+                }
               }
+              set({ isLoggedIn: true, isNeedSignUp: false, isNeedRefreshToken: false });
             }
 
             // 회원가입을 완료하지 않았을 경우
             if (tokenInfo.signup) {
+              // 회원가입 토큰이 만료 된 경우
+              if (dayjs().isBefore(tokenInfo.signup.expireAt)) {
+                set({ isLoggedIn: false, isNeedSignUp: false });
+              }
               set({ isLoggedIn: true, isNeedSignUp: true });
             }
 
