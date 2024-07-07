@@ -1,15 +1,11 @@
-import React, { Dispatch, SetStateAction } from 'react';
+import React from 'react';
 import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 
 import { KakaoLoginButton } from 'components/Login/KakaoLoginButton';
 import { GoogleLoginButton } from 'components/Login/GoogleLoginButton';
 import { AppleLoginButton } from 'components/Login/AppleLoginButton';
 
-export interface Props {
-  setIsLoggedIn: Dispatch<SetStateAction<boolean>>;
-}
-
-const Login = ({ setIsLoggedIn }: Props) => {
+const Login = () => {
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
@@ -23,9 +19,9 @@ const Login = ({ setIsLoggedIn }: Props) => {
         </View>
       </View>
       <View style={styles.buttonContainer}>
-        <KakaoLoginButton setIsLoggedIn={setIsLoggedIn} />
-        <GoogleLoginButton setIsLoggedIn={setIsLoggedIn} />
-        {Platform.OS === 'ios' && <AppleLoginButton setIsLoggedIn={setIsLoggedIn} />}
+        <KakaoLoginButton />
+        <GoogleLoginButton />
+        {Platform.OS === 'ios' && <AppleLoginButton />}
       </View>
     </View>
   );
