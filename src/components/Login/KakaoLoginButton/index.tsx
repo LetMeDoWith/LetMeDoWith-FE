@@ -4,9 +4,10 @@ import { login } from '@react-native-seoul/kakao-login';
 
 import { KakaoSymbol } from 'components/common/icons/KakaoSymbol';
 import { useAuthToken } from 'hooks/auth/useAuthToken';
+import { ProviderEnum } from 'schemes/auth/enum';
 
 const KakaoLoginButton = () => {
-  const [_, setIdToken] = useAuthToken();
+  const [_, setIdToken] = useAuthToken(ProviderEnum.enum.KAKAO);
 
   const signInWithKakao = async () => {
     return await login()

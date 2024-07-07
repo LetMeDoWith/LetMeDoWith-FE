@@ -5,9 +5,10 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 import { GoogleSymbol } from 'components/common/icons/GoogleSymbol';
 import { useAuthToken } from 'hooks/auth/useAuthToken';
+import { ProviderEnum } from 'schemes/auth/enum';
 
 const GoogleLoginButton = () => {
-  const [_, setIdToken] = useAuthToken();
+  const [_, setIdToken] = useAuthToken(ProviderEnum.enum.GOOGLE);
 
   const signInWithGoogle = async () => {
     try {

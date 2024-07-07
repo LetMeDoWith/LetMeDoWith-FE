@@ -4,9 +4,10 @@ import appleAuth from '@invertase/react-native-apple-authentication';
 
 import { AppleSymbol } from 'components/common/icons/AppleSymbol';
 import { useAuthToken } from 'hooks/auth/useAuthToken';
+import { ProviderEnum } from 'schemes/auth/enum';
 
 const AppleLoginButton = () => {
-  const [_, setIdToken] = useAuthToken();
+  const [_, setIdToken] = useAuthToken(ProviderEnum.enum.APPLE);
 
   const signInWithApple = async () => {
     try {

@@ -2,16 +2,16 @@ import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 
 import { useAuthStore } from 'stores/auth';
 import { useGetTokenQuery } from 'hooks/queries/auth/useGetTokenQuery';
-import { ProviderEnum } from 'schemes/auth/enum';
+import type { ProviderEnumType } from 'types/auth/scheme/enum';
 
 /**
  * 토큰에 대해 유효성 검사를 하는 custom hook
  */
-const useAuthToken = (): [string, Dispatch<SetStateAction<string>>] => {
+const useAuthToken = (provider: ProviderEnumType): [string, Dispatch<SetStateAction<string>>] => {
   const { getTokenInfo, setTokenInfo, setIsLoggedIn, setIsNeedSignUp } = useAuthStore();
   const [idToken, setIdToken] = useState('');
 
-  const { data } = useGetTokenQuery({ provider: ProviderEnum.enum.KAKAO, idToken }, { enabled: !!idToken });
+  const { data } = useGetTokenQuery({ provider, idToken }, { enabled: !!idToken });
 
   // 스토리지에 있는 토큰 유효성 검사
   useEffect(() => {
