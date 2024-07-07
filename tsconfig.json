@@ -10,11 +10,12 @@
         "hooks/*": ["hooks/*"],
         "screens/*": ["screens/*"],
         "services/*": ["services/*"],
-        "store/*": ["store/*"],
+        "stores/*": ["stores/*"],
         "styles/*": ["styles/*"],
         "types/*": ["types/*"],
         "utils/*": ["utils/*"],
         "constants/*": ["constants/*"],
+        "schemes/*": ["schemes/*"],
       },
   }
 }
