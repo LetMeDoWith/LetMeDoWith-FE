@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { IconButton } from 'react-native-paper';
 
 import useTheme from 'hooks/shared/useTheme';
 import { Feed } from 'screens/Feed';
@@ -8,7 +9,8 @@ import { Mypage } from 'screens/Mypage';
 import { HomeIcon } from 'components/common/icons/HomeIcon';
 import { FeedIcon } from 'components/common/icons/FeedIcon';
 import { MypageIcon } from 'components/common/icons/MypageIcon';
-import { BottomTabParamList } from 'types/shared';
+import type { BottomTabParamList } from 'types/shared';
+import { theme } from 'styles/theme';
 
 const BottomTabNavigator = () => {
   const { Navigator, Screen } = createBottomTabNavigator<BottomTabParamList>();
@@ -63,6 +65,16 @@ const BottomTabNavigator = () => {
             <MypageIcon
               fill={focused ? PRIMARY.RED_500 : DEFAULT.WHITE}
               stroke={focused ? PRIMARY.RED_500 : GRAY_SCALE.GRAY_600}
+            />
+          ),
+          headerRight: () => (
+            <IconButton
+              icon="cog-outline"
+              iconColor={theme.COLORS.DEFAULT.BLACK}
+              size={18}
+              onPress={() => {
+                console.log('click');
+              }}
             />
           ),
         }}

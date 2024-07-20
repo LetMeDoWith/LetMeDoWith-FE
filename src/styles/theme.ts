@@ -33,7 +33,7 @@ const theme = {
       GRAY_800: '#333333',
       GRAY_900: '#111111',
       BLUE_GRAY_100: '#F5F8FF',
-      BLUE_GRAY_200: '#F4F5FA',
+      BLUE_GRAY_200: '#F5F8FF',
       BLUE_GRAY_300: '#FAFAFA',
     },
   },
