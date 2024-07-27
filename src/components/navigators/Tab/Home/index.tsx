@@ -9,18 +9,18 @@ import { Mypage } from 'screens/Mypage';
 import { HomeIcon } from 'components/common/icons/HomeIcon';
 import { FeedIcon } from 'components/common/icons/FeedIcon';
 import { MypageIcon } from 'components/common/icons/MypageIcon';
-import type { BottomTabParamList } from 'types/shared';
 import { theme } from 'styles/theme';
+import type { HomeTabParamList, RootStackScreenProps } from 'types/shared';
 
-const BottomTabNavigator = () => {
-  const { Navigator, Screen } = createBottomTabNavigator<BottomTabParamList>();
+const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
+  const { Navigator, Screen } = createBottomTabNavigator<HomeTabParamList>();
   const {
     COLORS: { DEFAULT, PRIMARY, GRAY_SCALE },
   } = useTheme();
 
   return (
     <Navigator
-      initialRouteName="HOME"
+      initialRouteName="MYTODO"
       screenOptions={{
         headerTitleAlign: 'center',
         tabBarActiveTintColor: PRIMARY.RED_500,
@@ -42,7 +42,7 @@ const BottomTabNavigator = () => {
         }}
       />
       <Screen
-        name="HOME"
+        name="MYTODO"
         component={Home}
         options={{
           headerTitle: '마이투두',
@@ -73,7 +73,7 @@ const BottomTabNavigator = () => {
               iconColor={theme.COLORS.DEFAULT.BLACK}
               size={18}
               onPress={() => {
-                console.log('click');
+                navigation.navigate('SETTING');
               }}
             />
           ),

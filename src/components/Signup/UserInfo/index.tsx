@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Controller, useFormContext } from 'react-hook-form';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
-import { NativeStackScreenProps } from 'react-native-screens/native-stack';
 import { HelperText } from 'react-native-paper';
 import DatePicker from 'react-native-date-picker';
 import dayjs from 'dayjs';
@@ -12,12 +11,10 @@ import Popover from 'react-native-popover-view';
 
 import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
-import { RootStackParamList } from 'types/shared';
+import type { SignUpStackScreenProps } from 'types/shared';
 import { QuestionCircle } from 'components/common/icons/QuestionCircle';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'SIGN_UP_USER_INFO'>;
-
-const UserInfo = ({ navigation: { navigate } }: Props) => {
+const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_USER_INFO'>) => {
   const {
     control,
     watch,

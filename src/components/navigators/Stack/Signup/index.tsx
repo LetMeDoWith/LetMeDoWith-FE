@@ -4,14 +4,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { ServiceAgree } from 'components/Signup/ServiceAgree';
 import { UserInfo } from 'components/Signup/UserInfo';
 import { theme } from 'styles/theme';
-
-export type RootStackParamList = {
-  SIGN_UP_USER_INFO: undefined;
-  SIGN_UP_AGREEMENT: undefined;
-};
+import type { SignUpStackParamList } from 'types/shared';
 
 const SignupStackNavigator = () => {
-  const { Navigator, Screen } = createStackNavigator<RootStackParamList>();
+  const { Navigator, Screen } = createStackNavigator<SignUpStackParamList>();
   return (
     <Navigator
       initialRouteName="SIGN_UP_USER_INFO"

@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Login } from 'screens/Login';
-import { BottomTabNavigator } from 'components/navigators/BottomTabNavigator';
+import { HomeStackNavigator } from 'components/navigators/Stack/Home';
 import { ThemeContext } from 'hooks/shared/useTheme';
 import { theme } from 'styles/theme';
 import { Signup } from 'screens/Signup';
@@ -18,7 +18,7 @@ function App(): React.JSX.Element {
       <View style={styles.container}>
         {isLoggedIn ? (
           <SafeAreaProvider>
-            <NavigationContainer>{isNeedSignUp ? <Signup /> : <BottomTabNavigator />}</NavigationContainer>
+            <NavigationContainer>{isNeedSignUp ? <Signup /> : <HomeStackNavigator />}</NavigationContainer>
           </SafeAreaProvider>
         ) : (
           <Login setIsLoggedIn={setIsLoggedIn} />
