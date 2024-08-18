@@ -1,10 +1,12 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, Dimensions, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { Checkbox, Divider } from 'react-native-paper';
+import { getBottomSpace } from 'react-native-iphone-screen-helper';
 
 import { theme } from 'styles/theme';
+import { isAos } from 'utils/device';
 
 const CHECKBOX_MAP_LIST = [
   { label: 'age_agree', text: '(필수) 만 14세 이상입니다.', isLinkable: false },
@@ -118,10 +120,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 32,
     justifyContent: 'space-between',
-    height:
-      Platform.OS === 'android'
-        ? Dimensions.get('window').height - getStatusBarHeight()
-        : Dimensions.get('window').height - getStatusBarHeight() - 34,
+    height: isAos
+      ? Dimensions.get('window').height - getStatusBarHeight()
+      : Dimensions.get('window').height - getStatusBarHeight() - getBottomSpace(),
   },
   inputSection: {
     // gap: 40,

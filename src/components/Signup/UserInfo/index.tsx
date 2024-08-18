@@ -101,9 +101,17 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
                     !errors.nickname && dirtyFields.nickname && styles.validBorder,
                   ]}
                   placeholder="닉네임을 입력해주세요"
-                  onChangeText={onChange}
+                  onChangeText={value => {
+                    onChange(value);
+
+                    // 값이 비어졌을 때 에러 초기화
+                    if (value !== '') return;
+                    clearErrors('nickname');
+                  }}
                   onBlur={() => {
                     if (!dirtyFields.nickname) return;
+
+                    // TODO: 이미 사용 중인 닉네임인지 여부 검사
 
                     if (nickname.length < 2 || nickname.length > 7) {
                       setError('nickname', { type: 'nickname', message: '* 닉네임 길이 조건을 확인해주세요.' });
@@ -132,6 +140,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
               padding="none"
               style={[styles.message, dirtyFields.nickname ? styles.valid : styles.default]}
             >
+              {/* TODO: 사용 가능한 닉네임인지 판단 여부 api 연동 필요 */}
               {dirtyFields.nickname ? '사용 가능한 닉네임이에요.' : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
             </HelperText>
           )}
