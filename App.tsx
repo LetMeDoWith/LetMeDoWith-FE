@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { PaperProvider, Portal } from 'react-native-paper';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { Login } from 'screens/Login';
 import { HomeStackNavigator } from 'components/navigators/Stack/Home';
@@ -10,20 +12,26 @@ import { theme } from 'styles/theme';
 import { Signup } from 'screens/Signup';
 
 function App(): React.JSX.Element {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isNeedSignUp] = useState<boolean>(true);
 
   return (
     <ThemeContext.Provider value={theme}>
-      <View style={styles.container}>
-        {isLoggedIn ? (
-          <SafeAreaProvider>
-            <NavigationContainer>{isNeedSignUp ? <Signup /> : <HomeStackNavigator />}</NavigationContainer>
-          </SafeAreaProvider>
-        ) : (
-          <Login setIsLoggedIn={setIsLoggedIn} />
-        )}
-      </View>
+      <PaperProvider>
+        <Portal>
+          <View style={styles.container}>
+            {!isLoggedIn ? (
+              <SafeAreaProvider>
+                <KeyboardProvider>
+                  <NavigationContainer>{!isNeedSignUp ? <Signup /> : <HomeStackNavigator />}</NavigationContainer>
+                </KeyboardProvider>
+              </SafeAreaProvider>
+            ) : (
+              <Login setIsLoggedIn={setIsLoggedIn} />
+            )}
+          </View>
+        </Portal>
+      </PaperProvider>
     </ThemeContext.Provider>
   );
 }

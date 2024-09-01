@@ -1,19 +1,24 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleProp, StyleSheet, Text, ViewStyle } from 'react-native';
 import { IconButton } from 'react-native-paper';
 
 import { theme } from 'styles/theme';
 
 interface Props {
   title: string;
+  style?: StyleProp<ViewStyle>;
   onPress?: () => void;
   isArrowVisible?: boolean;
   content?: string;
 }
 
-const BasicMenu = ({ title, onPress, isArrowVisible = true, content }: Props) => (
+const BasicMenu = ({ title, style, onPress, isArrowVisible = true, content }: Props) => (
   <Pressable
-    style={isArrowVisible ? styles.container : [styles.container, { paddingVertical: 18, paddingHorizontal: 24 }]}
+    style={
+      isArrowVisible
+        ? [styles.container, style]
+        : [styles.container, { paddingVertical: 18, paddingHorizontal: 24 }, style]
+    }
     onPress={onPress}
   >
     <Text>{title}</Text>
