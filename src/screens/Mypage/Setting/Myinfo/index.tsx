@@ -4,6 +4,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { HelperText, TextInput } from 'react-native-paper';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
@@ -79,7 +80,7 @@ const Myinfo = () => {
   const isButtonDisabled = useMemo(() => !nickname, [nickname]);
 
   return (
-    <View style={styles.container}>
+    <KeyboardAwareScrollView contentContainerStyle={styles.container} disableScrollOnKeyboardHide={true}>
       <View style={styles.contentWrap}>
         <View style={styles.imageWrap}>
           <Pressable
@@ -128,7 +129,10 @@ const Myinfo = () => {
                       }
 
                       if (nickname.match(/[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9/]/)) {
-                        setError('nickname', { type: 'nickname', message: '* 띄워쓰기, 특수문자는 사용할 수 없어요.' });
+                        setError('nickname', {
+                          type: 'nickname',
+                          message: '* 띄워쓰기, 특수문자는 사용할 수 없어요.',
+                        });
                         return;
                       }
 
@@ -211,16 +215,16 @@ const Myinfo = () => {
         onConfirm={onPressConfirmButton}
         onCancel={onPressCancelButton}
       />
-    </View>
+    </KeyboardAwareScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     width: Dimensions.get('window').width,
-    height: isAos
-      ? Dimensions.get('window').height - getStatusBarHeight() - 30
-      : Dimensions.get('window').height - getStatusBarHeight() - getBottomSpace(),
+    minHeight: isAos
+      ? Dimensions.get('window').height - getStatusBarHeight() - 50
+      : Dimensions.get('window').height - getStatusBarHeight() - getBottomSpace() - 20,
     paddingTop: 11,
     paddingBottom: 26,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
@@ -258,6 +262,10 @@ const styles = StyleSheet.create({
     color: theme.COLORS.PRIMARY.RED_500,
   },
   button: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     justifyContent: 'center',
     alignItems: 'center',
     height: 64,
