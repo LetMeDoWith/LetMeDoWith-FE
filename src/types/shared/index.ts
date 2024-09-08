@@ -32,6 +32,7 @@ type SettingStackParamList = {
   MYINFO: undefined;
   NOTIFICATION: undefined;
   POLICY: undefined;
+  BADGE_INFO: undefined;
 };
 
 type SettingStackScreenProps<T extends keyof SettingStackParamList> = StackScreenProps<SettingStackParamList, T>;
