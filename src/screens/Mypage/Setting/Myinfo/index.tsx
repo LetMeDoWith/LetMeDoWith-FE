@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
-import { HelperText, TextInput } from 'react-native-paper';
+import { HelperText, IconButton, TextInput } from 'react-native-paper';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -11,13 +11,14 @@ import { isAos } from 'utils/device';
 import { BasicMenu } from 'components/Mypage/Setting/Menu';
 import { ConfirmModal } from 'components/common/Modal';
 import { DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT, LOGOUT_CONFIRM_MODAL_CONTENT } from 'constants/Mypage';
+import type { SettingStackScreenProps } from 'types/shared';
 
 type FormData = {
   nickname: string;
   description: string;
 };
 
-const Myinfo = () => {
+const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'LOGOUT' | 'DELETE_ACCOUNT' | null>(null);
 
@@ -84,8 +85,9 @@ const Myinfo = () => {
       <View style={styles.contentWrap}>
         <View style={styles.imageWrap}>
           <Pressable
+            style={{ width: 50, height: 50 }}
             onPress={() => {
-              console.log('click');
+              navigate('BADGE_INFO');
             }}
           >
             <Image
@@ -93,6 +95,12 @@ const Myinfo = () => {
               source={{
                 uri: 'https://ichef.bbci.co.uk/news/1536/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg.webp',
               }}
+            />
+            <IconButton
+              style={{ position: 'relative', left: 25, bottom: 25 }}
+              icon="pencil-circle"
+              iconColor={theme.COLORS.GRAY_SCALE.GRAY_500}
+              size={22}
             />
           </Pressable>
           <Text style={styles.badgeText}>뉴비기너</Text>
@@ -240,8 +248,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   image: {
-    width: 50,
-    height: 50,
+    borderRadius: 10,
+    width: '100%',
+    height: '100%',
   },
   formContainer: {
     gap: 26,
