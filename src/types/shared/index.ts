@@ -27,10 +27,18 @@ type HomeTabScreenProps<T extends keyof HomeTabParamList> = CompositeScreenProps
   RootStackScreenProps<keyof RootStackParamList>
 >;
 
+type NoticeType = 'NOTICE' | 'EVENT';
+
 type SettingStackParamList = {
   DEFAULT: undefined;
   MYINFO: undefined;
   NOTIFICATION: undefined;
+  NOTICE: undefined;
+  NOTICE_DETAIL: {
+    type: NoticeType;
+    title: string;
+    date: string;
+  };
   POLICY: undefined;
   BADGE_INFO: undefined;
 };
@@ -46,4 +54,5 @@ export type {
   HomeTabScreenProps,
   SettingStackParamList,
   SettingStackScreenProps,
+  NoticeType,
 };
