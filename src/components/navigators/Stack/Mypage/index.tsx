@@ -7,6 +7,7 @@ import { Myinfo } from 'screens/Mypage/Setting/Myinfo';
 import { Notification } from 'screens/Mypage/Setting/Notification';
 import { Policy } from 'screens/Mypage/Setting/Policy';
 import { BadgeInfo } from 'screens/Mypage/Setting/BadgeInfo';
+import { NoticeDetail, NoticeList } from 'screens/Mypage/Setting/Notice';
 import type { SettingStackParamList } from 'types/shared';
 
 const SettingStackNavigator = () => {
@@ -24,6 +25,8 @@ const SettingStackNavigator = () => {
       <Screen name="DEFAULT" component={Setting} options={{ headerTitle: '설정' }} />
       <Screen name="MYINFO" component={Myinfo} options={{ headerTitle: '내 정보 관리' }} />
       <Screen name="NOTIFICATION" component={Notification} options={{ headerTitle: '알림설정' }} />
+      <Screen name="NOTICE" component={NoticeList} options={{ headerTitle: '이벤트 & 공지사항' }} />
+      <Screen name="NOTICE_DETAIL" component={NoticeDetail} options={{ headerTitle: '이벤트 & 공지사항' }} />
       <Screen name="POLICY" component={Policy} options={{ headerTitle: '이용약관' }} />
       <Screen name="BADGE_INFO" component={BadgeInfo} options={{ headerTitle: '보유한 뱃지' }} />
     </Navigator>
