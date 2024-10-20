@@ -1,8 +1,8 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
-import { Checkbox, Divider } from 'react-native-paper';
+import { Checkbox, Divider, IconButton } from 'react-native-paper';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 
 import { theme } from 'styles/theme';
@@ -21,13 +21,14 @@ const ServiceAgree = () => {
   const ageAgree = watch('age_agree');
   const serviceAgree = watch('service_agree');
   const privateAgree = watch('private_agree');
+  const marketingAgree = watch('marketing_agree');
 
   const isButtonDisabled = useMemo(() => {
-    if (ageAgree && serviceAgree && privateAgree) {
+    if (allChecked) {
       return false;
     }
 
-    if (allChecked) {
+    if (ageAgree && serviceAgree && privateAgree) {
       return false;
     }
 
@@ -67,34 +68,52 @@ const ServiceAgree = () => {
 
   const getCheckboxStatus = useCallback((label: string) => (watch(label) ? 'checked' : 'unchecked'), [watch]);
 
+  useEffect(() => {
+    if (ageAgree && serviceAgree && privateAgree && marketingAgree) {
+      return;
+    }
+    setAllChecked(false);
+  }, [ageAgree, serviceAgree, privateAgree, marketingAgree]);
+
   return (
     <View style={styles.container}>
-      <View style={styles.inputSection}>
+      <View>
         <View style={styles.titleWrap}>
-          <Text style={styles.titleBold}>서비스 이용 약관에</Text>
-          <Text style={styles.titleNormal}>동의해주세요</Text>
+          <Text style={styles.titleBold}>이용 약관에 동의해주시면</Text>
+          <Text style={styles.titleNormal}>회원가입이 끝나요!</Text>
         </View>
-        <Divider style={styles.topDivider} />
-        <View style={styles.checkboxWrap}>
-          {CHECKBOX_MAP_LIST.map(item => (
+        <Divider style={styles.divider} />
+        <View>
+          {CHECKBOX_MAP_LIST.map(({ label, text, isLinkable }) => (
             <Controller
-              key={item.label}
-              name={item.label}
+              key={label}
+              name={label}
               control={control}
               render={() => (
-                <View style={styles.formRow}>
-                  <Checkbox.Android
-                    color={theme.COLORS.PRIMARY.RED_500}
-                    status={getCheckboxStatus(item.label)}
-                    onPress={onPressCheckBox(item.label)}
-                  />
-                  <Text>{item.text}</Text>
-                </View>
+                <Pressable
+                  style={[styles.menu, !isLinkable && { paddingVertical: 12 }]}
+                  onPress={() => {
+                    // TODO: 링크 및 랜딩 페이지 확정되면 onPress 핸들러 등록
+                    console.log('click');
+                  }}
+                >
+                  <View style={styles.formRow}>
+                    <Checkbox.Android
+                      color={theme.COLORS.PRIMARY.RED_500}
+                      status={getCheckboxStatus(label)}
+                      onPress={onPressCheckBox(label)}
+                    />
+                    <Text>{text}</Text>
+                  </View>
+                  {isLinkable && (
+                    <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_500} size={16} />
+                  )}
+                </Pressable>
               )}
             />
           ))}
         </View>
-        <Divider style={styles.bottomDivider} bold />
+        <Divider style={styles.divider} />
         <View style={[styles.formRow, { marginTop: 20 }]}>
           <Checkbox.Android
             color={theme.COLORS.PRIMARY.RED_500}
@@ -109,7 +128,7 @@ const ServiceAgree = () => {
         onPress={handleSubmit(onSubmit)}
         disabled={isButtonDisabled}
       >
-        <Text style={styles.buttonText}>가입 완료하기</Text>
+        <Text style={styles.buttonText}>회원가입 완료</Text>
       </Pressable>
     </View>
   );
@@ -124,33 +143,33 @@ const styles = StyleSheet.create({
       ? Dimensions.get('window').height - getStatusBarHeight()
       : Dimensions.get('window').height - getStatusBarHeight() - getBottomSpace(),
   },
-  inputSection: {
-    // gap: 40,
-  },
   titleWrap: {
     marginBottom: 38,
+    gap: 8,
   },
   titleBold: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
   },
   titleNormal: {
-    fontSize: 28,
+    fontSize: 24,
     alignItems: 'center',
+  },
+  menu: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_500,
   },
   formRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  checkboxWrap: {
-    gap: 10,
-  },
-  topDivider: { marginBottom: 20 },
-  bottomDivider: { marginTop: 20 },
-
+  divider: { borderWidth: 0.3 },
   button: {
     marginBottom: 32,
-    marginHorizontal: 24,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
