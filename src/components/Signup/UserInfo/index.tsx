@@ -2,17 +2,15 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Controller, useFormContext } from 'react-hook-form';
-import DropDownPicker from 'react-native-dropdown-picker';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { HelperText } from 'react-native-paper';
 import DatePicker from 'react-native-date-picker';
 import dayjs from 'dayjs';
-import Popover from 'react-native-popover-view';
 
 import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
 import type { SignUpStackScreenProps } from 'types/shared';
-import { QuestionCircle } from 'components/common/icons/QuestionCircle';
+import { hexToRgba } from 'utils/style';
 
 const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_USER_INFO'>) => {
   const {
@@ -34,19 +32,14 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
     [top, bottom],
   );
 
-  const [selectBoxOpen, setSelectBoxOpen] = useState<boolean>(false);
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
 
   const nickname = watch('nickname');
   const birthday = watch('birthday');
   const gender = watch('gender');
 
-  const isButtonDisabled = useMemo(() => !(nickname && birthday && gender), [nickname, birthday, gender]);
-
-  const selectItems = [
-    { label: '남성', value: 'male' },
-    { label: '여성', value: 'female' },
-  ];
+  const isFieldErrorExisted = Object.keys(errors).length > 0;
+  const isButtonDisabled = !(nickname && birthday && gender) || isFieldErrorExisted;
 
   const toggleDatePicker = useCallback((isOpen: boolean) => () => setDatePickerOpen(isOpen), []);
 
@@ -58,12 +51,19 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
     [setValue, toggleDatePicker],
   );
 
+  const handleGenderChange = useCallback(
+    (gender: 'male' | 'female') => () => {
+      setValue('gender', gender);
+    },
+    [setValue],
+  );
+
   return (
     <ScrollView contentContainerStyle={[styles.container, heightStyle]}>
       <View style={styles.inputSection}>
-        <View>
-          <Text style={styles.titleBold}>사용자 정보를</Text>
-          <Text style={styles.titleNormal}>입력해주세요</Text>
+        <View style={styles.titleWrap}>
+          <Text style={styles.titleNormal}>반가워요!</Text>
+          <Text style={styles.titleBold}>사용자 정보를 입력해주세요</Text>
         </View>
         <View style={styles.formContainer}>
           <View style={styles.labelWrap}>
@@ -76,18 +76,6 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
             >
               닉네임
             </Text>
-            <Popover
-              from={
-                <Pressable>
-                  <QuestionCircle />
-                </Pressable>
-              }
-              backgroundStyle={styles.popoverBackground}
-              offset={4}
-              popoverStyle={styles.popoverStyle}
-            >
-              <Text style={styles.popoverTitle}>{'닉네임은 회원가입 이후 \n내 정보에서 변경할 수 있습니다.'}</Text>
-            </Popover>
           </View>
           <Controller
             name="nickname"
@@ -180,42 +168,40 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
         <View style={styles.formContainer}>
           <Controller
             control={control}
-            render={({ field }) => (
-              <>
+            render={() => (
+              <View style={styles.genderField}>
                 <Text style={[styles.label, errors.gender && styles.error]}>성별</Text>
-                <DropDownPicker
-                  {...field}
-                  listMode="SCROLLVIEW"
-                  style={styles.selectBox}
-                  dropDownContainerStyle={styles.selectBox}
-                  items={selectItems}
-                  multiple={false}
-                  setValue={cb => {
-                    const value = cb(field.value);
-                    return field.onChange(value);
-                  }}
-                  placeholder="선택"
-                  open={selectBoxOpen}
-                  setOpen={setSelectBoxOpen}
-                  onSelectItem={({ value }) => {
-                    if (!value) return;
-                    setValue('gender', value);
-                  }}
-                />
-              </>
+                <View style={styles.genderButtonGroup}>
+                  <Pressable
+                    style={[styles.genderButton, gender === 'male' && styles.selectGenderButton]}
+                    onPress={handleGenderChange('male')}
+                  >
+                    <Text style={gender === 'male' && styles.selectGenderButtonText}>남성</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.genderButton, gender === 'female' && styles.selectGenderButton]}
+                    onPress={handleGenderChange('female')}
+                  >
+                    <Text style={gender === 'female' && styles.selectGenderButtonText}>여성</Text>
+                  </Pressable>
+                </View>
+              </View>
             )}
             name="gender"
           />
         </View>
       </View>
       <Pressable
-        style={[styles.button, !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_500 }]}
+        style={[
+          styles.submitButton,
+          !isButtonDisabled && { backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_500)}` },
+        ]}
         disabled={isButtonDisabled}
         onPress={() => {
           navigate('SIGN_UP_AGREEMENT');
         }}
       >
-        <Text style={styles.buttonText}>다음</Text>
+        <Text style={styles.submitButtonText}>다음</Text>
       </Pressable>
     </ScrollView>
   );
@@ -231,9 +217,6 @@ const styles = StyleSheet.create({
     gap: 40,
   },
   labelWrap: { flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
-  popoverStyle: { backgroundColor: theme.COLORS.DEFAULT.BLACK, paddingVertical: 12, paddingHorizontal: 8 },
-  popoverBackground: { opacity: 0 },
-  popoverTitle: { color: theme.COLORS.DEFAULT.WHITE, textAlign: 'center' },
   default: {
     color: theme.COLORS.GRAY_SCALE.GRAY_600,
   },
@@ -241,13 +224,16 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     fontSize: 12,
   },
-  titleBold: {
-    fontSize: 28,
-    fontWeight: 'bold',
+  titleWrap: {
+    gap: 8,
   },
   titleNormal: {
-    fontSize: 28,
+    fontSize: 24,
     alignItems: 'center',
+  },
+  titleBold: {
+    fontSize: 24,
+    fontWeight: 'bold',
   },
   formContainer: {
     gap: 12,
@@ -258,8 +244,8 @@ const styles = StyleSheet.create({
   input: {
     height: 48,
     borderWidth: 1,
-    borderRadius: 6,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_400,
+    borderRadius: 8,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_500,
     paddingHorizontal: 16,
     color: theme.COLORS.DEFAULT.BLACK,
   },
@@ -275,18 +261,37 @@ const styles = StyleSheet.create({
   errorBorder: {
     borderColor: theme.COLORS.PRIMARY.RED_500,
   },
-  selectBox: {
-    width: Dimensions.get('window').width / 2 - 24,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_400,
+  genderField: {
+    gap: 12,
   },
-  button: {
+  genderButtonGroup: {
+    gap: 8,
+    flexDirection: 'row',
+  },
+  genderButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_400,
+    height: 48,
+  },
+  selectGenderButton: {
+    borderColor: theme.COLORS.PRIMARY.RED_500,
+    backgroundColor: theme.COLORS.PRIMARY.RED_100,
+  },
+  selectGenderButtonText: {
+    color: theme.COLORS.PRIMARY.RED_500,
+  },
+  submitButton: {
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
     height: 56,
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_500,
+    backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_500, 0.36)}`,
   },
-  buttonText: {
+  submitButtonText: {
     fontSize: 18,
     color: theme.COLORS.DEFAULT.WHITE,
   },
