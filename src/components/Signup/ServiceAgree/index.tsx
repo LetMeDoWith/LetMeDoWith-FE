@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
@@ -21,13 +21,14 @@ const ServiceAgree = () => {
   const ageAgree = watch('age_agree');
   const serviceAgree = watch('service_agree');
   const privateAgree = watch('private_agree');
+  const marketingAgree = watch('marketing_agree');
 
   const isButtonDisabled = useMemo(() => {
-    if (ageAgree && serviceAgree && privateAgree) {
+    if (allChecked) {
       return false;
     }
 
-    if (allChecked) {
+    if (ageAgree && serviceAgree && privateAgree) {
       return false;
     }
 
@@ -66,6 +67,13 @@ const ServiceAgree = () => {
   }, [allChecked, setValue]);
 
   const getCheckboxStatus = useCallback((label: string) => (watch(label) ? 'checked' : 'unchecked'), [watch]);
+
+  useEffect(() => {
+    if (ageAgree && serviceAgree && privateAgree && marketingAgree) {
+      return;
+    }
+    setAllChecked(false);
+  }, [ageAgree, serviceAgree, privateAgree, marketingAgree]);
 
   return (
     <View style={styles.container}>
