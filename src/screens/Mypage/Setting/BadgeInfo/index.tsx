@@ -118,7 +118,7 @@ const BadgeInfo = () => {
             </View>
             {isButtonVisible && (
               <Pressable
-                style={[styles.button, !isButtonVisible && { backgroundColor: theme.COLORS.PRIMARY.RED_500 }]}
+                style={[styles.button, !isButtonVisible && { backgroundColor: theme.COLORS.PRIMARY.RED_60 }]}
                 onPress={handleSubmit}
               >
                 <Text style={styles.buttonText}>대표 뱃지로 설정하기</Text>
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     height: 64,
-    backgroundColor: theme.COLORS.PRIMARY.RED_500,
+    backgroundColor: theme.COLORS.PRIMARY.RED_60,
   },
   buttonText: {
     fontSize: 18,

@@ -99,7 +99,7 @@ const ServiceAgree = () => {
                 >
                   <View style={styles.formRow}>
                     <Checkbox.Android
-                      color={theme.COLORS.PRIMARY.RED_500}
+                      color={theme.COLORS.PRIMARY.RED_60}
                       status={getCheckboxStatus(label)}
                       onPress={onPressCheckBox(label)}
                     />
@@ -116,7 +116,7 @@ const ServiceAgree = () => {
         <Divider style={styles.divider} />
         <View style={[styles.formRow, { marginTop: 20 }]}>
           <Checkbox.Android
-            color={theme.COLORS.PRIMARY.RED_500}
+            color={theme.COLORS.PRIMARY.RED_60}
             status={allChecked ? 'checked' : 'unchecked'}
             onPress={onPressAllCheckBox}
           />
@@ -124,7 +124,7 @@ const ServiceAgree = () => {
         </View>
       </View>
       <Pressable
-        style={[styles.button, !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_500 }]}
+        style={[styles.button, !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_60 }]}
         onPress={handleSubmit(onSubmit)}
         disabled={isButtonDisabled}
       >

@@ -21,7 +21,7 @@ const NotificationMenu = ({ title, subTitle }: Props) => {
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subTitle}>{subTitle}</Text>
       </View>
-      <Switch value={isSwitchOn} color={theme.COLORS.PRIMARY.RED_500} onValueChange={onToggleSwitch} />
+      <Switch value={isSwitchOn} color={theme.COLORS.PRIMARY.RED_60} onValueChange={onToggleSwitch} />
     </View>
   );
 };

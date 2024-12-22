@@ -194,7 +194,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
       <Pressable
         style={[
           styles.submitButton,
-          !isButtonDisabled && { backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_500)}` },
+          !isButtonDisabled && { backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60)}` },
         ]}
         disabled={isButtonDisabled}
         onPress={() => {
@@ -253,13 +253,13 @@ const styles = StyleSheet.create({
     color: theme.COLORS.SECONDARY.BLUE_500,
   },
   error: {
-    color: theme.COLORS.PRIMARY.RED_500,
+    color: theme.COLORS.PRIMARY.RED_60,
   },
   validBorder: {
     borderColor: theme.COLORS.SECONDARY.BLUE_500,
   },
   errorBorder: {
-    borderColor: theme.COLORS.PRIMARY.RED_500,
+    borderColor: theme.COLORS.PRIMARY.RED_60,
   },
   genderField: {
     gap: 12,
@@ -278,18 +278,18 @@ const styles = StyleSheet.create({
     height: 48,
   },
   selectGenderButton: {
-    borderColor: theme.COLORS.PRIMARY.RED_500,
-    backgroundColor: theme.COLORS.PRIMARY.RED_100,
+    borderColor: theme.COLORS.PRIMARY.RED_60,
+    backgroundColor: theme.COLORS.PRIMARY.RED_98,
   },
   selectGenderButtonText: {
-    color: theme.COLORS.PRIMARY.RED_500,
+    color: theme.COLORS.PRIMARY.RED_60,
   },
   submitButton: {
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
     height: 56,
-    backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_500, 0.36)}`,
+    backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60, 0.36)}`,
   },
   submitButtonText: {
     fontSize: 18,

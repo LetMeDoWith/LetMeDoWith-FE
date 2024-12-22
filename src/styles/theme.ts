@@ -5,10 +5,9 @@ const theme = {
       BLACK: '#000000',
     },
     PRIMARY: {
-      RED_100: '#FFEAE9',
-      RED_200: '#E08B8C',
-      RED_500: '#FB494D',
-      RED_900: '#504344',
+      RED_98: '#FFF7F5',
+      RED_95: '#FFEBE5',
+      RED_60: '#FF6333',
     },
     SECONDARY: {
       BLUE_500: '#487AFF',

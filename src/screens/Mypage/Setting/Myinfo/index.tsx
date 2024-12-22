@@ -195,7 +195,7 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
         </Text>
       </View>
       <Pressable
-        style={[styles.button, !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_500 }]}
+        style={[styles.button, !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_60 }]}
         disabled={isButtonDisabled}
         onPress={handleSubmit(onSubmit)}
       >
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     color: theme.COLORS.SECONDARY.BLUE_500,
   },
   error: {
-    color: theme.COLORS.PRIMARY.RED_500,
+    color: theme.COLORS.PRIMARY.RED_60,
   },
   button: {
     position: 'absolute',

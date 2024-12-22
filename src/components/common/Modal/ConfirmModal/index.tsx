@@ -47,7 +47,7 @@ const ConfirmModal = ({
           style={
             type === 'outlined'
               ? [styles.button, { borderBottomRightRadius: 8 }]
-              : [styles.button, { borderBottomRightRadius: 8, backgroundColor: theme.COLORS.PRIMARY.RED_500 }]
+              : [styles.button, { borderBottomRightRadius: 8, backgroundColor: theme.COLORS.PRIMARY.RED_60 }]
           }
           onPress={onConfirm}
         >
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   confirmButtonText: {
-    color: theme.COLORS.PRIMARY.RED_500,
+    color: theme.COLORS.PRIMARY.RED_60,
   },
 });
 

@@ -23,7 +23,7 @@ function App(): React.JSX.Element {
             {!isLoggedIn ? (
               <SafeAreaProvider>
                 <KeyboardProvider>
-                  <NavigationContainer>{!isNeedSignUp ? <Signup /> : <HomeStackNavigator />}</NavigationContainer>
+                  <NavigationContainer>{isNeedSignUp ? <Signup /> : <HomeStackNavigator />}</NavigationContainer>
                 </KeyboardProvider>
               </SafeAreaProvider>
             ) : (
