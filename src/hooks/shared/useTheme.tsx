@@ -7,8 +7,9 @@ type Theme = {
     DEFAULT: typeof theme.COLORS.DEFAULT;
     PRIMARY: typeof theme.COLORS.PRIMARY;
     SECONDARY: typeof theme.COLORS.SECONDARY;
-    EMOJI: typeof theme.COLORS.EMOJI;
+    STATUS: typeof theme.COLORS.STATUS;
     GRAY_SCALE: typeof theme.COLORS.GRAY_SCALE;
+    SUB: typeof theme.COLORS.SUB;
   };
 };
 
