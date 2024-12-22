@@ -45,7 +45,7 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
         name="MYTODO"
         component={Home}
         options={{
-          headerTitle: '마이투두',
+          headerShown: false,
           tabBarLabel: '마이투두',
           tabBarIcon: ({ focused }) => (
             <HomeIcon
