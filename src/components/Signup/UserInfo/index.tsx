@@ -250,13 +250,13 @@ const styles = StyleSheet.create({
     color: theme.COLORS.DEFAULT.BLACK,
   },
   valid: {
-    color: theme.COLORS.SECONDARY.BLUE_500,
+    color: theme.COLORS.SUB.BLUE_60,
   },
   error: {
     color: theme.COLORS.PRIMARY.RED_60,
   },
   validBorder: {
-    borderColor: theme.COLORS.SECONDARY.BLUE_500,
+    borderColor: theme.COLORS.SUB.BLUE_60,
   },
   errorBorder: {
     borderColor: theme.COLORS.PRIMARY.RED_60,

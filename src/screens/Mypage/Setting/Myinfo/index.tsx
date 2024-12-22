@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   valid: {
-    color: theme.COLORS.SECONDARY.BLUE_500,
+    color: theme.COLORS.SUB.BLUE_60,
   },
   error: {
     color: theme.COLORS.PRIMARY.RED_60,

@@ -10,10 +10,8 @@ const theme = {
       RED_60: '#FF6333',
     },
     SECONDARY: {
-      BLUE_500: '#487AFF',
-      GREEN_500: '#00BD6A',
-      YELLOW_500: '#FFB400',
-      PINK_500: '#FF0A73',
+      BLUE_95: '#E5F6FF',
+      BLUE_60: '#33BBFF',
     },
     EMOJI: {
       YELLOW_300: '#FFCD4C',
@@ -34,6 +32,10 @@ const theme = {
       BLUE_GRAY_100: '#F5F8FF',
       BLUE_GRAY_200: '#F4F5FA',
       BLUE_GRAY_300: '#FAFAFA',
+    },
+    SUB: {
+      PINK_60: '#FF3377',
+      BLUE_60: '#3399FF',
     },
   },
 } as const;
