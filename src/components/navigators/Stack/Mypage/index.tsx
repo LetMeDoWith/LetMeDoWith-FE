@@ -20,6 +20,7 @@ const SettingStackNavigator = () => {
         headerBackTitleVisible: false,
         headerTintColor: theme.COLORS.DEFAULT.BLACK,
         headerShadowVisible: false,
+        cardStyle: { backgroundColor: theme.COLORS.DEFAULT.WHITE },
       }}
     >
       <Screen name="DEFAULT" component={Setting} options={{ headerTitle: '설정' }} />

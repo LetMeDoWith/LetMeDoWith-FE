@@ -16,6 +16,7 @@ const HomeStackNavigator = () => {
         headerTitleAlign: 'center',
         headerBackTitleVisible: false,
         headerTintColor: theme.COLORS.DEFAULT.BLACK,
+        cardStyle: { backgroundColor: theme.COLORS.DEFAULT.WHITE },
       }}
     >
       <Screen name="HOME" component={BottomTabNavigator} options={{ headerShown: false }} />

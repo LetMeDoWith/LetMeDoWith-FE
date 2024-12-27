@@ -25,6 +25,9 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
         headerTitleAlign: 'center',
         tabBarActiveTintColor: PRIMARY.RED_60,
       }}
+      sceneContainerStyle={{
+        backgroundColor: theme.COLORS.DEFAULT.WHITE,
+      }}
     >
       <Screen
         name="FEED"
