@@ -1,15 +1,41 @@
-import React, { useEffect } from 'react';
-import { Image, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Image, Pressable, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import dayjs from 'dayjs';
+import { Divider } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
+import { LocaleConfig } from 'react-native-calendars/src';
+import { Positions } from 'react-native-calendars/src/expandableCalendar';
+import type { DateData, Direction } from 'react-native-calendars/src/types';
+import type { DayProps } from 'react-native-calendars/src/calendar/day';
 
 import { theme } from 'styles/theme';
 import { TrafficGreenLight } from 'components/common/icons/TrafficGreenLight';
 import { Notification } from 'components/common/icons/Notification';
 import { isAos } from 'utils/device';
+import { ArrowLeft } from 'components/common/icons/ArrowIcon';
+import { ArrowRight } from 'components/common/icons/ArrowIcon';
+import { PlusIcon } from 'components/common/icons/PlusIcon';
+
+LocaleConfig.locales['kr'] = {
+  monthNames: ['01월', '02월', '03월', '04월', '05월', '06월', '07월', '08월', '09월', '10월', '11월', '12월'],
+  monthNamesShort: ['01월', '02월', '03월', '04월', '05월', '06월', '07월', '08월', '09월', '10월', '11월', '12월'],
+  dayNames: ['화요일', '수요일', '목요일', '금요일', '토요일', '일요일', '월요일'],
+  dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
+  today: '오늘',
+};
+
+LocaleConfig.defaultLocale = 'kr';
 
 const Home = () => {
   const { top } = useSafeAreaInsets();
+  const todayDateString = dayjs().format('YYYY-MM-DD');
+
+  const [selectedDate, setSelectedDate] = useState(todayDateString);
+  const [weekView, setWeekView] = useState(true);
+
+  const selectedDateKoreanString = dayjs(selectedDate).format('YYYY년 MM월 DD일');
 
   const handleBadge = () => {
     console.log('대표 뱃지 클릭');
@@ -17,6 +43,84 @@ const Home = () => {
 
   const handlePressNotificationIcon = () => {
     console.log('알림 버튼 클릭');
+  };
+
+  const handlePressPlusIcon = () => {
+    console.log('투두 등록 버튼 클릭');
+  };
+
+  const handleDayPress = (date?: DateData) => () => {
+    if (!date) return;
+
+    setSelectedDate(date.dateString);
+  };
+
+  const toggleWeekView = () => {
+    setWeekView(!weekView);
+  };
+
+  const renderDayComponent = ({
+    date,
+    state,
+    marking,
+  }: DayProps & {
+    date?: DateData;
+  }) => {
+    const isToday = date?.dateString === todayDateString;
+
+    return (
+      <TouchableOpacity
+        style={[{ padding: 6 }, date?.dateString === selectedDate && styles.selectedDay]}
+        disabled={state === 'disabled'}
+        onPress={handleDayPress(date)}
+      >
+        <View>
+          <Text
+            style={[
+              { fontSize: 12 },
+              date?.dateString === selectedDate && styles.selectedDayText,
+              // date?.dateString === selectedDate && marking?.selectedStyle,
+            ]}
+          >
+            {date?.day}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  // const renderCustomHeader = ({ onPressArrowLeft, onPressArrowRight }) => {
+  //   console.log('onPressArrowLeft: ', onPressArrowLeft);
+  //   return (
+  //     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+  //       <Pressable
+  //         style={{
+  //           backgroundColor: weekView ? theme.COLORS.GRAY_SCALE.GRAY_400 : theme.COLORS.DEFAULT.WHITE,
+  //           padding: 10,
+  //           borderRadius: 20,
+  //         }}
+  //         onPress={toggleWeekView}
+  //       >
+  //         <Text>주</Text>
+  //       </Pressable>
+  //       <View style={styles.weekCalendarArrowWrap}>
+  //         <TouchableOpacity onPress={onPressArrowLeft}>
+  //           <ArrowLeft />
+  //         </TouchableOpacity>
+  //         <TouchableOpacity onPress={onPressArrowRight}>
+  //           <ArrowRight />
+  //         </TouchableOpacity>
+  //       </View>
+  //     </View>
+  //   );
+  // };
+
+  const renderArrow = (direction: Direction) => {
+    if (direction === 'left') {
+      return <ArrowLeft />;
+    } else {
+      return <ArrowRight />;
+    }
   };
 
   useFocusEffect(() => {
@@ -57,6 +161,57 @@ const Home = () => {
             </View>
           </View>
         </View>
+        <View style={{ flex: 1, gap: 12 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Pressable
+              style={{
+                backgroundColor: weekView ? theme.COLORS.GRAY_SCALE.GRAY_400 : theme.COLORS.DEFAULT.WHITE,
+                padding: 10,
+                borderRadius: 10,
+              }}
+              onPress={toggleWeekView}
+            >
+              <Text>주</Text>
+            </Pressable>
+            {/*<View style={styles.weekCalendarArrowWrap}>*/}
+            {/*  <TouchableOpacity>*/}
+            {/*    <ArrowLeft />*/}
+            {/*  </TouchableOpacity>*/}
+            {/*  <TouchableOpacity>*/}
+            {/*    <ArrowRight />*/}
+            {/*  </TouchableOpacity>*/}
+            {/*</View>*/}
+          </View>
+          <View style={{ flex: 1 }}>
+            <CalendarProvider style={styles.calendarWrap} date={todayDateString}>
+              <ExpandableCalendar
+                key={weekView ? 'weekView' : 'monthView'}
+                style={!weekView && { marginBottom: isAos ? -24 : -44 }}
+                initialPosition={weekView ? Positions.CLOSED : Positions.OPEN}
+                markedDates={{
+                  [selectedDate]: { selected: true },
+                }}
+                dayComponent={renderDayComponent}
+                // customHeader={renderCustomHeader}
+                // headerStyle={{ display: 'none' }}
+                renderArrow={renderArrow}
+                closeOnDayPress={false}
+                allowShadow={false}
+                hideKnob
+                disablePan
+              />
+              <View style={{ marginHorizontal: 20 }}>
+                <Divider style={styles.divider} />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text>{selectedDateKoreanString}</Text>
+                  <TouchableOpacity onPress={handlePressPlusIcon}>
+                    <PlusIcon />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </CalendarProvider>
+          </View>
+        </View>
       </View>
     </>
   );
@@ -64,7 +219,9 @@ const Home = () => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     paddingHorizontal: 20,
+    gap: 20,
   },
   profile: {
     gap: 16,
@@ -97,6 +254,25 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
+  },
+  calendarWrap: {
+    marginHorizontal: -20,
+  },
+  weekCalendarArrowWrap: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  selectedDay: {
+    backgroundColor: theme.COLORS.DEFAULT.BLACK,
+    borderRadius: 10,
+  },
+  selectedDayText: {
+    color: theme.COLORS.DEFAULT.WHITE,
+  },
+  divider: {
+    borderWidth: 0.5,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_400,
+    marginVertical: 24,
   },
 });
 export { Home };
