@@ -17,6 +17,7 @@ import { isAos } from 'utils/device';
 import { ArrowLeft } from 'components/common/icons/ArrowIcon';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
+import type { HomeTabScreenProps } from 'types/shared';
 
 LocaleConfig.locales['kr'] = {
   monthNames: ['01월', '02월', '03월', '04월', '05월', '06월', '07월', '08월', '09월', '10월', '11월', '12월'],
@@ -28,7 +29,7 @@ LocaleConfig.locales['kr'] = {
 
 LocaleConfig.defaultLocale = 'kr';
 
-const Home = () => {
+const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   const { top } = useSafeAreaInsets();
   const todayDateString = dayjs().format('YYYY-MM-DD');
 
@@ -46,7 +47,7 @@ const Home = () => {
   };
 
   const handlePressPlusIcon = () => {
-    console.log('투두 등록 버튼 클릭');
+    navigate('TASK_FORM');
   };
 
   const handleDayPress = (date?: DateData) => () => {

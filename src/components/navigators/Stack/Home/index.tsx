@@ -4,6 +4,7 @@ import { theme } from 'styles/theme';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SettingStackNavigator } from 'components/navigators/Stack/Mypage';
 import { BottomTabNavigator } from 'components/navigators/Tab/Home';
+import { TaskForm } from 'screens/Home/Task';
 import type { RootStackParamList } from 'types/shared';
 
 const HomeStackNavigator = () => {
@@ -21,6 +22,7 @@ const HomeStackNavigator = () => {
     >
       <Screen name="HOME" component={BottomTabNavigator} options={{ headerShown: false }} />
       <Screen name="SETTING" component={SettingStackNavigator} options={{ headerShown: false }} />
+      <Screen name="TASK_FORM" component={TaskForm} options={{ headerShown: false }} />
     </Navigator>
   );
 };
