@@ -59,7 +59,13 @@ const Form = () => {
           </View>
           <View style={styles.modeButtonWrap}>
             <Pressable
-              style={[styles.modeButton, taskMode === 'TODO' && { backgroundColor: theme.COLORS.SECONDARY.BLUE_95 }]}
+              style={[
+                styles.modeButton,
+                taskMode === 'TODO' && {
+                  backgroundColor: theme.COLORS.SECONDARY.BLUE_95,
+                  borderColor: theme.COLORS.SECONDARY.BLUE_95,
+                },
+              ]}
               onPress={handleTaskMode('TODO')}
             >
               <TodoMode />
@@ -68,7 +74,13 @@ const Form = () => {
               </Text>
             </Pressable>
             <Pressable
-              style={[styles.modeButton, taskMode === 'DOWITH' && { backgroundColor: theme.COLORS.PRIMARY.RED_98 }]}
+              style={[
+                styles.modeButton,
+                taskMode === 'DOWITH' && {
+                  backgroundColor: theme.COLORS.PRIMARY.RED_98,
+                  borderColor: theme.COLORS.PRIMARY.RED_98,
+                },
+              ]}
               onPress={handleTaskMode('DOWITH')}
             >
               <DowithMode />
