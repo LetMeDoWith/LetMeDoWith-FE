@@ -1,31 +1,54 @@
 import { Dimensions, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import DatePicker from 'react-native-date-picker';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
+import { BottomSheetModal, BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import dayjs from 'dayjs';
-import { theme } from 'styles/theme';
 
+import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
 import { TodoMode } from 'components/common/icons/TodoMode';
 import { DowithMode } from 'components/common/icons/DowithMode';
 import { QuestionCircle } from 'components/common/icons/QuestionCircle';
+import { BottomSheet } from 'components/common/BottomSheet';
 
 type TaskMode = 'TODO' | 'DOWITH';
+type TaskCategory = { id: number; name: string };
+
+// TODO: Task 카테고리 API 연동
+const MOCK_CATEGORY_LIST = [
+  { id: 1, name: '카테고리1' },
+  { id: 2, name: '카테고리2' },
+  { id: 3, name: '카테고리3' },
+  { id: 4, name: '카테고리4' },
+  { id: 5, name: '카테고리5' },
+  { id: 6, name: '카테고리6' },
+  { id: 7, name: '카테고리7' },
+  { id: 8, name: '카테고리8' },
+];
 
 const Form = () => {
   const { control, watch, setValue, handleSubmit } = useFormContext();
+  const categoryBottomSheetModalRef = useRef<BottomSheetModal>(null);
 
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
   const [taskMode, setTaskMode] = useState<TaskMode | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
 
   const title = watch('title');
   const startDateTime = watch('startDateTime');
+  const taskCategoryId = watch('taskCategoryId');
 
   const isButtonDisabled = !title || !startDateTime;
+  const prevSelectedCategory = MOCK_CATEGORY_LIST.find(({ id }) => taskCategoryId === id);
 
   const toggleDatePicker = useCallback((isOpen: boolean) => () => setDatePickerOpen(isOpen), []);
+
+  const handlePresentModalPress = useCallback(() => {
+    categoryBottomSheetModalRef.current?.present();
+  }, []);
 
   const handleDateChange = useCallback(
     (date: Date) => {
@@ -42,12 +65,38 @@ const Form = () => {
     [],
   );
 
+  const handleCategory = useCallback(
+    ({ id, name }: TaskCategory) =>
+      () => {
+        setSelectedCategory({ id, name });
+      },
+    [],
+  );
+
+  const handleCategoryBottomSheetButton = useCallback(() => {
+    setValue('taskCategoryId', selectedCategory?.id);
+    categoryBottomSheetModalRef.current?.dismiss();
+  }, [selectedCategory, setValue]);
+
+  const onDismissCategoryBottomSheet = useCallback(() => {
+    if (taskCategoryId === null) {
+      setSelectedCategory(null);
+      return;
+    }
+
+    if (!prevSelectedCategory) {
+      return;
+    }
+
+    setSelectedCategory(prevSelectedCategory);
+  }, [taskCategoryId, prevSelectedCategory]);
+
   const onSubmit = useCallback<any>((values: FormData) => {
     console.log(values);
   }, []);
 
   return (
-    <>
+    <BottomSheetModalProvider>
       <View style={styles.container}>
         <View style={styles.modeLabelWrap}>
           <View style={styles.modeLabel}>
@@ -121,16 +170,25 @@ const Form = () => {
             <Text style={startDateTime ? styles.value : styles.emptyValue}>{startDateTime || '미등록'}</Text>
           </Pressable>
           {/*</View>*/}
-          <Pressable
-            style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
-            onPress={() => console.log('카테고리 선택')}
-          >
-            <View style={styles.optionalLabelWrap}>
-              <Text style={styles.labelTitle}>카테고리</Text>
-              <Text style={styles.optionalLabel}>(선택)</Text>
-            </View>
-            <Text style={styles.emptyValue}>미등록</Text>
-          </Pressable>
+          <Controller
+            name="taskCategoryId"
+            control={control}
+            render={() => (
+              <Pressable
+                style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
+                onPress={handlePresentModalPress}
+              >
+                <View style={styles.optionalLabelWrap}>
+                  <Text style={styles.labelTitle}>카테고리</Text>
+                  <Text style={styles.optionalLabel}>(선택)</Text>
+                </View>
+                <Text style={[styles.emptyValue, taskCategoryId && styles.value]}>
+                  {prevSelectedCategory ? prevSelectedCategory.name : '미등록'}
+                </Text>
+              </Pressable>
+            )}
+          />
+
           <Pressable
             style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
             onPress={() => console.log('루틴 선택')}
@@ -160,7 +218,40 @@ const Form = () => {
         onConfirm={handleDateChange}
         onCancel={toggleDatePicker(false)}
       />
-    </>
+      <BottomSheet
+        ref={categoryBottomSheetModalRef}
+        title="카테고리"
+        buttonConfig={{ title: '저장하기', isDisabled: selectedCategory === null }}
+        snapPoints={['60%']}
+        onDismiss={onDismissCategoryBottomSheet}
+        handleButtonSubmit={handleCategoryBottomSheetButton}
+      >
+        <View style={styles.bottomSheetContentContainer}>
+          {MOCK_CATEGORY_LIST.map(({ id, name }) => (
+            <Pressable
+              key={id}
+              style={[
+                styles.categoryButton,
+                selectedCategory?.id === id && {
+                  borderColor: theme.COLORS.PRIMARY.RED_60,
+                  backgroundColor: theme.COLORS.PRIMARY.RED_98,
+                },
+              ]}
+              onPress={handleCategory({ id, name })}
+            >
+              <Text
+                style={[
+                  styles.categoryButtonName,
+                  selectedCategory?.id === id && { color: theme.COLORS.PRIMARY.RED_60 },
+                ]}
+              >
+                {name}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </BottomSheet>
+    </BottomSheetModalProvider>
   );
 };
 
@@ -239,6 +330,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: theme.COLORS.DEFAULT.WHITE,
   },
+  bottomSheetContentContainer: {
+    paddingVertical: 32,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  categoryButton: {
+    width: '48%',
+    alignItems: 'center',
+    borderWidth: 1,
+    paddingVertical: 12,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_90,
+    borderRadius: 8,
+  },
+  categoryButtonName: theme.TYPOGRAPHY.BODY_1,
 });
 
 export { Form };
