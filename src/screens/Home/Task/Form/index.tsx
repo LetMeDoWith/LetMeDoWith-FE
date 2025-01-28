@@ -6,7 +6,7 @@ const TaskForm = () => {
   const methods = useForm({
     defaultValues: {
       title: '',
-      taskCategoryId: -1,
+      taskCategoryId: null,
       startDateTime: '',
       isRoutine: false,
       routineDates: [],
