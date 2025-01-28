@@ -11,6 +11,18 @@ type Theme = {
     GRAY_SCALE: typeof theme.COLORS.GRAY_SCALE;
     SUB: typeof theme.COLORS.SUB;
   };
+  TYPOGRAPHY: {
+    HEADER_1: typeof theme.TYPOGRAPHY.HEADER_1;
+    HEADER_2: typeof theme.TYPOGRAPHY.HEADER_2;
+    TITLE_1: typeof theme.TYPOGRAPHY.TITLE_1;
+    TITLE_2: typeof theme.TYPOGRAPHY.TITLE_2;
+    BODY_1: typeof theme.TYPOGRAPHY.BODY_1;
+    BODY_2: typeof theme.TYPOGRAPHY.BODY_2;
+    SUB_TITLE: typeof theme.TYPOGRAPHY.SUB_TITLE;
+    CAPTION1_THICK: typeof theme.TYPOGRAPHY.CAPTION1_THICK;
+    CAPTION1_BASIC: typeof theme.TYPOGRAPHY.CAPTION1_BASIC;
+    CAPTION_2: typeof theme.TYPOGRAPHY.CAPTION_2;
+  };
 };
 
 const DefaultTheme: Theme = theme;
