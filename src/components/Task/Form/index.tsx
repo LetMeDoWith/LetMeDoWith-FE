@@ -13,8 +13,8 @@ import { TodoMode } from 'components/common/icons/TodoMode';
 import { DowithMode } from 'components/common/icons/DowithMode';
 import { QuestionCircle } from 'components/common/icons/QuestionCircle';
 import { BottomSheet } from 'components/common/BottomSheet';
+import type { TaskFormStackScreenProps, TaskModeType } from 'types/shared';
 
-type TaskMode = 'TODO' | 'DOWITH';
 type TaskCategory = { id: number; name: string };
 
 // TODO: Task 카테고리 API 연동
@@ -29,26 +29,40 @@ const MOCK_CATEGORY_LIST = [
   { id: 8, name: '카테고리8' },
 ];
 
-const Form = () => {
+const Form = ({ navigation: { navigate } }: TaskFormStackScreenProps<'FORM'>) => {
   const { control, watch, setValue, handleSubmit } = useFormContext();
   const categoryBottomSheetModalRef = useRef<BottomSheetModal>(null);
 
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
-  const [taskMode, setTaskMode] = useState<TaskMode | null>(null);
+  const [taskMode, setTaskMode] = useState<TaskModeType | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
 
   const title = watch('title');
   const startDateTime = watch('startDateTime');
   const taskCategoryId = watch('taskCategoryId');
 
+  const isFormDisabled = taskMode === null;
   const isButtonDisabled = !title || !startDateTime;
   const prevSelectedCategory = MOCK_CATEGORY_LIST.find(({ id }) => taskCategoryId === id);
 
-  const toggleDatePicker = useCallback((isOpen: boolean) => () => setDatePickerOpen(isOpen), []);
+  const toggleDatePicker = useCallback(
+    (isOpen: boolean) => () => {
+      if (isFormDisabled) {
+        return;
+      }
+
+      setDatePickerOpen(isOpen);
+    },
+    [isFormDisabled],
+  );
 
   const handlePresentModalPress = useCallback(() => {
+    if (isFormDisabled) {
+      return;
+    }
+
     categoryBottomSheetModalRef.current?.present();
-  }, []);
+  }, [isFormDisabled]);
 
   const handleDateChange = useCallback(
     (date: Date) => {
@@ -59,7 +73,7 @@ const Form = () => {
   );
 
   const handleTaskMode = useCallback(
-    (mode: TaskMode) => () => {
+    (mode: TaskModeType) => () => {
       setTaskMode(mode);
     },
     [],
@@ -77,6 +91,14 @@ const Form = () => {
     setValue('taskCategoryId', selectedCategory?.id);
     categoryBottomSheetModalRef.current?.dismiss();
   }, [selectedCategory, setValue]);
+
+  const handleTaskRoutine = useCallback(() => {
+    if (isFormDisabled) {
+      return;
+    }
+
+    navigate('ROUTINE_FORM', { mode: taskMode });
+  }, [navigate, taskMode, isFormDisabled]);
 
   const onDismissCategoryBottomSheet = useCallback(() => {
     if (taskCategoryId === null) {
@@ -142,8 +164,10 @@ const Form = () => {
         <View style={{ gap: 16, marginTop: 32 }}>
           <View style={{ gap: 12 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={styles.labelTitle}>제목</Text>
-              <Text>{title.length}/40</Text>
+              <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
+                제목
+              </Text>
+              <Text style={isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }}>{title.length}/40</Text>
             </View>
             <Controller
               name="title"
@@ -152,11 +176,15 @@ const Form = () => {
                 <TextInput
                   style={{ borderBottomWidth: 1, paddingBottom: 8, borderColor: theme.COLORS.GRAY_SCALE.GRAY_90 }}
                   placeholder="해야할 일을 등록해보세요."
+                  placeholderTextColor={
+                    isFormDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60
+                  }
                   onChangeText={value => {
                     onChange(value);
                   }}
                   value={value}
                   maxLength={40}
+                  editable={!isFormDisabled}
                 />
               )}
             />
@@ -166,7 +194,9 @@ const Form = () => {
             style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
             onPress={toggleDatePicker(true)}
           >
-            <Text style={styles.labelTitle}>시작 시간</Text>
+            <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
+              시작 시간
+            </Text>
             <Text style={startDateTime ? styles.value : styles.emptyValue}>{startDateTime || '미등록'}</Text>
           </Pressable>
           {/*</View>*/}
@@ -179,7 +209,9 @@ const Form = () => {
                 onPress={handlePresentModalPress}
               >
                 <View style={styles.optionalLabelWrap}>
-                  <Text style={styles.labelTitle}>카테고리</Text>
+                  <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
+                    카테고리
+                  </Text>
                   <Text style={styles.optionalLabel}>(선택)</Text>
                 </View>
                 <Text style={[styles.emptyValue, taskCategoryId && styles.value]}>
@@ -191,10 +223,12 @@ const Form = () => {
 
           <Pressable
             style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
-            onPress={() => console.log('루틴 선택')}
+            onPress={handleTaskRoutine}
           >
             <View style={styles.optionalLabelWrap}>
-              <Text style={styles.labelTitle}>루틴 설정</Text>
+              <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
+                루틴 설정
+              </Text>
               <Text style={styles.optionalLabel}>(선택)</Text>
             </View>
             <Text style={styles.emptyValue}>미등록</Text>

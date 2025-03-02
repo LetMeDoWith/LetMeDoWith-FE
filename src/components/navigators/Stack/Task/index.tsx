@@ -1,9 +1,11 @@
 import { createStackNavigator } from '@react-navigation/stack';
-import { Form } from 'components/Task';
+
+import { Form, RoutineForm } from 'components/Task';
 import { theme } from 'styles/theme';
+import type { TaskFormStackParamList } from 'types/shared';
 
 const TaskFormStackNavigator = () => {
-  const { Navigator, Screen } = createStackNavigator();
+  const { Navigator, Screen } = createStackNavigator<TaskFormStackParamList>();
   return (
     <Navigator
       initialRouteName="FORM"
@@ -16,6 +18,7 @@ const TaskFormStackNavigator = () => {
       }}
     >
       <Screen name="FORM" component={Form} />
+      <Screen name="ROUTINE_FORM" component={RoutineForm} options={{ headerTitle: '루틴 등록하기' }} />
     </Navigator>
   );
 };

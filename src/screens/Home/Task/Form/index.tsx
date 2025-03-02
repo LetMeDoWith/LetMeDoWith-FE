@@ -9,7 +9,8 @@ const TaskForm = () => {
       taskCategoryId: null,
       startDateTime: '',
       isRoutine: false,
-      routineDates: [],
+      routineStartDateTime: '',
+      routineEndDateTime: '',
     },
   });
 
