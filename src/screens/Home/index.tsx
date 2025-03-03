@@ -43,7 +43,7 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   };
 
   const handlePressNotificationIcon = () => {
-    console.log('알림 버튼 클릭');
+    navigate('FEEDBACK');
   };
 
   const handlePressPlusIcon = () => {

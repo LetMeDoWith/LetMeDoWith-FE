@@ -13,6 +13,7 @@ type RootStackParamList = {
   HOME: undefined;
   SETTING: undefined;
   TASK_FORM: undefined;
+  FEEDBACK: undefined;
 };
 
 type RootStackScreenProps<T extends keyof RootStackParamList> = StackScreenProps<RootStackParamList, T>;
@@ -41,6 +42,15 @@ type TaskFormStackScreenProps<T extends keyof TaskFormStackParamList> = StackScr
 
 type NoticeType = 'NOTICE' | 'EVENT';
 
+type FeedbackStackParamList = {
+  DEFAULT: undefined;
+};
+
+type FeedbackTabParamList = {
+  RECEIVE: undefined;
+  SEND: undefined;
+};
+
 type SettingStackParamList = {
   DEFAULT: undefined;
   MYINFO: undefined;
@@ -67,6 +77,8 @@ export type {
   TaskModeType,
   TaskFormStackParamList,
   TaskFormStackScreenProps,
+  FeedbackStackParamList,
+  FeedbackTabParamList,
   SettingStackParamList,
   SettingStackScreenProps,
   NoticeType,
