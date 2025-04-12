@@ -17,6 +17,7 @@ import { isAos } from 'utils/device';
 import { ArrowLeft } from 'components/common/icons/ArrowIcon';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
+import { List } from 'components/Task';
 import type { HomeTabScreenProps } from 'types/shared';
 
 LocaleConfig.locales.kr = {
@@ -212,6 +213,10 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
                   <TouchableOpacity onPress={handlePressPlusIcon}>
                     <PlusIcon />
                   </TouchableOpacity>
+                </View>
+                <View>
+                  <List type="DOWITH" />
+                  <List type="TODO" />
                 </View>
               </View>
             </CalendarProvider>
