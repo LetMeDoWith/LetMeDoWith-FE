@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  title: theme.TYPOGRAPHY.HEADER_1,
+  title: theme.TYPOGRAPHY.TITLE_1,
   button: {
     borderRadius: 8,
     justifyContent: 'center',
