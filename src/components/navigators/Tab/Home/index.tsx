@@ -10,6 +10,7 @@ import { HomeIcon } from 'components/common/icons/HomeIcon';
 import { FeedIcon } from 'components/common/icons/FeedIcon';
 import { MypageIcon } from 'components/common/icons/MypageIcon';
 import { theme } from 'styles/theme';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import type { HomeTabParamList, RootStackScreenProps } from 'types/shared';
 
 const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
@@ -19,70 +20,72 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
   } = useTheme();
 
   return (
-    <Navigator
-      initialRouteName="MYTODO"
-      screenOptions={{
-        headerTitleAlign: 'center',
-        tabBarActiveTintColor: PRIMARY.RED_60,
-      }}
-      sceneContainerStyle={{
-        backgroundColor: theme.COLORS.DEFAULT.WHITE,
-      }}
-    >
-      <Screen
-        name="FEED"
-        component={Feed}
-        options={{
-          headerTitle: '피드',
-          tabBarLabel: '피드',
-          tabBarIcon: ({ focused }) => (
-            <FeedIcon
-              fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
-              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
-              fillRect={focused ? DEFAULT.WHITE : GRAY_SCALE.GRAY_60}
-            />
-          ),
+    <BottomSheetModalProvider>
+      <Navigator
+        initialRouteName="MYTODO"
+        screenOptions={{
+          headerTitleAlign: 'center',
+          tabBarActiveTintColor: PRIMARY.RED_60,
         }}
-      />
-      <Screen
-        name="MYTODO"
-        component={Home}
-        options={{
-          headerShown: false,
-          tabBarLabel: '마이투두',
-          tabBarIcon: ({ focused }) => (
-            <HomeIcon
-              fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
-              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
-            />
-          ),
+        sceneContainerStyle={{
+          backgroundColor: theme.COLORS.DEFAULT.WHITE,
         }}
-      />
-      <Screen
-        name="MYPAGE"
-        component={Mypage}
-        options={{
-          headerTitle: '내정보',
-          tabBarLabel: '내정보',
-          tabBarIcon: ({ focused }) => (
-            <MypageIcon
-              fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
-              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
-            />
-          ),
-          headerRight: () => (
-            <IconButton
-              icon="cog-outline"
-              iconColor={theme.COLORS.DEFAULT.BLACK}
-              size={18}
-              onPress={() => {
-                navigation.navigate('SETTING');
-              }}
-            />
-          ),
-        }}
-      />
-    </Navigator>
+      >
+        <Screen
+          name="FEED"
+          component={Feed}
+          options={{
+            headerTitle: '피드',
+            tabBarLabel: '피드',
+            tabBarIcon: ({ focused }) => (
+              <FeedIcon
+                fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
+                stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
+                fillRect={focused ? DEFAULT.WHITE : GRAY_SCALE.GRAY_60}
+              />
+            ),
+          }}
+        />
+        <Screen
+          name="MYTODO"
+          component={Home}
+          options={{
+            headerShown: false,
+            tabBarLabel: '마이투두',
+            tabBarIcon: ({ focused }) => (
+              <HomeIcon
+                fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
+                stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
+              />
+            ),
+          }}
+        />
+        <Screen
+          name="MYPAGE"
+          component={Mypage}
+          options={{
+            headerTitle: '내정보',
+            tabBarLabel: '내정보',
+            tabBarIcon: ({ focused }) => (
+              <MypageIcon
+                fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
+                stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
+              />
+            ),
+            headerRight: () => (
+              <IconButton
+                icon="cog-outline"
+                iconColor={theme.COLORS.DEFAULT.BLACK}
+                size={18}
+                onPress={() => {
+                  navigation.navigate('SETTING');
+                }}
+              />
+            ),
+          }}
+        />
+      </Navigator>
+    </BottomSheetModalProvider>
   );
 };
 
