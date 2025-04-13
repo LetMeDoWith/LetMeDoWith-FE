@@ -16,7 +16,7 @@ import type { HomeTabParamList, RootStackScreenProps } from 'types/shared';
 const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
   const { Navigator, Screen } = createBottomTabNavigator<HomeTabParamList>();
   const {
-    COLORS: { DEFAULT, PRIMARY, GRAY_SCALE },
+    COLORS: { GRAY_SCALE },
   } = useTheme();
 
   return (
@@ -25,7 +25,11 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
         initialRouteName="MYTODO"
         screenOptions={{
           headerTitleAlign: 'center',
-          tabBarActiveTintColor: PRIMARY.RED_60,
+          tabBarActiveTintColor: GRAY_SCALE.GRAY_20,
+          tabBarLabelStyle: {
+            fontSize: 11,
+            lineHeight: 14,
+          },
         }}
         sceneContainerStyle={{
           backgroundColor: theme.COLORS.DEFAULT.WHITE,
@@ -35,13 +39,13 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
           name="FEED"
           component={Feed}
           options={{
-            headerTitle: '피드',
-            tabBarLabel: '피드',
+            headerTitle: '둘러보기',
+            tabBarLabel: '둘러보기',
             tabBarIcon: ({ focused }) => (
               <FeedIcon
-                fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
-                stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
-                fillRect={focused ? DEFAULT.WHITE : GRAY_SCALE.GRAY_60}
+                fill={focused ? GRAY_SCALE.GRAY_20 : GRAY_SCALE.GRAY_80}
+                stroke={focused ? GRAY_SCALE.GRAY_20 : GRAY_SCALE.GRAY_80}
+                fillRect={focused ? GRAY_SCALE.GRAY_80 : GRAY_SCALE.GRAY_80}
               />
             ),
           }}
@@ -51,11 +55,11 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
           component={Home}
           options={{
             headerShown: false,
-            tabBarLabel: '마이투두',
+            tabBarLabel: '홈',
             tabBarIcon: ({ focused }) => (
               <HomeIcon
-                fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
-                stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
+                fill={focused ? GRAY_SCALE.GRAY_20 : GRAY_SCALE.GRAY_80}
+                stroke={focused ? GRAY_SCALE.GRAY_20 : GRAY_SCALE.GRAY_80}
               />
             ),
           }}
@@ -65,11 +69,11 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
           component={Mypage}
           options={{
             headerTitle: '내정보',
-            tabBarLabel: '내정보',
+            tabBarLabel: '마이두윗',
             tabBarIcon: ({ focused }) => (
               <MypageIcon
-                fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
-                stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
+                fill={focused ? GRAY_SCALE.GRAY_20 : GRAY_SCALE.GRAY_80}
+                stroke={focused ? GRAY_SCALE.GRAY_20 : GRAY_SCALE.GRAY_80}
               />
             ),
             headerRight: () => (
