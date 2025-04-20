@@ -25,6 +25,9 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
         headerTitleAlign: 'center',
         tabBarActiveTintColor: PRIMARY.RED_60,
       }}
+      sceneContainerStyle={{
+        backgroundColor: theme.COLORS.DEFAULT.WHITE,
+      }}
     >
       <Screen
         name="FEED"
@@ -45,7 +48,7 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
         name="MYTODO"
         component={Home}
         options={{
-          headerTitle: '마이투두',
+          headerShown: false,
           tabBarLabel: '마이투두',
           tabBarIcon: ({ focused }) => (
             <HomeIcon

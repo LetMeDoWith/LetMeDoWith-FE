@@ -16,6 +16,7 @@ const SignupStackNavigator = () => {
         headerTitleAlign: 'center',
         headerBackTitleVisible: false,
         headerTintColor: theme.COLORS.DEFAULT.BLACK,
+        cardStyle: { backgroundColor: theme.COLORS.DEFAULT.WHITE },
       }}
     >
       <Screen name="SIGN_UP_USER_INFO" component={UserInfo} />
