@@ -174,7 +174,7 @@ const Form = ({ navigation: { navigate } }: TaskFormStackScreenProps<'FORM'>) =>
               control={control}
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  style={{ borderBottomWidth: 1, paddingBottom: 8, borderColor: theme.COLORS.GRAY_SCALE.GRAY_90 }}
+                  style={{ borderBottomWidth: 1, paddingBottom: 8, borderColor: theme.COLORS.GRAY_SCALE.GRAY_92 }}
                   placeholder="해야할 일을 등록해보세요."
                   placeholderTextColor={
                     isFormDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingHorizontal: 24,
     paddingVertical: 24,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_95,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_96,
     borderWidth: 1,
     borderRadius: 16,
   },
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     height: 64,
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_500,
+    backgroundColor: theme.COLORS.PRIMARY.RED_95,
   },
   buttonText: {
     fontSize: 18,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     paddingVertical: 12,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_90,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
     borderRadius: 8,
   },
   categoryButtonName: theme.TYPOGRAPHY.BODY_1,
