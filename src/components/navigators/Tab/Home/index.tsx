@@ -23,7 +23,7 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
       initialRouteName="MYTODO"
       screenOptions={{
         headerTitleAlign: 'center',
-        tabBarActiveTintColor: PRIMARY.RED_500,
+        tabBarActiveTintColor: PRIMARY.RED_60,
       }}
     >
       <Screen
@@ -34,9 +34,9 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
           tabBarLabel: '피드',
           tabBarIcon: ({ focused }) => (
             <FeedIcon
-              fill={focused ? PRIMARY.RED_500 : DEFAULT.WHITE}
-              stroke={focused ? PRIMARY.RED_500 : GRAY_SCALE.GRAY_600}
-              fillRect={focused ? DEFAULT.WHITE : GRAY_SCALE.GRAY_600}
+              fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
+              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
+              fillRect={focused ? DEFAULT.WHITE : GRAY_SCALE.GRAY_60}
             />
           ),
         }}
@@ -49,8 +49,8 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
           tabBarLabel: '마이투두',
           tabBarIcon: ({ focused }) => (
             <HomeIcon
-              fill={focused ? PRIMARY.RED_500 : DEFAULT.WHITE}
-              stroke={focused ? PRIMARY.RED_500 : GRAY_SCALE.GRAY_600}
+              fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
+              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
             />
           ),
         }}
@@ -63,8 +63,8 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
           tabBarLabel: '내정보',
           tabBarIcon: ({ focused }) => (
             <MypageIcon
-              fill={focused ? PRIMARY.RED_500 : DEFAULT.WHITE}
-              stroke={focused ? PRIMARY.RED_500 : GRAY_SCALE.GRAY_600}
+              fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
+              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
             />
           ),
           headerRight: () => (

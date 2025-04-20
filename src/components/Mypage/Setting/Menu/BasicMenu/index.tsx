@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     paddingLeft: 24,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
     borderBottomWidth: 0.5,
-    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_400,
+    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_92,
   },
 });
 

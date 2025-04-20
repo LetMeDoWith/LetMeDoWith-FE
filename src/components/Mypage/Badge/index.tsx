@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     width: size,
     height: size,
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_600,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_60,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 15,
-    backgroundColor: theme.COLORS.PRIMARY.RED_500,
+    backgroundColor: theme.COLORS.PRIMARY.RED_60,
   },
   representativeText: {
     color: theme.COLORS.DEFAULT.WHITE,
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   },
   representativeImage: {
     borderWidth: 2,
-    borderColor: theme.COLORS.PRIMARY.RED_500,
+    borderColor: theme.COLORS.PRIMARY.RED_60,
   },
 });
 

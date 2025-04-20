@@ -52,7 +52,7 @@ const Dashboard = () => {
       <Chip
         style={[
           styles.chip,
-          isHighlight && { backgroundColor: theme.COLORS.PRIMARY.RED_500 },
+          isHighlight && { backgroundColor: theme.COLORS.PRIMARY.RED_60 },
           position === 'right' && { marginLeft: 'auto' },
         ]}
         textStyle={styles.chipText}
@@ -75,7 +75,7 @@ const Dashboard = () => {
       <View style={styles.rewordContentWrap}>
         <Text style={styles.renderContent}>두윗모드 추가 획득까지</Text>
         <Text style={styles.renderContent}>
-          <Text style={[styles.renderContent, { color: theme.COLORS.PRIMARY.RED_500 }]}>3번</Text>의 잔소리가 필요해요!
+          <Text style={[styles.renderContent, { color: theme.COLORS.PRIMARY.RED_60 }]}>3번</Text>의 잔소리가 필요해요!
         </Text>
       </View>
       <Pressable
@@ -89,7 +89,7 @@ const Dashboard = () => {
           <Text style={styles.progressBarCount}>3</Text>
           <Text style={styles.progressBarCount}>6</Text>
         </View>
-        <ProgressBar style={styles.progressBar} progress={0.5} color={theme.COLORS.PRIMARY.RED_500} />
+        <ProgressBar style={styles.progressBar} progress={0.5} color={theme.COLORS.PRIMARY.RED_60} />
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 7 }}>
           {renderChip(true, 'center')}
           {renderChip(false, 'right')}
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   progressBarCount: { fontSize: 8 },
   chip: {
     marginLeft: '40%',
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_600,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_60,
     borderRadius: 15,
   },
   chipText: {

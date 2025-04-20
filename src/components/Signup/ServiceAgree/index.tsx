@@ -99,14 +99,14 @@ const ServiceAgree = () => {
                 >
                   <View style={styles.formRow}>
                     <Checkbox.Android
-                      color={theme.COLORS.PRIMARY.RED_500}
+                      color={theme.COLORS.PRIMARY.RED_60}
                       status={getCheckboxStatus(label)}
                       onPress={onPressCheckBox(label)}
                     />
                     <Text>{text}</Text>
                   </View>
                   {isLinkable && (
-                    <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_500} size={16} />
+                    <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_80} size={16} />
                   )}
                 </Pressable>
               )}
@@ -116,7 +116,7 @@ const ServiceAgree = () => {
         <Divider style={styles.divider} />
         <View style={[styles.formRow, { marginTop: 20 }]}>
           <Checkbox.Android
-            color={theme.COLORS.PRIMARY.RED_500}
+            color={theme.COLORS.PRIMARY.RED_60}
             status={allChecked ? 'checked' : 'unchecked'}
             onPress={onPressAllCheckBox}
           />
@@ -124,7 +124,7 @@ const ServiceAgree = () => {
         </View>
       </View>
       <Pressable
-        style={[styles.button, !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_500 }]}
+        style={[styles.button, !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_60 }]}
         onPress={handleSubmit(onSubmit)}
         disabled={isButtonDisabled}
       >
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 0.5,
-    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_500,
+    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_80,
   },
   formRow: {
     flexDirection: 'row',
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
     height: 56,
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_500,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
   },
   buttonText: {
     fontSize: 18,

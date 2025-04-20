@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   divider: {
     marginTop: 6,
     height: 3,
-    backgroundColor: theme.COLORS.PRIMARY.RED_500,
+    backgroundColor: theme.COLORS.PRIMARY.RED_60,
     borderRadius: 5,
   },
 });

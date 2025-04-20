@@ -37,7 +37,7 @@ const ConfirmModal = ({
         <Pressable
           style={[
             styles.button,
-            { borderBottomLeftRadius: 8, borderRightWidth: 0.5, borderColor: theme.COLORS.GRAY_SCALE.GRAY_500 },
+            { borderBottomLeftRadius: 8, borderRightWidth: 0.5, borderColor: theme.COLORS.GRAY_SCALE.GRAY_80 },
           ]}
           onPress={onCancel}
         >
@@ -47,7 +47,7 @@ const ConfirmModal = ({
           style={
             type === 'outlined'
               ? [styles.button, { borderBottomRightRadius: 8 }]
-              : [styles.button, { borderBottomRightRadius: 8, backgroundColor: theme.COLORS.PRIMARY.RED_500 }]
+              : [styles.button, { borderBottomRightRadius: 8, backgroundColor: theme.COLORS.PRIMARY.RED_60 }]
           }
           onPress={onConfirm}
         >
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: 48,
     borderTopWidth: 0.5,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_500,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_80,
   },
   button: {
     flex: 1,
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   confirmButtonText: {
-    color: theme.COLORS.PRIMARY.RED_500,
+    color: theme.COLORS.PRIMARY.RED_60,
   },
 });
 

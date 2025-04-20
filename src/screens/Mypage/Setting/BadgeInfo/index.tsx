@@ -118,7 +118,7 @@ const BadgeInfo = () => {
             </View>
             {isButtonVisible && (
               <Pressable
-                style={[styles.button, !isButtonVisible && { backgroundColor: theme.COLORS.PRIMARY.RED_500 }]}
+                style={[styles.button, !isButtonVisible && { backgroundColor: theme.COLORS.PRIMARY.RED_60 }]}
                 onPress={handleSubmit}
               >
                 <Text style={styles.buttonText}>대표 뱃지로 설정하기</Text>
@@ -149,13 +149,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   subTitle: {
-    color: theme.COLORS.GRAY_SCALE.GRAY_600,
+    color: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
   divider: {
     width: '100%',
     marginVertical: 14,
     borderWidth: 0.5,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_300,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
     borderStyle: 'dashed',
   },
   modalContainer: {
@@ -184,14 +184,14 @@ const styles = StyleSheet.create({
   modalDescription: {
     fontSize: 16,
     textAlign: 'center',
-    color: theme.COLORS.GRAY_SCALE.GRAY_700,
+    color: theme.COLORS.DEFAULT.BLACK,
   },
   button: {
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     height: 64,
-    backgroundColor: theme.COLORS.PRIMARY.RED_500,
+    backgroundColor: theme.COLORS.PRIMARY.RED_60,
   },
   buttonText: {
     fontSize: 18,
