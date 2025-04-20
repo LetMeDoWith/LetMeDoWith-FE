@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
     borderBottomWidth: 1,
-    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_95,
+    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_92,
   },
   image: {
     width: 40,
