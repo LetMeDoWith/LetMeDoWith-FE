@@ -3,7 +3,6 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { Profile } from 'components/Mypage/Profile';
 import { Dashboard } from 'components/Mypage/Dashboard';
-import { theme } from 'styles/theme';
 
 const Mypage = () => (
   // TODO: AOS 화면 비율 때문에 임시 ScrollView 조치
@@ -17,7 +16,8 @@ const Mypage = () => (
 
 const styles = StyleSheet.create({
   dashboardWrapper: {
-    backgroundColor: theme.COLORS.GRAY_SCALE.BLUE_GRAY_200,
+    // TODO: 배경색 확인 필요
+    backgroundColor: '#F2F3F7',
     height: '100%',
     paddingVertical: 26,
     paddingHorizontal: 24,

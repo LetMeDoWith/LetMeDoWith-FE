@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   progressBarCount: { fontSize: 8 },
   chip: {
     marginLeft: '40%',
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_600,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_60,
     borderRadius: 15,
   },
   chipText: {

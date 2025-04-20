@@ -106,7 +106,7 @@ const ServiceAgree = () => {
                     <Text>{text}</Text>
                   </View>
                   {isLinkable && (
-                    <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_500} size={16} />
+                    <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_80} size={16} />
                   )}
                 </Pressable>
               )}
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 0.5,
-    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_500,
+    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_80,
   },
   formRow: {
     flexDirection: 'row',
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
     height: 56,
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_500,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
   },
   buttonText: {
     fontSize: 18,

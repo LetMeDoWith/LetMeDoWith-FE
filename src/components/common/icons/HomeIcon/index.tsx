@@ -7,7 +7,7 @@ const HomeIcon = ({
   width = 20,
   height = 22,
   fill = 'none',
-  stroke = theme.COLORS.GRAY_SCALE.GRAY_600,
+  stroke = theme.COLORS.GRAY_SCALE.GRAY_60,
 }: Pick<SvgProps, 'width' | 'height'> & { fill?: string; stroke?: string }) => {
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} fill={fill}>

@@ -35,8 +35,8 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
           tabBarIcon: ({ focused }) => (
             <FeedIcon
               fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
-              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_600}
-              fillRect={focused ? DEFAULT.WHITE : GRAY_SCALE.GRAY_600}
+              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
+              fillRect={focused ? DEFAULT.WHITE : GRAY_SCALE.GRAY_60}
             />
           ),
         }}
@@ -50,7 +50,7 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
           tabBarIcon: ({ focused }) => (
             <HomeIcon
               fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
-              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_600}
+              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
             />
           ),
         }}
@@ -64,7 +64,7 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
           tabBarIcon: ({ focused }) => (
             <MypageIcon
               fill={focused ? PRIMARY.RED_60 : DEFAULT.WHITE}
-              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_600}
+              stroke={focused ? PRIMARY.RED_60 : GRAY_SCALE.GRAY_60}
             />
           ),
           headerRight: () => (

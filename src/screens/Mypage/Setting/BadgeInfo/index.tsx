@@ -149,13 +149,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   subTitle: {
-    color: theme.COLORS.GRAY_SCALE.GRAY_600,
+    color: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
   divider: {
     width: '100%',
     marginVertical: 14,
     borderWidth: 0.5,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_300,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
     borderStyle: 'dashed',
   },
   modalContainer: {
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   modalDescription: {
     fontSize: 16,
     textAlign: 'center',
-    color: theme.COLORS.GRAY_SCALE.GRAY_700,
+    color: theme.COLORS.DEFAULT.BLACK,
   },
   button: {
     borderRadius: 8,

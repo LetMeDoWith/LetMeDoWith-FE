@@ -93,11 +93,15 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
                     onChange(value);
 
                     // 값이 비어졌을 때 에러 초기화
-                    if (value !== '') return;
+                    if (value !== '') {
+                      return;
+                    }
                     clearErrors('nickname');
                   }}
                   onBlur={() => {
-                    if (!dirtyFields.nickname) return;
+                    if (!dirtyFields.nickname) {
+                      return;
+                    }
 
                     // TODO: 이미 사용 중인 닉네임인지 여부 검사
 
@@ -218,7 +222,7 @@ const styles = StyleSheet.create({
   },
   labelWrap: { flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
   default: {
-    color: theme.COLORS.GRAY_SCALE.GRAY_600,
+    color: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
   message: {
     paddingVertical: 0,
@@ -245,7 +249,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderWidth: 1,
     borderRadius: 8,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_500,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_80,
     paddingHorizontal: 16,
     color: theme.COLORS.DEFAULT.BLACK,
   },
@@ -274,7 +278,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_400,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
     height: 48,
   },
   selectGenderButton: {

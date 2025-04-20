@@ -99,7 +99,7 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
             <IconButton
               style={{ position: 'relative', left: 25, bottom: 25 }}
               icon="pencil-circle"
-              iconColor={theme.COLORS.GRAY_SCALE.GRAY_500}
+              iconColor={theme.COLORS.GRAY_SCALE.GRAY_80}
               size={22}
             />
           </Pressable>
@@ -113,8 +113,8 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
                   <Text>닉네임</Text>
                   <TextInput
                     placeholder="닉네임을 입력해주세요."
-                    placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_600}
-                    activeUnderlineColor={theme.COLORS.GRAY_SCALE.GRAY_500}
+                    placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_60}
+                    activeUnderlineColor={theme.COLORS.GRAY_SCALE.GRAY_80}
                     contentStyle={{
                       paddingLeft: 0,
                       backgroundColor: theme.COLORS.DEFAULT.WHITE,
@@ -123,11 +123,15 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
                       onChange(value);
 
                       // 값이 비어졌을 때 에러 초기화
-                      if (value !== '') return;
+                      if (value !== '') {
+                        return;
+                      }
                       clearErrors('nickname');
                     }}
                     onBlur={() => {
-                      if (!dirtyFields.nickname) return;
+                      if (!dirtyFields.nickname) {
+                        return;
+                      }
 
                       // TODO: 이미 사용 중인 닉네임인지 여부 검사
 
@@ -174,8 +178,8 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
                 <Text>자기소개</Text>
                 <TextInput
                   placeholder="프로필에 멋진 자기소개를 입력해 보세요."
-                  placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_600}
-                  activeUnderlineColor={theme.COLORS.GRAY_SCALE.GRAY_500}
+                  placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_60}
+                  activeUnderlineColor={theme.COLORS.GRAY_SCALE.GRAY_80}
                   contentStyle={{
                     paddingLeft: 0,
                     backgroundColor: theme.COLORS.DEFAULT.WHITE,
@@ -258,7 +262,7 @@ const styles = StyleSheet.create({
   },
   field: { gap: 12 },
   default: {
-    color: theme.COLORS.GRAY_SCALE.GRAY_600,
+    color: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
   message: {
     paddingVertical: 0,
@@ -278,7 +282,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     height: 64,
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_500,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
   },
   buttonText: {
     fontSize: 18,
@@ -287,7 +291,7 @@ const styles = StyleSheet.create({
   deleteAccount: {
     fontSize: 12,
     marginTop: 24,
-    color: theme.COLORS.GRAY_SCALE.GRAY_600,
+    color: theme.COLORS.GRAY_SCALE.GRAY_60,
     alignSelf: 'flex-start',
   },
 });

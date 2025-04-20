@@ -7,8 +7,8 @@ const FeedIcon = ({
   width = 22,
   height = 22,
   fill = 'none',
-  fillRect = theme.COLORS.GRAY_SCALE.GRAY_600,
-  stroke = theme.COLORS.GRAY_SCALE.GRAY_600,
+  fillRect = theme.COLORS.GRAY_SCALE.GRAY_60,
+  stroke = theme.COLORS.GRAY_SCALE.GRAY_60,
 }: Pick<SvgProps, 'width' | 'height'> & { fill?: string; fillRect?: string; stroke?: string }) => {
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} fill={fill}>

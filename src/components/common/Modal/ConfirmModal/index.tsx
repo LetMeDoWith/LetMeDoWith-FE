@@ -37,7 +37,7 @@ const ConfirmModal = ({
         <Pressable
           style={[
             styles.button,
-            { borderBottomLeftRadius: 8, borderRightWidth: 0.5, borderColor: theme.COLORS.GRAY_SCALE.GRAY_500 },
+            { borderBottomLeftRadius: 8, borderRightWidth: 0.5, borderColor: theme.COLORS.GRAY_SCALE.GRAY_80 },
           ]}
           onPress={onCancel}
         >
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: 48,
     borderTopWidth: 0.5,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_500,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_80,
   },
   button: {
     flex: 1,

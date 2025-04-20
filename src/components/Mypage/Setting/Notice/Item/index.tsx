@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     paddingBottom: 11,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
     borderBottomWidth: 1,
-    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_600,
+    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
   contentType: {
     flex: 1,

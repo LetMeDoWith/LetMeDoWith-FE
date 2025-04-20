@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     paddingRight: isAos ? 12 : 24,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
     borderBottomWidth: 0.5,
-    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_600,
+    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
   content: {
     gap: 8,
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   },
   subTitle: {
     fontSize: 14,
-    color: theme.COLORS.GRAY_SCALE.GRAY_600,
+    color: theme.COLORS.GRAY_SCALE.GRAY_60,
     maxWidth: Dimensions.get('window').width - 100,
   },
 });
