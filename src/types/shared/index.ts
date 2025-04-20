@@ -12,6 +12,7 @@ type SignUpStackScreenProps<T extends keyof SignUpStackParamList> = StackScreenP
 type RootStackParamList = {
   HOME: undefined;
   SETTING: undefined;
+  TASK_FORM: undefined;
 };
 
 type RootStackScreenProps<T extends keyof RootStackParamList> = StackScreenProps<RootStackParamList, T>;
@@ -26,6 +27,17 @@ type HomeTabScreenProps<T extends keyof HomeTabParamList> = CompositeScreenProps
   BottomTabScreenProps<HomeTabParamList, T>,
   RootStackScreenProps<keyof RootStackParamList>
 >;
+
+type TaskModeType = 'TODO' | 'DOWITH';
+
+type TaskFormStackParamList = {
+  FORM: undefined;
+  ROUTINE_FORM: {
+    mode: TaskModeType;
+  };
+};
+
+type TaskFormStackScreenProps<T extends keyof TaskFormStackParamList> = StackScreenProps<TaskFormStackParamList, T>;
 
 type NoticeType = 'NOTICE' | 'EVENT';
 
@@ -52,6 +64,9 @@ export type {
   RootStackScreenProps,
   HomeTabParamList,
   HomeTabScreenProps,
+  TaskModeType,
+  TaskFormStackParamList,
+  TaskFormStackScreenProps,
   SettingStackParamList,
   SettingStackScreenProps,
   NoticeType,

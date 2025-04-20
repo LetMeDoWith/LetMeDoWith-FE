@@ -17,8 +17,9 @@ import { isAos } from 'utils/device';
 import { ArrowLeft } from 'components/common/icons/ArrowIcon';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
+import type { HomeTabScreenProps } from 'types/shared';
 
-LocaleConfig.locales['kr'] = {
+LocaleConfig.locales.kr = {
   monthNames: ['01월', '02월', '03월', '04월', '05월', '06월', '07월', '08월', '09월', '10월', '11월', '12월'],
   monthNamesShort: ['01월', '02월', '03월', '04월', '05월', '06월', '07월', '08월', '09월', '10월', '11월', '12월'],
   dayNames: ['화요일', '수요일', '목요일', '금요일', '토요일', '일요일', '월요일'],
@@ -28,7 +29,7 @@ LocaleConfig.locales['kr'] = {
 
 LocaleConfig.defaultLocale = 'kr';
 
-const Home = () => {
+const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   const { top } = useSafeAreaInsets();
   const todayDateString = dayjs().format('YYYY-MM-DD');
 
@@ -46,11 +47,13 @@ const Home = () => {
   };
 
   const handlePressPlusIcon = () => {
-    console.log('투두 등록 버튼 클릭');
+    navigate('TASK_FORM');
   };
 
   const handleDayPress = (date?: DateData) => () => {
-    if (!date) return;
+    if (!date) {
+      return;
+    }
 
     setSelectedDate(date.dateString);
   };
@@ -124,7 +127,9 @@ const Home = () => {
   };
 
   useFocusEffect(() => {
-    if (!isAos) return;
+    if (!isAos) {
+      return;
+    }
 
     StatusBar.setBackgroundColor(theme.COLORS.STATUS.GREEN_90);
     StatusBar.setBarStyle('dark-content');
@@ -165,7 +170,7 @@ const Home = () => {
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Pressable
               style={{
-                backgroundColor: weekView ? theme.COLORS.GRAY_SCALE.GRAY_400 : theme.COLORS.DEFAULT.WHITE,
+                backgroundColor: weekView ? theme.COLORS.GRAY_SCALE.GRAY_96 : theme.COLORS.DEFAULT.WHITE,
                 padding: 10,
                 borderRadius: 10,
               }}
@@ -271,7 +276,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     borderWidth: 0.5,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_400,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
     marginVertical: 24,
   },
 });

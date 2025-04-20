@@ -42,6 +42,63 @@ const theme = {
       BLUE_60: '#3399FF',
     },
   },
+  TYPOGRAPHY: {
+    HEADER_1: {
+      fontWeight: 'bold',
+      fontSize: 24,
+      color: '#000000',
+      lineHeight: 32,
+    },
+    HEADER_2: {
+      fontSize: 24,
+      color: '#000000',
+      lineHeight: 32,
+    },
+    TITLE_1: {
+      fontWeight: 'bold',
+      fontSize: 20,
+      color: '#000000',
+      lineHeight: 28,
+    },
+    TITLE_2: {
+      fontSize: 18,
+      color: '#000000',
+      lineHeight: 26,
+    },
+    SUB_TITLE: {
+      fontWeight: 'bold',
+      fontSize: 14,
+      color: '#000000',
+      lineHeight: 20,
+    },
+    BODY_1: {
+      fontSize: 16,
+      color: '#000000',
+      lineHeight: 24,
+    },
+    BODY_2: {
+      fontSize: 14,
+      color: '#000000',
+      lineHeight: 20,
+    },
+    CAPTION1_THICK: {
+      fontWeight: 'bold',
+      fontSize: 12,
+      color: '#000000',
+      lineHeight: 16,
+    },
+    CAPTION1_BASIC: {
+      fontWeight: 'bold',
+      fontSize: 12,
+      color: '#000000',
+      lineHeight: 16,
+    },
+    CAPTION_2: {
+      fontSize: 11,
+      color: '#000000',
+      lineHeight: 14,
+    },
+  },
 } as const;
 
 export { theme };

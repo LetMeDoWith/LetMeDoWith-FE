@@ -160,6 +160,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
                   modal
                   open={datePickerOpen}
                   mode="date"
+                  locale="ko-KR"
                   date={dayjs().toDate()}
                   minimumDate={dayjs().subtract(14, 'year').toDate()}
                   onConfirm={handleDateChange}
