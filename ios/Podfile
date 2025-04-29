@@ -1,56 +1,50 @@
-# Resolve react_native_pods.rb with node to allow for hoisting
+# React Native CocoaPods 스크립트를 Node.js로 로드해서 hoisting 문제 해결
 require Pod::Executable.execute_command('node', ['-p',
   'require.resolve(
     "react-native/scripts/react_native_pods.rb",
     {paths: [process.argv[1]]},
-  )', __dir__]).strip
+  )',
+  __dir__
+]).strip
 
+# iOS 최소 지원 버전을 React Native 스크립트가 자동으로 채워줌
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
-# If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
-# because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
-#
-# To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
-# ```js
-# module.exports = {
-#   dependencies: {
-#     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
-# ```
+# Flipper 설정 (NO_FLIPPER=1 로 비활성화 가능)
 flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
+# -- 만약 USE_FRAMEWORKS 환경 변수를 넣어서 동적 프레임워크를 쓰고 싶다면 아래 주석을 해제 -- #
+# linkage = ENV['USE_FRAMEWORKS']
+# if linkage
+#   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+#   use_frameworks! :linkage => linkage.to_sym
+# end
 
 target 'LetMeDoWith' do
+  # 자동으로 link할 네이티브 모듈 설정 정보 로드
   config = use_native_modules!
 
   use_react_native!(
     :path => config[:reactNativePath],
     :hermes_enabled => false,
-    # Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable the next line.
     :flipper_configuration => flipper_config,
-    # An absolute path to your application root.
+    # 실제 앱 경로 (Podfile 위치 기준 상위 폴더)
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  # 테스트 대상
   target 'LetMeDoWithTests' do
     inherit! :complete
-    # Pods for testing
+    # 여기에 테스트 전용 Pods 추가 가능
   end
 
   post_install do |installer|
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false
+      :mac_catalyst_enabled => false      # Mac Catalyst 비활성화
     )
+    # (Xcode 12.5 M1 문제 대응이 필요하면 여기에 추가 스크립트 삽입)
   end
 end
