@@ -33,7 +33,9 @@ const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetS
 
   // 토큰 발급 로직 수행
   useEffect(() => {
-    if (!fetchTokenData) return;
+    if (!fetchTokenData) {
+      return;
+    }
 
     // 회원 가입이 필요한 경우
     if (fetchTokenData.signupToken) {
@@ -44,7 +46,9 @@ const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetS
       return;
     }
 
-    if (!fetchTokenData.atk || !fetchTokenData.rtk) return;
+    if (!fetchTokenData.atk || !fetchTokenData.rtk) {
+      return;
+    }
 
     // 회원가입이 완료 되었을 경우
     setTokenInfo({ access: fetchTokenData.atk, refresh: fetchTokenData.rtk });
@@ -54,7 +58,9 @@ const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetS
 
   // 토큰 재발급 로직 수행
   useEffect(() => {
-    if (!refreshTokenData || !refreshTokenData.atk || !refreshTokenData.rtk) return;
+    if (!refreshTokenData || !refreshTokenData.atk || !refreshTokenData.rtk) {
+      return;
+    }
 
     // 토큰 재발급이 완료 되었을 경우
     setTokenInfo({ access: refreshTokenData.atk, refresh: refreshTokenData.rtk });

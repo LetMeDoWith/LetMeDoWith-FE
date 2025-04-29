@@ -1,9 +1,10 @@
 import axios from 'axios';
 import UserAgent from 'react-native-user-agent';
+import Config from 'react-native-config';
 
 import { useAuthStore } from 'stores/auth';
 
-const BASE_URL = 'http://localhost:8080/api';
+const BASE_URL = `https://${Config.DEV_API_URL}/api/`;
 
 const apiClient = axios.create({ baseURL: BASE_URL });
 
@@ -12,15 +13,16 @@ apiClient.interceptors.request.use(config => {
     tokenInfo: { access, signup },
     isLoggedIn,
     isNeedSignUp,
-  } = useAuthStore();
+  } = useAuthStore.getState();
 
-  const Authorization = `Bearer ${isNeedSignUp ? signup?.token : access?.token}`;
+  config.headers = config.headers || {};
+  config.headers['User-Agent'] = UserAgent.getUserAgent();
 
-  return {
-    ...config,
-    ...(isLoggedIn && { Authorization }),
-    userAgent: UserAgent.getUserAgent(),
-  };
+  if (isLoggedIn) {
+    config.headers.Authorization = `Bearer ${isNeedSignUp ? signup?.token : access?.token}`;
+  }
+
+  return config;
 });
 
 apiClient.interceptors.response.use(response => {
