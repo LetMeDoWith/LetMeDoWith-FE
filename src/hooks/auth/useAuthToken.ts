@@ -7,6 +7,7 @@ import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
 
 /**
  * 토큰에 대해 유효성 검사를 하는 custom hook
+ * @param provider 인증 공급자 (GOOGLE | KAKAO | APPLE)
  */
 const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetStateAction<string | null>>] => {
   const {
@@ -17,7 +18,21 @@ const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetS
     setIsNeedSignUp,
     isNeedRefreshToken,
     setIsNeedRefreshToken,
-  } = useAuthStore();
+  } = useAuthStore(
+    ({
+      tokenInfo,
+      isNeedRefreshToken,
+      actions: { validateTokenInfo, setTokenInfo, setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken },
+    }) => ({
+      validateTokenInfo,
+      tokenInfo,
+      setTokenInfo,
+      setIsLoggedIn,
+      setIsNeedSignUp,
+      isNeedRefreshToken,
+      setIsNeedRefreshToken,
+    }),
+  );
   const [idToken, setIdToken] = useState<string | null>(null);
 
   const { data: fetchTokenData } = useFetchTokenQuery({ provider, idToken: idToken || '' }, { enabled: !!idToken });

@@ -3,6 +3,8 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import dayjs from 'dayjs';
 
+import { secureStorage, STORAGE_KEY } from 'stores/secure';
+
 type Token = {
   token: string;
   expireAt: string;
@@ -20,7 +22,7 @@ type State = {
 };
 
 type Action = {
-  validateTokenInfo: () => Promise<void>;
+  validateTokenInfo: () => void;
   setTokenInfo: (token: Partial<State['tokenInfo']>) => void;
   removeTokenInfo: () => void;
   setIsLoggedIn: (value: boolean) => void;
@@ -39,21 +41,21 @@ const initialState = {
   isNeedRefreshToken: false,
 };
 
-const useAuthStore = create<State & Action>()(
+const useAuthStore = create<State & { actions: Action }>()(
   persist(
     (set, get) => ({
       ...initialState,
-      setIsLoggedIn: (isLoggedIn: boolean) => set({ isLoggedIn }),
-      setIsNeedSignUp: (isNeedSignUp: boolean) => set({ isNeedSignUp }),
-      setIsNeedRefreshToken: (isNeedRefreshToken: boolean) => set({ isNeedRefreshToken }),
-      validateTokenInfo: async () => {
-        try {
-          const data = await EncryptedStorage.getItem('tokenInfoStorage');
+      actions: {
+        setIsLoggedIn: (isLoggedIn: boolean) => set({ isLoggedIn }),
+        setIsNeedSignUp: (isNeedSignUp: boolean) => set({ isNeedSignUp }),
+        setIsNeedRefreshToken: (isNeedRefreshToken: boolean) => set({ isNeedRefreshToken }),
+        validateTokenInfo: () => {
+          try {
+            const { tokenInfo } = get();
 
-          if (data) {
-            const {
-              state: { tokenInfo },
-            } = JSON.parse(data);
+            if (!tokenInfo) {
+              return;
+            }
 
             // 액세스 토큰, refresh 토큰이 존재하는 경우
             if (tokenInfo.access && tokenInfo.refresh) {
@@ -80,28 +82,35 @@ const useAuthStore = create<State & Action>()(
             }
 
             set({ tokenInfo });
+          } catch (error) {
+            console.error('토큰 정보 저장에 실패했습니다. ', error);
           }
-        } catch (error) {
-          console.error('Failed to fetch stored token info:', error);
-        }
-      },
-      setTokenInfo: info => {
-        set({ tokenInfo: { ...get().tokenInfo, ...info } });
-      },
-      removeTokenInfo: async () => {
-        try {
-          await EncryptedStorage.removeItem('tokenInfoStorage');
-          set(initialState);
-        } catch (error) {
-          console.error('Failed to remove token info:', error);
-        }
+        },
+        setTokenInfo: info => {
+          set({ tokenInfo: { ...get().tokenInfo, ...info } });
+        },
+        removeTokenInfo: async () => {
+          try {
+            await EncryptedStorage.removeItem(STORAGE_KEY.TOKEN_INFO);
+            set(initialState);
+          } catch (error) {
+            console.error('토큰 정보 삭제에 실패했습니다.', error);
+          }
+        },
       },
     }),
     {
-      name: 'tokenInfoStorage',
-      storage: createJSONStorage(() => EncryptedStorage),
-      onRehydrateStorage: () => {
+      name: STORAGE_KEY.TOKEN_INFO,
+      storage: createJSONStorage(secureStorage),
+      partialize: ({ tokenInfo }) => ({
+        tokenInfo,
+      }),
+      onRehydrateStorage: () => (mergedState, error) => {
         console.log('Rehydrating state from encrypted storage');
+        if (error) {
+          console.error('onRehydrate error: ', error);
+        }
+        console.log('mergedState: ', mergedState);
       },
     },
   ),

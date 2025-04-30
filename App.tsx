@@ -15,7 +15,10 @@ import { useAuthStore } from 'stores/auth';
 
 function App(): React.JSX.Element {
   const queryClient = new QueryClient();
-  const { isLoggedIn, isNeedSignUp } = useAuthStore();
+  const { isLoggedIn, isNeedSignUp } = useAuthStore(({ isLoggedIn, isNeedSignUp }) => ({
+    isLoggedIn,
+    isNeedSignUp,
+  }));
 
   return (
     <QueryClientProvider client={queryClient}>
