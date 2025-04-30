@@ -1,3 +1,6 @@
+import { Alert } from 'react-native';
+import { AxiosError } from 'axios';
+
 import { apiClient } from 'services/apiClient';
 import { AUTH_API } from 'services/urls';
 import type {
@@ -9,15 +12,17 @@ import type {
 
 /**
  * 토큰 발급 api
- * @param payload provider(로그인 기능 제공자), idToken(사용자의 정보를 담고 있는 토큰)
+ * @param payload provider(인증 공급자), idToken(사용자의 정보를 담고 있는 토큰)
  */
-const fetchToken = async (payload: fetchTokenRequestSchemeType): Promise<fetchTokenResponseSchemeType> => {
+const fetchToken = async (payload: fetchTokenRequestSchemeType): Promise<fetchTokenResponseSchemeType | undefined> => {
   try {
     const result = await apiClient.post<fetchTokenResponseSchemeType>(AUTH_API.FETCH_TOKEN, payload);
     return result.data;
-  } catch (e) {
-    console.error(e);
-    throw e;
+  } catch (e: unknown) {
+    if (e instanceof AxiosError) {
+      console.error(e.response?.data);
+    }
+    Alert.alert('토큰 발급에 실패했습니다.');
   }
 };
 
@@ -25,13 +30,17 @@ const fetchToken = async (payload: fetchTokenRequestSchemeType): Promise<fetchTo
  * 토큰 재발급 api
  * @param payload refresh token(재발급 토큰)
  */
-const refreshToken = async (payload: refreshTokenRequestSchemeType): Promise<refreshTokenResponseSchemeType> => {
+const refreshToken = async (
+  payload: refreshTokenRequestSchemeType,
+): Promise<refreshTokenResponseSchemeType | undefined> => {
   try {
     const result = await apiClient.post<refreshTokenResponseSchemeType>(AUTH_API.REFRESH_TOKEN, payload);
     return result.data;
-  } catch (e) {
-    console.error(e);
-    throw e;
+  } catch (e: unknown) {
+    if (e instanceof AxiosError) {
+      console.error(e.response?.data);
+    }
+    Alert.alert('토큰 재발급에 실패했습니다.');
   }
 };
 

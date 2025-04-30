@@ -15,11 +15,12 @@ const GoogleLoginButton = () => {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const result = await GoogleSignin.signIn();
       if (!result.idToken) {
-        throw 'identify token이 존재하지 않습니다.';
+        console.error('GOOGLE identify token이 존재하지 않습니다.');
+        return;
       }
       setIdToken(result.idToken);
     } catch (error) {
-      console.error(error);
+      console.error('구글 로그인에서 에러가 발생했습니다.: ', error);
     }
   };
 

@@ -17,14 +17,15 @@ const AppleLoginButton = () => {
       });
 
       if (!appleAuthRequestResponse.identityToken) {
-        throw 'identify token이 존재하지 않습니다.';
+        console.error('APPLE identify token이 존재하지 않습니다.');
+        return;
       }
       setIdToken(appleAuthRequestResponse.identityToken);
-    } catch (e: any) {
-      if (e.code === appleAuth.Error.CANCELED) {
+    } catch (error: any) {
+      if (error.code === appleAuth.Error.CANCELED) {
         console.warn('사용자가 로그인을 취소하였습니다.');
       } else {
-        console.error(e);
+        console.error('애플 로그인에서 에러가 발생했습니다.: ', error);
       }
     }
   };
