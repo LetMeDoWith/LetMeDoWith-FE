@@ -24,6 +24,6 @@ const ErrorStatusCodeEnum = z.enum([
   'E510',
 ]);
 
-const StatusCodeEnum = z.union([SuccessStatusCodeEnum, ErrorStatusCodeEnum]);
+const StatusCodeEnum = z.enum([...SuccessStatusCodeEnum.options, ...ErrorStatusCodeEnum.options] as const);
 
 export { SuccessStatusCodeEnum, ErrorStatusCodeEnum, StatusCodeEnum };

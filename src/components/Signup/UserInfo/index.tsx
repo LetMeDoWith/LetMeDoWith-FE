@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Controller, useFormContext } from 'react-hook-form';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
@@ -11,16 +11,24 @@ import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
 import type { SignUpStackScreenProps } from 'types/shared';
 import { hexToRgba } from 'utils/style';
+import { useValidNickname } from 'hooks/queries/member/useValidNickname';
+import { StatusCodeEnum } from 'schemes/shared/enum';
 
 const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_USER_INFO'>) => {
   const {
     control,
     watch,
     setValue,
-    formState: { errors, dirtyFields },
+    formState: { errors, dirtyFields, touchedFields },
     setError,
     clearErrors,
   } = useFormContext();
+
+  const {
+    mutate: mutateValidNickname,
+    isSuccess: isSuccessMutateValidNickname,
+    reset: resetMutateValidNickname,
+  } = useValidNickname();
 
   const { top, bottom } = useSafeAreaInsets();
   const heightStyle = useMemo(
@@ -71,7 +79,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
               style={[
                 styles.label,
                 errors.nickname && styles.error,
-                !errors.nickname && dirtyFields.nickname && styles.valid,
+                !errors.nickname && touchedFields.nickname && isSuccessMutateValidNickname && styles.valid,
               ]}
             >
               닉네임
@@ -80,30 +88,23 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
           <Controller
             name="nickname"
             control={control}
-            render={({ field: { onChange, value } }) => (
+            render={({ field: { onChange, onBlur, value } }) => (
               <>
                 <TextInput
                   style={[
                     styles.input,
                     errors.nickname && styles.errorBorder,
-                    !errors.nickname && dirtyFields.nickname && styles.validBorder,
+                    !errors.nickname && touchedFields.nickname && isSuccessMutateValidNickname && styles.validBorder,
                   ]}
                   placeholder="닉네임을 입력해주세요"
-                  onChangeText={value => {
-                    onChange(value);
-
-                    // 값이 비어졌을 때 에러 초기화
-                    if (value !== '') {
-                      return;
-                    }
-                    clearErrors('nickname');
-                  }}
+                  onChangeText={onChange}
                   onBlur={() => {
+                    onBlur();
+                    resetMutateValidNickname();
+
                     if (!dirtyFields.nickname) {
                       return;
                     }
-
-                    // TODO: 이미 사용 중인 닉네임인지 여부 검사
 
                     if (nickname.length < 2 || nickname.length > 7) {
                       setError('nickname', { type: 'nickname', message: '* 닉네임 길이 조건을 확인해주세요.' });
@@ -115,7 +116,23 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
                       return;
                     }
 
-                    clearErrors('nickname');
+                    mutateValidNickname(
+                      { nickname },
+                      {
+                        onSuccess: ({ statusCode, data }) => {
+                          if (statusCode !== StatusCodeEnum.enum.S100) {
+                            setError('nickname', { type: 'nickname', message: `* ${data}.` });
+                            return;
+                          }
+
+                          clearErrors('nickname');
+                        },
+                        onError: e => {
+                          Alert.alert('닉네임 중복 여부 검증에 실패했습니다.');
+                          console.error(e.response?.data);
+                        },
+                      },
+                    );
                   }}
                   value={value}
                 />
@@ -130,10 +147,14 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
             <HelperText
               type="info"
               padding="none"
-              style={[styles.message, dirtyFields.nickname ? styles.valid : styles.default]}
+              style={[
+                styles.message,
+                touchedFields.nickname && isSuccessMutateValidNickname ? styles.valid : styles.default,
+              ]}
             >
-              {/* TODO: 사용 가능한 닉네임인지 판단 여부 api 연동 필요 */}
-              {dirtyFields.nickname ? '사용 가능한 닉네임이에요.' : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
+              {touchedFields.nickname && isSuccessMutateValidNickname
+                ? '사용 가능한 닉네임이에요.'
+                : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
             </HelperText>
           )}
         </View>
@@ -141,7 +162,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
           <Controller
             name="birthday"
             control={control}
-            render={({ field: { value } }) => (
+            render={({ field: { value, onBlur } }) => (
               <>
                 <Text style={[styles.label, errors.birthday && styles.error]}>생년월일</Text>
                 <Pressable onPress={toggleDatePicker(true)}>
@@ -163,7 +184,10 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
                   locale="ko-KR"
                   date={dayjs().toDate()}
                   maximumDate={dayjs().subtract(14, 'year').toDate()}
-                  onConfirm={handleDateChange}
+                  onConfirm={date => {
+                    onBlur();
+                    handleDateChange(date);
+                  }}
                   onCancel={toggleDatePicker(false)}
                 />
               </>

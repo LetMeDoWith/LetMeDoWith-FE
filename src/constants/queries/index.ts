@@ -3,4 +3,8 @@ const AUTH_QUERY_KEY = {
   REFRESH_TOKEN: ['auth', 'token', 'refresh'],
 } as const;
 
-export { AUTH_QUERY_KEY };
+const MEMBER_QUERY_KEY = {
+  VALID_NICKNAME: ['member', 'valid', 'nickname'],
+} as const;
+
+export { AUTH_QUERY_KEY, MEMBER_QUERY_KEY };

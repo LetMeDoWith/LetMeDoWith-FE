@@ -3,4 +3,8 @@ const AUTH_API = {
   REFRESH_TOKEN: 'v1/auth/token/refresh',
 } as const;
 
-export { AUTH_API };
+const MEMBER_API = {
+  VALID_NICKNAME: 'v1/member/nickname',
+} as const;
+
+export { AUTH_API, MEMBER_API };
