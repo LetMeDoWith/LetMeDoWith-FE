@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 
 import type { ProviderEnumType } from 'types/auth/scheme/enum';
 import { useAuthStore } from 'stores/auth';
@@ -35,11 +36,8 @@ const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetS
   );
   const [idToken, setIdToken] = useState<string | null>(null);
 
-  const { data: fetchTokenData } = useFetchTokenQuery({ provider, idToken: idToken || '' }, { enabled: !!idToken });
-  const { data: refreshTokenData } = useRefreshTokenQuery(
-    { refreshToken: tokenInfo.refresh?.token || '' },
-    { enabled: isNeedRefreshToken },
-  );
+  const { mutate: mutateFetchToken } = useFetchTokenQuery();
+  const { mutate: mutateRefreshToken } = useRefreshTokenQuery();
 
   // 스토리지에 있는 토큰 유효성 검사
   useEffect(() => {
@@ -48,42 +46,71 @@ const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetS
 
   // 토큰 발급 로직 수행
   useEffect(() => {
-    if (!fetchTokenData) {
+    if (!idToken) {
       return;
     }
 
-    // 회원 가입이 필요한 경우
-    if (fetchTokenData.signupToken) {
-      setTokenInfo({ signup: fetchTokenData.signupToken });
-      setIsLoggedIn(true);
-      setIsNeedSignUp(true);
-      setIdToken(null);
-      return;
-    }
+    mutateFetchToken(
+      { provider, idToken },
+      {
+        onSuccess: ({ data }) => {
+          setIsLoggedIn(true);
 
-    if (!fetchTokenData.atk || !fetchTokenData.rtk) {
-      return;
-    }
+          // 회원 가입이 필요한 경우
+          if (data.signupToken) {
+            setIsNeedSignUp(true);
+            setTokenInfo({ signup: data.signupToken });
+            return;
+          }
 
-    // 회원가입이 완료 되었을 경우
-    setTokenInfo({ access: fetchTokenData.atk, refresh: fetchTokenData.rtk });
-    setIsNeedSignUp(false);
-    setIdToken(null);
-  }, [fetchTokenData, setIsLoggedIn, setIsNeedSignUp, setTokenInfo]);
+          if (!data.atk || !data.rtk) {
+            return;
+          }
+
+          // 회원가입이 완료 되었을 경우
+          setIsNeedSignUp(false);
+          setTokenInfo({ access: data.atk, refresh: data.rtk });
+        },
+        onError: e => {
+          console.error('토큰 발급 실패 ', e.response?.data);
+          Alert.alert('토큰 발급에 실패했습니다.');
+        },
+        onSettled: () => {
+          setIdToken(null);
+        },
+      },
+    );
+  }, [idToken, setIsLoggedIn, setIsNeedSignUp, setTokenInfo]);
 
   // 토큰 재발급 로직 수행
   useEffect(() => {
-    if (!refreshTokenData || !refreshTokenData.atk || !refreshTokenData.rtk) {
+    if (!tokenInfo.refresh?.token) {
       return;
     }
 
-    // 토큰 재발급이 완료 되었을 경우
-    setTokenInfo({ access: refreshTokenData.atk, refresh: refreshTokenData.rtk });
-    setIsLoggedIn(true);
-    setIsNeedRefreshToken(false);
-    setIsNeedSignUp(false);
-    setIdToken(null);
-  }, [refreshTokenData, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, setTokenInfo]);
+    mutateRefreshToken(
+      { refreshToken: tokenInfo.refresh.token },
+      {
+        onSuccess: ({ data }) => {
+          if (!data.atk || !data.rtk) {
+            return;
+          }
+          // 토큰 재발급이 완료 되었을 경우
+          setTokenInfo({ access: data.atk, refresh: data.rtk });
+          setIsLoggedIn(true);
+          setIsNeedRefreshToken(false);
+          setIsNeedSignUp(false);
+        },
+        onError: e => {
+          console.error('토큰 재발급 실패 ', e.response?.data);
+          Alert.alert('토큰 재발급에 실패했습니다.');
+        },
+        onSettled: () => {
+          setIdToken(null);
+        },
+      },
+    );
+  }, [tokenInfo.refresh?.token, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, setTokenInfo]);
 
   return [idToken, setIdToken];
 };
