@@ -23,7 +23,7 @@ function App(): React.JSX.Element {
         <PaperProvider>
           <Portal>
             <View style={styles.container}>
-              {!isLoggedIn ? (
+              {isLoggedIn ? (
                 <SafeAreaProvider>
                   <KeyboardProvider>
                     <NavigationContainer>{isNeedSignUp ? <Signup /> : <HomeStackNavigator />}</NavigationContainer>
