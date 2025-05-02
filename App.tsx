@@ -30,7 +30,7 @@ function App(): React.JSX.Element {
                   </KeyboardProvider>
                 </SafeAreaProvider>
               ) : (
-                <Login  />
+                <Login />
               )}
             </View>
           </Portal>
