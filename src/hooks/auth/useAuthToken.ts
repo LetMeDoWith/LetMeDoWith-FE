@@ -11,29 +11,20 @@ import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
  * @param provider 인증 공급자 (GOOGLE | KAKAO | APPLE)
  */
 const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetStateAction<string | null>>] => {
-  const {
-    validateTokenInfo,
-    tokenInfo,
-    setTokenInfo,
-    setIsLoggedIn,
-    setIsNeedSignUp,
-    isNeedRefreshToken,
-    setIsNeedRefreshToken,
-  } = useAuthStore(
-    ({
-      tokenInfo,
-      isNeedRefreshToken,
-      actions: { validateTokenInfo, setTokenInfo, setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken },
-    }) => ({
-      validateTokenInfo,
-      tokenInfo,
-      setTokenInfo,
-      setIsLoggedIn,
-      setIsNeedSignUp,
-      isNeedRefreshToken,
-      setIsNeedRefreshToken,
-    }),
-  );
+  const { validateTokenInfo, tokenInfo, setTokenInfo, setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken } =
+    useAuthStore(
+      ({
+        tokenInfo,
+        actions: { validateTokenInfo, setTokenInfo, setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken },
+      }) => ({
+        validateTokenInfo,
+        tokenInfo,
+        setTokenInfo,
+        setIsLoggedIn,
+        setIsNeedSignUp,
+        setIsNeedRefreshToken,
+      }),
+    );
   const [idToken, setIdToken] = useState<string | null>(null);
 
   const { mutate: mutateFetchToken } = useFetchTokenQuery();
