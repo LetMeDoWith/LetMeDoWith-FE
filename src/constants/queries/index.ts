@@ -1,5 +1,6 @@
 const AUTH_QUERY_KEY = {
-  GET_TOKEN: ['auth', 'token'],
+  FETCH_TOKEN: ['auth', 'token'],
+  REFRESH_TOKEN: ['auth', 'token', 'refresh'],
 } as const;
 
 export { AUTH_QUERY_KEY };

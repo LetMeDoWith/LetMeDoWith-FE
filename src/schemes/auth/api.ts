@@ -3,34 +3,33 @@ import { z } from 'zod';
 import { ProviderEnum } from 'schemes/auth/enum';
 import { BaseResponseScheme } from 'schemes/shared/api';
 
-const getTokenRequestScheme = z.object({
+const tokenScheme = z.object({
+  token: z.string(),
+  expireAt: z.string(),
+});
+
+const fetchTokenRequestScheme = z.object({
   provider: ProviderEnum,
   idToken: z.string(),
 });
 
-const getTokenResponseScheme = BaseResponseScheme.extend({
+const fetchTokenResponseScheme = BaseResponseScheme.extend({
   data: z.object({
-    atk: z
-      .object({
-        token: z.string(),
-        expireAt: z.string(),
-      })
-      .nullable(),
-    rtk: z
-      .object({
-        token: z.string(),
-        accessToken: z.string(),
-        memberId: z.number(),
-        expireAt: z.string(),
-      })
-      .nullable(),
-    signupToken: z
-      .object({
-        token: z.string(),
-        expireAt: z.string(),
-      })
-      .nullable(),
+    atk: tokenScheme.nullable(),
+    rtk: tokenScheme.nullable(),
+    signupToken: tokenScheme.nullable(),
   }),
 });
 
-export { getTokenRequestScheme, getTokenResponseScheme };
+const refreshTokenRequestScheme = z.object({
+  refreshToken: z.string(),
+});
+
+const refreshTokenResponseScheme = BaseResponseScheme.extend({
+  data: z.object({
+    atk: tokenScheme,
+    rtk: tokenScheme,
+  }),
+});
+
+export { fetchTokenRequestScheme, fetchTokenResponseScheme, refreshTokenRequestScheme, refreshTokenResponseScheme };

@@ -13,13 +13,13 @@ const KakaoLoginButton = () => {
     return await login()
       .then(result => {
         if (!result.idToken) {
-          throw 'identify token이 존재하지 않습니다.';
+          console.error('KAKAO identify token이 존재하지 않습니다.');
+          return;
         }
         setIdToken(result.idToken);
       })
       .catch(error => {
-        console.log('Error: ', error);
-        throw error;
+        console.error('카카오 로그인에서 에러가 발생했습니다.: ', error);
       });
   };
 

@@ -1,8 +1,20 @@
 import { z } from 'zod';
 
-import { getTokenRequestScheme, getTokenResponseScheme } from 'schemes/auth/api';
+import {
+  fetchTokenRequestScheme,
+  fetchTokenResponseScheme,
+  refreshTokenRequestScheme,
+  refreshTokenResponseScheme,
+} from 'schemes/auth/api';
 
-type getTokenRequestSchemeType = z.infer<typeof getTokenRequestScheme>;
-type getTokenResponseSchemeType = z.infer<typeof getTokenResponseScheme>;
+type fetchTokenRequestSchemeType = z.infer<typeof fetchTokenRequestScheme>;
+type fetchTokenResponseSchemeType = z.infer<typeof fetchTokenResponseScheme>;
+type refreshTokenRequestSchemeType = z.infer<typeof refreshTokenRequestScheme>;
+type refreshTokenResponseSchemeType = z.infer<typeof refreshTokenResponseScheme>;
 
-export type { getTokenRequestSchemeType, getTokenResponseSchemeType };
+export type {
+  fetchTokenRequestSchemeType,
+  fetchTokenResponseSchemeType,
+  refreshTokenRequestSchemeType,
+  refreshTokenResponseSchemeType,
+};
