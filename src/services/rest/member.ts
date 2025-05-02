@@ -1,6 +1,11 @@
 import { MEMBER_API } from 'services/urls';
 import { apiClient } from 'services/apiClient';
-import type { validNicknameRequestSchemeType, validNicknameResponseSchemeType } from 'types/member/scheme/api';
+import type {
+  signUpRequestSchemeType,
+  signUpResponseSchemeType,
+  validNicknameRequestSchemeType,
+  validNicknameResponseSchemeType,
+} from 'types/member/scheme/api';
 
 const validNickname = async (payload: validNicknameRequestSchemeType): Promise<validNicknameResponseSchemeType> => {
   try {
@@ -11,4 +16,13 @@ const validNickname = async (payload: validNicknameRequestSchemeType): Promise<v
   }
 };
 
-export { validNickname };
+const signUp = async (payload: signUpRequestSchemeType): Promise<signUpResponseSchemeType> => {
+  try {
+    const result = await apiClient.post<signUpResponseSchemeType>(MEMBER_API.SIGN_UP, payload);
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export { validNickname, signUp };

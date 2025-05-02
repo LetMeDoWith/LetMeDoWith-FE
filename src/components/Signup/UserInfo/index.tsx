@@ -13,6 +13,7 @@ import type { SignUpStackScreenProps } from 'types/shared';
 import { hexToRgba } from 'utils/style';
 import { useValidNickname } from 'hooks/queries/member/useValidNickname';
 import { StatusCodeEnum } from 'schemes/shared/enum';
+import type { signUpRequestSchemeType } from 'types/member/scheme/api';
 
 const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_USER_INFO'>) => {
   const {
@@ -22,7 +23,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
     formState: { errors, dirtyFields, touchedFields },
     setError,
     clearErrors,
-  } = useFormContext();
+  } = useFormContext<signUpRequestSchemeType>();
 
   const {
     mutate: mutateValidNickname,
@@ -43,25 +44,25 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
 
   const nickname = watch('nickname');
-  const birthday = watch('birthday');
+  const dateOfBirth = watch('dateOfBirth');
   const gender = watch('gender');
 
   const isFieldErrorExisted = Object.keys(errors).length > 0;
-  const isButtonDisabled = !(nickname && birthday && gender) || isFieldErrorExisted;
+  const isButtonDisabled = useMemo(() => !(nickname && dateOfBirth && gender) || isFieldErrorExisted, [nickname, dateOfBirth, gender]);
 
   const toggleDatePicker = useCallback((isOpen: boolean) => () => setDatePickerOpen(isOpen), []);
 
   const handleDateChange = useCallback(
     (date: Date) => {
-      setValue('birthday', dayjs(date).format('YYYY / MM / DD'));
+      setValue('dateOfBirth', dayjs(date).format('YYYY / MM / DD'));
       setDatePickerOpen(false);
     },
     [setValue, toggleDatePicker],
   );
 
-  const handleGenderChange = useCallback(
-    (gender: 'male' | 'female') => () => {
-      setValue('gender', gender);
+  const handleGenderButton = useCallback(
+    (value: 'MALE' | 'FEMALE') => () => {
+      setValue('gender', value);
     },
     [setValue],
   );
@@ -69,9 +70,9 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
   return (
     <ScrollView contentContainerStyle={[styles.container, heightStyle]}>
       <View style={styles.inputSection}>
-        <View style={styles.titleWrap}>
-          <Text style={styles.titleNormal}>반가워요!</Text>
-          <Text style={styles.titleBold}>사용자 정보를 입력해주세요</Text>
+        <View>
+          <Text style={styles.titleBold}>반가워요!</Text>
+          <Text style={styles.titleNormal}>사용자 정보를 입력해주세요</Text>
         </View>
         <View style={styles.formContainer}>
           <View style={styles.labelWrap}>
@@ -160,14 +161,14 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
         </View>
         <View style={styles.formContainer}>
           <Controller
-            name="birthday"
+            name="dateOfBirth"
             control={control}
             render={({ field: { value, onBlur } }) => (
               <>
-                <Text style={[styles.label, errors.birthday && styles.error]}>생년월일</Text>
+                <Text style={[styles.label, errors.dateOfBirth && styles.error]}>생년월일</Text>
                 <Pressable onPress={toggleDatePicker(true)}>
                   <TextInput
-                    style={[styles.input, errors.birthday && styles.error]}
+                    style={[styles.input, errors.dateOfBirth && styles.error]}
                     pointerEvents="none"
                     editable={false}
                     placeholder="YYYY / MM / DD"
@@ -194,43 +195,29 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
             )}
           />
         </View>
-        <View style={styles.formContainer}>
-          <Controller
-            control={control}
-            render={() => (
-              <View style={styles.genderField}>
-                <Text style={[styles.label, errors.gender && styles.error]}>성별</Text>
-                <View style={styles.genderButtonGroup}>
-                  <Pressable
-                    style={[styles.genderButton, gender === 'male' && styles.selectGenderButton]}
-                    onPress={handleGenderChange('male')}
-                  >
-                    <Text style={gender === 'male' && styles.selectGenderButtonText}>남성</Text>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.genderButton, gender === 'female' && styles.selectGenderButton]}
-                    onPress={handleGenderChange('female')}
-                  >
-                    <Text style={gender === 'female' && styles.selectGenderButtonText}>여성</Text>
-                  </Pressable>
-                </View>
-              </View>
-            )}
-            name="gender"
-          />
+        <View style={styles.genderButtonContainer}>
+          <Pressable
+            style={[styles.genderButton, gender === 'MALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
+            onPress={handleGenderButton('MALE')}
+          >
+            <Text style={styles.genderButtonText}>남성</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.genderButton, gender === 'FEMALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
+            onPress={handleGenderButton('FEMALE')}
+          >
+            <Text style={styles.genderButtonText}>여성</Text>
+          </Pressable>
         </View>
       </View>
       <Pressable
-        style={[
-          styles.submitButton,
-          !isButtonDisabled && { backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60)}` },
-        ]}
+        style={[styles.nextButton, !isButtonDisabled && { backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60)}` }]}
         disabled={isButtonDisabled}
         onPress={() => {
           navigate('SIGN_UP_AGREEMENT');
         }}
       >
-        <Text style={styles.submitButtonText}>다음</Text>
+        <Text style={styles.nextButtonText}>다음</Text>
       </Pressable>
     </ScrollView>
   );
@@ -293,34 +280,31 @@ const styles = StyleSheet.create({
   genderField: {
     gap: 12,
   },
-  genderButtonGroup: {
-    gap: 8,
+  genderButtonContainer: {
     flexDirection: 'row',
+    gap: 12,
   },
   genderButton: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
+    height: 48,
     borderWidth: 1,
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
-    height: 48,
   },
-  selectGenderButton: {
-    borderColor: theme.COLORS.PRIMARY.RED_60,
-    backgroundColor: theme.COLORS.PRIMARY.RED_98,
+  genderButtonText: {
+    fontSize: 16,
+    color: theme.COLORS.DEFAULT.BLACK,
   },
-  selectGenderButtonText: {
-    color: theme.COLORS.PRIMARY.RED_60,
-  },
-  submitButton: {
+  nextButton: {
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
     height: 56,
     backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60, 0.36)}`,
   },
-  submitButtonText: {
+  nextButtonText: {
     fontSize: 18,
     color: theme.COLORS.DEFAULT.WHITE,
   },

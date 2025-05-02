@@ -1,46 +1,56 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { Checkbox, Divider, IconButton } from 'react-native-paper';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 
+import type { signUpRequestSchemeType } from 'types/member/scheme/api';
 import { theme } from 'styles/theme';
+import { useSignUp } from 'hooks/queries/member/useSignUp';
 import { isAos } from 'utils/device';
 
-const CHECKBOX_MAP_LIST = [
-  { label: 'age_agree', text: '(필수) 만 14세 이상입니다.', isLinkable: false },
-  { label: 'service_agree', text: '(필수) 서비스 이용약관 관련 동의', isLinkable: true },
-  { label: 'private_agree', text: '(필수) 개인정보 처리 방침', isLinkable: true },
-  { label: 'marketing_agree', text: '(선택) 광고성 정보 수신동의', isLinkable: true },
+type AgreementKeys = keyof signUpRequestSchemeType['agreements'];
+type AgreementLabels = `agreements.${AgreementKeys}`;
+
+const CHECKBOX_MAP_LIST: { label: AgreementLabels; text: string; isLinkable: boolean }[] = [
+  { label: 'agreements.termsOfAgree', text: '(필수) 서비스 이용약관 관련 동의', isLinkable: true },
+  { label: 'agreements.privacy', text: '(필수) 개인정보 처리 방침', isLinkable: true },
+  { label: 'agreements.advertisement', text: '(선택) 광고성 정보 수신동의', isLinkable: true },
 ];
 
 const ServiceAgree = () => {
   const [allChecked, setAllChecked] = useState<boolean>(false);
-  const { handleSubmit, control, watch, setValue } = useFormContext();
-  const ageAgree = watch('age_agree');
-  const serviceAgree = watch('service_agree');
-  const privateAgree = watch('private_agree');
-  const marketingAgree = watch('marketing_agree');
+  const [ageOfAgree, setAgeOfAgree] = useState<boolean>(false);
+  const { handleSubmit, control, watch, setValue } = useFormContext<signUpRequestSchemeType>();
+  const termsOfAgree = watch('agreements.termsOfAgree');
+  const privacy = watch('agreements.privacy');
+  const advertisement = watch('agreements.advertisement');
+
+  const { mutate } = useSignUp();
 
   const isButtonDisabled = useMemo(() => {
-    if (allChecked) {
-      return false;
-    }
-
-    if (ageAgree && serviceAgree && privateAgree) {
+    if ((ageOfAgree && termsOfAgree && privacy) || allChecked) {
       return false;
     }
 
     return true;
-  }, [ageAgree, allChecked, privateAgree, serviceAgree]);
+  }, [ageOfAgree, allChecked, privacy, termsOfAgree]);
 
-  const onSubmit: SubmitHandler<any> = useCallback(value => {
-    Alert.alert(JSON.stringify(value, null, 2));
-  }, []);
+  const onSubmit: SubmitHandler<signUpRequestSchemeType> = useCallback(
+    values => {
+      console.log(values);
+      const { dateOfBirth } = values;
+      mutate({
+        ...values,
+        dateOfBirth: dateOfBirth.replaceAll(' / ', '-'),
+      });
+    },
+    [mutate],
+  );
 
   const onPressCheckBox = useCallback(
-    (label: string) => () => {
+    (label: AgreementLabels) => () => {
       if (watch(label)) {
         setValue(label, false);
         return;
@@ -50,30 +60,35 @@ const ServiceAgree = () => {
     [setValue, watch],
   );
 
+  const toggleAgeOfAgreeCheckBox = useCallback(() => {
+    setAgeOfAgree(prev => !prev);
+  }, []);
+
   const onPressAllCheckBox = useCallback(() => {
     if (allChecked) {
       setAllChecked(false);
-      setValue('age_agree', false);
-      setValue('service_agree', false);
-      setValue('private_agree', false);
-      setValue('marketing_agree', false);
+      setAgeOfAgree(false);
+      setValue('agreements.termsOfAgree', false);
+      setValue('agreements.privacy', false);
+      setValue('agreements.advertisement', false);
       return;
     }
     setAllChecked(true);
-    setValue('age_agree', true);
-    setValue('service_agree', true);
-    setValue('private_agree', true);
-    setValue('marketing_agree', true);
+    setAgeOfAgree(true);
+    setValue('agreements.termsOfAgree', true);
+    setValue('agreements.privacy', true);
+    setValue('agreements.advertisement', true);
   }, [allChecked, setValue]);
 
-  const getCheckboxStatus = useCallback((label: string) => (watch(label) ? 'checked' : 'unchecked'), [watch]);
+  const getCheckboxStatus = useCallback((label: AgreementLabels) => (watch(label) ? 'checked' : 'unchecked'), [watch]);
 
   useEffect(() => {
-    if (ageAgree && serviceAgree && privateAgree && marketingAgree) {
+    if (ageOfAgree && termsOfAgree && privacy && advertisement) {
       return;
     }
+
     setAllChecked(false);
-  }, [ageAgree, serviceAgree, privateAgree, marketingAgree]);
+  }, [ageOfAgree, termsOfAgree, privacy, advertisement]);
 
   return (
     <View style={styles.container}>
@@ -83,8 +98,16 @@ const ServiceAgree = () => {
           <Text style={styles.titleNormal}>회원가입이 끝나요!</Text>
         </View>
         <Divider style={styles.divider} />
-        <View>
-          {CHECKBOX_MAP_LIST.map(({ label, text, isLinkable }) => (
+        <View style={styles.checkboxWrap}>
+          <View style={styles.formRow}>
+            <Checkbox.Android
+              color={theme.COLORS.PRIMARY.RED_60}
+              status={ageOfAgree ? 'checked' : 'unchecked'}
+              onPress={toggleAgeOfAgreeCheckBox}
+            />
+            <Text>(필수) 만 14세 이상입니다.</Text>
+          </View>
+          {CHECKBOX_MAP_LIST.map(({label, text, isLinkable}) => (
             <Controller
               key={label}
               name={label}
@@ -128,7 +151,7 @@ const ServiceAgree = () => {
         onPress={handleSubmit(onSubmit)}
         disabled={isButtonDisabled}
       >
-        <Text style={styles.buttonText}>회원가입 완료</Text>
+        <Text style={styles.buttonText}>완료</Text>
       </Pressable>
     </View>
   );
@@ -166,6 +189,9 @@ const styles = StyleSheet.create({
   formRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  checkboxWrap: {
+    gap: 10,
   },
   divider: { borderWidth: 0.3 },
   button: {

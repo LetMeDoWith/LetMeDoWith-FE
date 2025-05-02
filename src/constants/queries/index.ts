@@ -5,6 +5,7 @@ const AUTH_QUERY_KEY = {
 
 const MEMBER_QUERY_KEY = {
   VALID_NICKNAME: ['member', 'valid', 'nickname'],
+  SIGN_UP: ['member', 'signup'],
 } as const;
 
 export { AUTH_QUERY_KEY, MEMBER_QUERY_KEY };

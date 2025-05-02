@@ -2,17 +2,19 @@ import React from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { SignupStackNavigator } from 'components/navigators/Stack/Signup';
+import type { signUpRequestSchemeType } from 'types/member/scheme/api';
 
 const Signup = () => {
-  const methods = useForm({
+  const methods = useForm<signUpRequestSchemeType>({
     defaultValues: {
       nickname: '',
-      birthday: '',
+      dateOfBirth: '',
       gender: '',
-      age_agree: false,
-      service_agree: false,
-      private_agree: false,
-      marketing_agree: false,
+      agreements: {
+        termsOfAgree: false,
+        privacy: false,
+        advertisement: false,
+      },
     },
   });
 
