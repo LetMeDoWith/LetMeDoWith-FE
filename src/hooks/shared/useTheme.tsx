@@ -12,8 +12,7 @@ type Theme = {
     SUB: typeof theme.COLORS.SUB;
   };
   TYPOGRAPHY: {
-    HEADER_1: typeof theme.TYPOGRAPHY.HEADER_1;
-    HEADER_2: typeof theme.TYPOGRAPHY.HEADER_2;
+    HEADER: typeof theme.TYPOGRAPHY.HEADER;
     TITLE_1: typeof theme.TYPOGRAPHY.TITLE_1;
     TITLE_2: typeof theme.TYPOGRAPHY.TITLE_2;
     BODY_1: typeof theme.TYPOGRAPHY.BODY_1;

@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     marginBottom: 38,
     gap: 4,
   },
-  title: theme.TYPOGRAPHY.HEADER_1,
+  title: theme.TYPOGRAPHY.HEADER,
   menu: {
     flexDirection: 'row',
     justifyContent: 'space-between',

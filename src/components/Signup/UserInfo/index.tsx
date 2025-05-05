@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   titleWrap: {
     gap: 4,
   },
-  title: theme.TYPOGRAPHY.HEADER_1,
+  title: theme.TYPOGRAPHY.HEADER,
   formContainer: {
     gap: 12,
   },
