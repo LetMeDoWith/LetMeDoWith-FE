@@ -15,6 +15,7 @@ type Theme = {
     HEADER: typeof theme.TYPOGRAPHY.HEADER;
     TITLE_1: typeof theme.TYPOGRAPHY.TITLE_1;
     TITLE_2: typeof theme.TYPOGRAPHY.TITLE_2;
+    TITLE_3: typeof theme.TYPOGRAPHY.TITLE_3;
     BODY_1: typeof theme.TYPOGRAPHY.BODY_1;
     BODY_2: typeof theme.TYPOGRAPHY.BODY_2;
     SUB_TITLE: typeof theme.TYPOGRAPHY.SUB_TITLE;
