@@ -130,7 +130,7 @@ const ServiceAgree = () => {
                       <Text>{text}</Text>
                     </View>
                     {isLinkable && (
-                      <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_80} size={16} />
+                      <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_40} size={16} />
                     )}
                   </Pressable>
                 )}
