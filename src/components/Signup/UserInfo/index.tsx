@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Controller, useFormContext } from 'react-hook-form';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
@@ -11,16 +11,25 @@ import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
 import type { SignUpStackScreenProps } from 'types/shared';
 import { hexToRgba } from 'utils/style';
+import { useValidNickname } from 'hooks/queries/member/useValidNickname';
+import { StatusCodeEnum } from 'schemes/shared/enum';
+import type { signUpRequestSchemeType } from 'types/member/scheme/api';
 
 const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_USER_INFO'>) => {
   const {
     control,
     watch,
     setValue,
-    formState: { errors, dirtyFields },
+    formState: { errors, dirtyFields, touchedFields },
     setError,
     clearErrors,
-  } = useFormContext();
+  } = useFormContext<signUpRequestSchemeType>();
+
+  const {
+    mutate: mutateValidNickname,
+    isSuccess: isSuccessMutateValidNickname,
+    reset: resetMutateValidNickname,
+  } = useValidNickname();
 
   const { top, bottom } = useSafeAreaInsets();
   const heightStyle = useMemo(
@@ -35,25 +44,28 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
 
   const nickname = watch('nickname');
-  const birthday = watch('birthday');
+  const dateOfBirth = watch('dateOfBirth');
   const gender = watch('gender');
 
   const isFieldErrorExisted = Object.keys(errors).length > 0;
-  const isButtonDisabled = !(nickname && birthday && gender) || isFieldErrorExisted;
+  const isButtonDisabled = useMemo(
+    () => !(nickname && dateOfBirth && gender) || isFieldErrorExisted,
+    [nickname, dateOfBirth, gender, isFieldErrorExisted],
+  );
 
   const toggleDatePicker = useCallback((isOpen: boolean) => () => setDatePickerOpen(isOpen), []);
 
   const handleDateChange = useCallback(
     (date: Date) => {
-      setValue('birthday', dayjs(date).format('YYYY / MM / DD'));
+      setValue('dateOfBirth', dayjs(date).format('YYYY / MM / DD'));
       setDatePickerOpen(false);
     },
-    [setValue, toggleDatePicker],
+    [setValue],
   );
 
-  const handleGenderChange = useCallback(
-    (gender: 'male' | 'female') => () => {
-      setValue('gender', gender);
+  const handleGenderButton = useCallback(
+    (value: 'MALE' | 'FEMALE') => () => {
+      setValue('gender', value);
     },
     [setValue],
   );
@@ -62,8 +74,8 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
     <ScrollView contentContainerStyle={[styles.container, heightStyle]}>
       <View style={styles.inputSection}>
         <View style={styles.titleWrap}>
-          <Text style={styles.titleNormal}>반가워요!</Text>
-          <Text style={styles.titleBold}>사용자 정보를 입력해주세요</Text>
+          <Text style={styles.title}>반가워요!</Text>
+          <Text style={styles.title}>사용자 정보를 입력해주세요</Text>
         </View>
         <View style={styles.formContainer}>
           <View style={styles.labelWrap}>
@@ -71,7 +83,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
               style={[
                 styles.label,
                 errors.nickname && styles.error,
-                !errors.nickname && dirtyFields.nickname && styles.valid,
+                !errors.nickname && touchedFields.nickname && isSuccessMutateValidNickname && styles.valid,
               ]}
             >
               닉네임
@@ -80,30 +92,23 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
           <Controller
             name="nickname"
             control={control}
-            render={({ field: { onChange, value } }) => (
+            render={({ field: { onChange, onBlur, value } }) => (
               <>
                 <TextInput
                   style={[
                     styles.input,
                     errors.nickname && styles.errorBorder,
-                    !errors.nickname && dirtyFields.nickname && styles.validBorder,
+                    !errors.nickname && touchedFields.nickname && isSuccessMutateValidNickname && styles.validBorder,
                   ]}
                   placeholder="닉네임을 입력해주세요"
-                  onChangeText={value => {
-                    onChange(value);
-
-                    // 값이 비어졌을 때 에러 초기화
-                    if (value !== '') {
-                      return;
-                    }
-                    clearErrors('nickname');
-                  }}
+                  onChangeText={onChange}
                   onBlur={() => {
+                    onBlur();
+                    resetMutateValidNickname();
+
                     if (!dirtyFields.nickname) {
                       return;
                     }
-
-                    // TODO: 이미 사용 중인 닉네임인지 여부 검사
 
                     if (nickname.length < 2 || nickname.length > 7) {
                       setError('nickname', { type: 'nickname', message: '* 닉네임 길이 조건을 확인해주세요.' });
@@ -115,7 +120,23 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
                       return;
                     }
 
-                    clearErrors('nickname');
+                    mutateValidNickname(
+                      { nickname },
+                      {
+                        onSuccess: ({ statusCode, data }) => {
+                          if (statusCode !== StatusCodeEnum.enum.S100) {
+                            setError('nickname', { type: 'nickname', message: `* ${data}.` });
+                            return;
+                          }
+
+                          clearErrors('nickname');
+                        },
+                        onError: e => {
+                          Alert.alert('닉네임 중복 여부 검증에 실패했습니다.');
+                          console.error(e.response?.data);
+                        },
+                      },
+                    );
                   }}
                   value={value}
                 />
@@ -130,23 +151,27 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
             <HelperText
               type="info"
               padding="none"
-              style={[styles.message, dirtyFields.nickname ? styles.valid : styles.default]}
+              style={[
+                styles.message,
+                touchedFields.nickname && isSuccessMutateValidNickname ? styles.valid : styles.default,
+              ]}
             >
-              {/* TODO: 사용 가능한 닉네임인지 판단 여부 api 연동 필요 */}
-              {dirtyFields.nickname ? '사용 가능한 닉네임이에요.' : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
+              {touchedFields.nickname && isSuccessMutateValidNickname
+                ? '사용 가능한 닉네임이에요.'
+                : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
             </HelperText>
           )}
         </View>
         <View style={styles.formContainer}>
           <Controller
-            name="birthday"
+            name="dateOfBirth"
             control={control}
-            render={({ field: { value } }) => (
+            render={({ field: { value, onBlur } }) => (
               <>
-                <Text style={[styles.label, errors.birthday && styles.error]}>생년월일</Text>
+                <Text style={[styles.label, errors.dateOfBirth && styles.error]}>생년월일</Text>
                 <Pressable onPress={toggleDatePicker(true)}>
                   <TextInput
-                    style={[styles.input, errors.birthday && styles.error]}
+                    style={[styles.input, errors.dateOfBirth && styles.error]}
                     pointerEvents="none"
                     editable={false}
                     placeholder="YYYY / MM / DD"
@@ -163,42 +188,34 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
                   locale="ko-KR"
                   date={dayjs().toDate()}
                   maximumDate={dayjs().subtract(14, 'year').toDate()}
-                  onConfirm={handleDateChange}
+                  onConfirm={date => {
+                    onBlur();
+                    handleDateChange(date);
+                  }}
                   onCancel={toggleDatePicker(false)}
                 />
               </>
             )}
           />
         </View>
-        <View style={styles.formContainer}>
-          <Controller
-            control={control}
-            render={() => (
-              <View style={styles.genderField}>
-                <Text style={[styles.label, errors.gender && styles.error]}>성별</Text>
-                <View style={styles.genderButtonGroup}>
-                  <Pressable
-                    style={[styles.genderButton, gender === 'male' && styles.selectGenderButton]}
-                    onPress={handleGenderChange('male')}
-                  >
-                    <Text style={gender === 'male' && styles.selectGenderButtonText}>남성</Text>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.genderButton, gender === 'female' && styles.selectGenderButton]}
-                    onPress={handleGenderChange('female')}
-                  >
-                    <Text style={gender === 'female' && styles.selectGenderButtonText}>여성</Text>
-                  </Pressable>
-                </View>
-              </View>
-            )}
-            name="gender"
-          />
+        <View style={styles.genderButtonContainer}>
+          <Pressable
+            style={[styles.genderButton, gender === 'MALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
+            onPress={handleGenderButton('MALE')}
+          >
+            <Text style={styles.genderButtonText}>남성</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.genderButton, gender === 'FEMALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
+            onPress={handleGenderButton('FEMALE')}
+          >
+            <Text style={styles.genderButtonText}>여성</Text>
+          </Pressable>
         </View>
       </View>
       <Pressable
         style={[
-          styles.submitButton,
+          styles.nextButton,
           !isButtonDisabled && { backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60)}` },
         ]}
         disabled={isButtonDisabled}
@@ -206,7 +223,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
           navigate('SIGN_UP_AGREEMENT');
         }}
       >
-        <Text style={styles.submitButtonText}>다음</Text>
+        <Text style={styles.nextButtonText}>다음</Text>
       </Pressable>
     </ScrollView>
   );
@@ -230,16 +247,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   titleWrap: {
-    gap: 8,
+    gap: 4,
   },
-  titleNormal: {
-    fontSize: 24,
-    alignItems: 'center',
-  },
-  titleBold: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
+  title: theme.TYPOGRAPHY.HEADER,
   formContainer: {
     gap: 12,
   },
@@ -269,34 +279,31 @@ const styles = StyleSheet.create({
   genderField: {
     gap: 12,
   },
-  genderButtonGroup: {
-    gap: 8,
+  genderButtonContainer: {
     flexDirection: 'row',
+    gap: 12,
   },
   genderButton: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
+    height: 48,
     borderWidth: 1,
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
-    height: 48,
   },
-  selectGenderButton: {
-    borderColor: theme.COLORS.PRIMARY.RED_60,
-    backgroundColor: theme.COLORS.PRIMARY.RED_98,
+  genderButtonText: {
+    fontSize: 16,
+    color: theme.COLORS.DEFAULT.BLACK,
   },
-  selectGenderButtonText: {
-    color: theme.COLORS.PRIMARY.RED_60,
-  },
-  submitButton: {
+  nextButton: {
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
     height: 56,
     backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60, 0.36)}`,
   },
-  submitButtonText: {
+  nextButtonText: {
     fontSize: 18,
     color: theme.COLORS.DEFAULT.WHITE,
   },

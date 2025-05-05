@@ -43,13 +43,8 @@ const theme = {
     },
   },
   TYPOGRAPHY: {
-    HEADER_1: {
+    HEADER: {
       fontWeight: 'bold',
-      fontSize: 24,
-      color: '#000000',
-      lineHeight: 32,
-    },
-    HEADER_2: {
       fontSize: 24,
       color: '#000000',
       lineHeight: 32,
