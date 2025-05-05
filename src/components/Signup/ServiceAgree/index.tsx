@@ -108,10 +108,9 @@ const ServiceAgree = () => {
             <Text>(필수) 만 14세 이상입니다.</Text>
           </View>
           {CHECKBOX_MAP_LIST.map(({ label, text, isLinkable }) => (
-            <>
+            <View key={label}>
               <Divider style={styles.menuDivider} />
               <Controller
-                key={label}
                 name={label}
                 control={control}
                 render={() => (
@@ -136,7 +135,7 @@ const ServiceAgree = () => {
                   </Pressable>
                 )}
               />
-            </>
+            </View>
           ))}
         </View>
         <Divider style={styles.divider} />
