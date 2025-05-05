@@ -94,12 +94,12 @@ const ServiceAgree = () => {
     <View style={styles.container}>
       <View>
         <View style={styles.titleWrap}>
-          <Text style={styles.titleBold}>이용 약관에 동의해주시면</Text>
-          <Text style={styles.titleNormal}>회원가입이 끝나요!</Text>
+          <Text style={styles.title}>이용 약관에 동의해주시면</Text>
+          <Text style={styles.title}>회원가입이 끝나요!</Text>
         </View>
         <Divider style={styles.divider} />
         <View style={styles.checkboxWrap}>
-          <View style={styles.formRow}>
+          <View style={[styles.formRow, { paddingVertical: 16 }]}>
             <Checkbox.Android
               color={theme.COLORS.PRIMARY.RED_60}
               status={ageOfAgree ? 'checked' : 'unchecked'}
@@ -107,37 +107,40 @@ const ServiceAgree = () => {
             />
             <Text>(필수) 만 14세 이상입니다.</Text>
           </View>
-          {CHECKBOX_MAP_LIST.map(({label, text, isLinkable}) => (
-            <Controller
-              key={label}
-              name={label}
-              control={control}
-              render={() => (
-                <Pressable
-                  style={[styles.menu, !isLinkable && { paddingVertical: 12 }]}
-                  onPress={() => {
-                    // TODO: 링크 및 랜딩 페이지 확정되면 onPress 핸들러 등록
-                    console.log('click');
-                  }}
-                >
-                  <View style={styles.formRow}>
-                    <Checkbox.Android
-                      color={theme.COLORS.PRIMARY.RED_60}
-                      status={getCheckboxStatus(label)}
-                      onPress={onPressCheckBox(label)}
-                    />
-                    <Text>{text}</Text>
-                  </View>
-                  {isLinkable && (
-                    <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_80} size={16} />
-                  )}
-                </Pressable>
-              )}
-            />
+          {CHECKBOX_MAP_LIST.map(({ label, text, isLinkable }) => (
+            <>
+              <Divider style={styles.menuDivider} />
+              <Controller
+                key={label}
+                name={label}
+                control={control}
+                render={() => (
+                  <Pressable
+                    style={styles.menu}
+                    onPress={() => {
+                      // TODO: 링크 및 랜딩 페이지 확정되면 onPress 핸들러 등록
+                      console.log('click');
+                    }}
+                  >
+                    <View style={styles.formRow}>
+                      <Checkbox.Android
+                        color={theme.COLORS.PRIMARY.RED_60}
+                        status={getCheckboxStatus(label)}
+                        onPress={onPressCheckBox(label)}
+                      />
+                      <Text>{text}</Text>
+                    </View>
+                    {isLinkable && (
+                      <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_80} size={16} />
+                    )}
+                  </Pressable>
+                )}
+              />
+            </>
           ))}
         </View>
         <Divider style={styles.divider} />
-        <View style={[styles.formRow, { marginTop: 20 }]}>
+        <View style={[styles.formRow, { marginTop: 16 }]}>
           <Checkbox.Android
             color={theme.COLORS.PRIMARY.RED_60}
             status={allChecked ? 'checked' : 'unchecked'}
@@ -168,32 +171,24 @@ const styles = StyleSheet.create({
   },
   titleWrap: {
     marginBottom: 38,
-    gap: 8,
+    gap: 4,
   },
-  titleBold: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  titleNormal: {
-    fontSize: 24,
-    alignItems: 'center',
-  },
+  title: theme.TYPOGRAPHY.HEADER_1,
   menu: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_80,
+    paddingVertical: 12,
   },
   formRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   checkboxWrap: {
-    gap: 10,
+    paddingBottom: 0,
   },
-  divider: { borderWidth: 0.3 },
+  menuDivider: { borderWidth: 1, borderColor: theme.COLORS.GRAY_SCALE.GRAY_92 },
+  divider: { borderWidth: 1, borderColor: theme.COLORS.GRAY_SCALE.GRAY_50 },
   button: {
     marginBottom: 32,
     justifyContent: 'center',

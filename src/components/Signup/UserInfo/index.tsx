@@ -48,7 +48,10 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
   const gender = watch('gender');
 
   const isFieldErrorExisted = Object.keys(errors).length > 0;
-  const isButtonDisabled = useMemo(() => !(nickname && dateOfBirth && gender) || isFieldErrorExisted, [nickname, dateOfBirth, gender]);
+  const isButtonDisabled = useMemo(
+    () => !(nickname && dateOfBirth && gender) || isFieldErrorExisted,
+    [nickname, dateOfBirth, gender, isFieldErrorExisted],
+  );
 
   const toggleDatePicker = useCallback((isOpen: boolean) => () => setDatePickerOpen(isOpen), []);
 
@@ -57,7 +60,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
       setValue('dateOfBirth', dayjs(date).format('YYYY / MM / DD'));
       setDatePickerOpen(false);
     },
-    [setValue, toggleDatePicker],
+    [setValue],
   );
 
   const handleGenderButton = useCallback(
@@ -70,9 +73,9 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
   return (
     <ScrollView contentContainerStyle={[styles.container, heightStyle]}>
       <View style={styles.inputSection}>
-        <View>
-          <Text style={styles.titleBold}>반가워요!</Text>
-          <Text style={styles.titleNormal}>사용자 정보를 입력해주세요</Text>
+        <View style={styles.titleWrap}>
+          <Text style={styles.title}>반가워요!</Text>
+          <Text style={styles.title}>사용자 정보를 입력해주세요</Text>
         </View>
         <View style={styles.formContainer}>
           <View style={styles.labelWrap}>
@@ -211,7 +214,10 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
         </View>
       </View>
       <Pressable
-        style={[styles.nextButton, !isButtonDisabled && { backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60)}` }]}
+        style={[
+          styles.nextButton,
+          !isButtonDisabled && { backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60)}` },
+        ]}
         disabled={isButtonDisabled}
         onPress={() => {
           navigate('SIGN_UP_AGREEMENT');
@@ -241,16 +247,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   titleWrap: {
-    gap: 8,
+    gap: 4,
   },
-  titleNormal: {
-    fontSize: 24,
-    alignItems: 'center',
-  },
-  titleBold: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
+  title: theme.TYPOGRAPHY.HEADER_1,
   formContainer: {
     gap: 12,
   },
