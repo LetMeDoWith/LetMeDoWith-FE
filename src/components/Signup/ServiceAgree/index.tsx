@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
-import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { Checkbox, Divider, IconButton } from 'react-native-paper';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 
@@ -161,12 +160,10 @@ const ServiceAgree = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 24,
-    paddingVertical: 32,
+    flex: 1,
     justifyContent: 'space-between',
-    height: isAos
-      ? Dimensions.get('window').height - getStatusBarHeight()
-      : Dimensions.get('window').height - getStatusBarHeight() - getBottomSpace(),
+    paddingVertical: isAos ? 24 : getBottomSpace() + 24,
+    paddingHorizontal: 20,
   },
   titleWrap: {
     marginBottom: 38,
@@ -189,7 +186,7 @@ const styles = StyleSheet.create({
   menuDivider: { borderWidth: 1, borderColor: theme.COLORS.GRAY_SCALE.GRAY_92 },
   divider: { borderWidth: 1, borderColor: theme.COLORS.GRAY_SCALE.GRAY_50 },
   button: {
-    marginBottom: 32,
+    // marginBottom: 24,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
