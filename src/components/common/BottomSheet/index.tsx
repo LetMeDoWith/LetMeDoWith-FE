@@ -1,10 +1,11 @@
 import React, { forwardRef, PropsWithChildren, useCallback, useImperativeHandle, useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
-import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop';
 
 import { theme } from 'styles/theme';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
+import { BottomSheetBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop';
+import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 
 interface Props {
   title: string;
@@ -18,16 +19,17 @@ interface Props {
   onDismiss?: () => void;
 }
 
-const BottomSheet = forwardRef((props: PropsWithChildren<Props>, ref) => {
+const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>>((props, ref) => {
   const { title, buttonConfig, handleCloseButton, handleButtonSubmit, onDismiss, snapPoints, children } = props;
 
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const innerRef = useRef<BottomSheetModalMethods>(null);
   const handleClose = useCallback(() => {
     if (handleCloseButton) {
       handleCloseButton();
     }
-    bottomSheetModalRef.current?.dismiss();
+    innerRef.current?.dismiss();
   }, [handleCloseButton]);
+
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop disappearsOnIndex={-1} appearsOnIndex={0} pressBehavior="none" {...props} />
@@ -35,14 +37,11 @@ const BottomSheet = forwardRef((props: PropsWithChildren<Props>, ref) => {
     [],
   );
 
-  useImperativeHandle(ref, () => ({
-    present: () => bottomSheetModalRef.current?.present(),
-    dismiss: () => bottomSheetModalRef.current?.dismiss(),
-  }));
+  useImperativeHandle(ref, () => innerRef.current!);
 
   return (
     <BottomSheetModal
-      ref={bottomSheetModalRef}
+      ref={innerRef}
       snapPoints={snapPoints}
       backdropComponent={renderBackdrop}
       handleComponent={null}
