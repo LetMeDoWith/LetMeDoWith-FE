@@ -3,7 +3,6 @@ import React, { useCallback, useRef, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import DatePicker from 'react-native-date-picker';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 import dayjs from 'dayjs';
 
@@ -12,8 +11,9 @@ import { isAos } from 'utils/device';
 import { TodoMode } from 'components/common/icons/TodoMode';
 import { DowithMode } from 'components/common/icons/DowithMode';
 import { QuestionCircle } from 'components/common/icons/QuestionCircle';
-import type { TaskFormStackScreenProps, TaskModeType } from 'types/shared';
+import type { TaskModeType } from 'types/shared';
 import { CategoryBottomSheet } from 'components/Task/BottomSheet/CategoryBottomSheet';
+import { RoutineBottomSheet } from 'components/Task/BottomSheet/RoutineBottomSheet';
 
 // TODO: Task 카테고리 API 연동
 const MOCK_CATEGORY_LIST = [
@@ -27,9 +27,10 @@ const MOCK_CATEGORY_LIST = [
   { id: 8, name: '카테고리8' },
 ];
 
-const Form = ({ navigation: { navigate } }: TaskFormStackScreenProps<'FORM'>) => {
+const Form = () => {
   const { control, watch, setValue, handleSubmit } = useFormContext();
   const categoryBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
+  const routineBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
 
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
   const [taskMode, setTaskMode] = useState<TaskModeType | null>(null);
@@ -81,15 +82,15 @@ const Form = ({ navigation: { navigate } }: TaskFormStackScreenProps<'FORM'>) =>
       return;
     }
 
-    navigate('ROUTINE_FORM', { mode: taskMode });
-  }, [navigate, taskMode, isFormDisabled]);
+    routineBottomSheetMethodsRef.current?.present();
+  }, [taskMode, isFormDisabled]);
 
   const onSubmit = useCallback<any>((values: FormData) => {
     console.log(values);
   }, []);
 
   return (
-    <BottomSheetModalProvider>
+    <>
       <View style={styles.container}>
         <View>
           <View style={styles.modeWrap}>
@@ -100,6 +101,7 @@ const Form = ({ navigation: { navigate } }: TaskFormStackScreenProps<'FORM'>) =>
                 <QuestionCircle />
               </View>
             </View>
+            {/* TODO: 모드 변경 불가능하게 해야 함*/}
             <View style={styles.modeButtonWrap}>
               <Pressable
                 style={[
@@ -227,7 +229,8 @@ const Form = ({ navigation: { navigate } }: TaskFormStackScreenProps<'FORM'>) =>
         taskCategoryId={taskCategoryId}
         prevSelectedCategory={prevSelectedCategory}
       />
-    </BottomSheetModalProvider>
+      <RoutineBottomSheet ref={routineBottomSheetMethodsRef} />
+    </>
   );
 };
 
