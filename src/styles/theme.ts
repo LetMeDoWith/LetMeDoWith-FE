@@ -44,21 +44,28 @@ const theme = {
   },
   TYPOGRAPHY: {
     HEADER: {
-      fontWeight: 'bold',
+      fontWeight: '600',
       fontSize: 24,
       color: '#000000',
       lineHeight: 32,
     },
     TITLE_1: {
-      fontWeight: 'bold',
+      fontWeight: '600',
       fontSize: 20,
       color: '#000000',
       lineHeight: 28,
     },
     TITLE_2: {
+      fontWeight: '600',
       fontSize: 18,
       color: '#000000',
       lineHeight: 26,
+    },
+    TITLE_3: {
+      fontWeight: '600',
+      fontSize: 16,
+      color: '#000000',
+      lineHeight: 24,
     },
     SUB_TITLE: {
       fontWeight: 'bold',
@@ -72,6 +79,7 @@ const theme = {
       lineHeight: 24,
     },
     BODY_2: {
+      fontWeight: '500',
       fontSize: 14,
       color: '#000000',
       lineHeight: 20,
@@ -83,12 +91,13 @@ const theme = {
       lineHeight: 16,
     },
     CAPTION1_BASIC: {
-      fontWeight: 'bold',
+      fontWeight: '500',
       fontSize: 12,
       color: '#000000',
       lineHeight: 16,
     },
     CAPTION_2: {
+      fontWeight: '500',
       fontSize: 11,
       color: '#000000',
       lineHeight: 14,
