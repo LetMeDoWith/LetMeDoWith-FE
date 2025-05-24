@@ -1,8 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Alert, BackHandler, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Controller, useFormContext } from 'react-hook-form';
+import { useFocusEffect } from '@react-navigation/native';
 import { HelperText } from 'react-native-paper';
-import DatePicker from 'react-native-date-picker';
+import { DateTimePicker } from 'components/common/DateTimePicker';
+import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 import dayjs from 'dayjs';
 
@@ -13,7 +15,6 @@ import { hexToRgba } from 'utils/style';
 import { useValidNickname } from 'hooks/queries/member/useValidNickname';
 import { StatusCodeEnum } from 'schemes/shared/enum';
 import type { signUpRequestSchemeType } from 'types/member/scheme/api';
-import { useFocusEffect } from '@react-navigation/native';
 import { useDialog } from 'components/common/Dialog/Provider';
 
 const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_USER_INFO'>) => {
@@ -33,8 +34,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
     reset: resetMutateValidNickname,
   } = useValidNickname();
 
-  const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
-
+  const dateTimePickerRef = useRef<BottomSheetModalMethods>(null);
   const nickname = watch('nickname');
   const dateOfBirth = watch('dateOfBirth');
   const gender = watch('gender');
@@ -45,12 +45,10 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
     [nickname, dateOfBirth, gender, isFieldErrorExisted],
   );
 
-  const toggleDatePicker = useCallback((isOpen: boolean) => () => setDatePickerOpen(isOpen), []);
-
   const handleDateChange = useCallback(
     (date: Date) => {
       setValue('dateOfBirth', dayjs(date).format('YYYY / MM / DD'));
-      setDatePickerOpen(false);
+      dateTimePickerRef.current?.dismiss();
     },
     [setValue],
   );
@@ -82,161 +80,162 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
   });
 
   return (
-    <View style={styles.container}>
-      <View style={styles.inputSection}>
-        <View style={styles.titleWrap}>
-          <Text style={styles.title}>반가워요!</Text>
-          <Text style={styles.title}>사용자 정보를 입력해주세요</Text>
-        </View>
-        <View style={styles.formContainer}>
-          <View style={styles.labelWrap}>
-            <Text
-              style={[
-                styles.label,
-                errors.nickname && styles.error,
-                !errors.nickname && touchedFields.nickname && isSuccessMutateValidNickname && styles.valid,
-              ]}
-            >
-              닉네임
-            </Text>
+    <>
+      <View style={styles.container}>
+        <View style={styles.inputSection}>
+          <View style={styles.titleWrap}>
+            <Text style={styles.title}>반가워요!</Text>
+            <Text style={styles.title}>사용자 정보를 입력해주세요</Text>
           </View>
-          <Controller
-            name="nickname"
-            control={control}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <>
-                <TextInput
-                  style={[
-                    styles.input,
-                    errors.nickname && styles.errorBorder,
-                    !errors.nickname && touchedFields.nickname && isSuccessMutateValidNickname && styles.validBorder,
-                  ]}
-                  placeholder="닉네임을 입력해주세요"
-                  onChangeText={onChange}
-                  onBlur={() => {
-                    onBlur();
-                    resetMutateValidNickname();
-
-                    if (!dirtyFields.nickname) {
-                      return;
-                    }
-
-                    if (nickname.length < 2 || nickname.length > 7) {
-                      setError('nickname', { type: 'nickname', message: '* 닉네임 길이 조건을 확인해주세요.' });
-                      return;
-                    }
-
-                    if (nickname.match(/[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9/]/)) {
-                      setError('nickname', { type: 'nickname', message: '* 띄워쓰기, 특수문자는 사용할 수 없어요.' });
-                      return;
-                    }
-
-                    mutateValidNickname(
-                      { nickname },
-                      {
-                        onSuccess: ({ statusCode, data }) => {
-                          if (statusCode !== StatusCodeEnum.enum.S100) {
-                            setError('nickname', { type: 'nickname', message: `* ${data}.` });
-                            return;
-                          }
-
-                          clearErrors('nickname');
-                        },
-                        onError: e => {
-                          Alert.alert('닉네임 중복 여부 검증에 실패했습니다.');
-                          console.error(e.response?.data);
-                        },
-                      },
-                    );
-                  }}
-                  value={value}
-                />
-              </>
-            )}
-          />
-          {errors.nickname ? (
-            <HelperText type="error" padding="none" style={[styles.message, styles.error]}>
-              {errors.nickname.message as string}
-            </HelperText>
-          ) : (
-            <HelperText
-              type="info"
-              padding="none"
-              style={[
-                styles.message,
-                touchedFields.nickname && isSuccessMutateValidNickname ? styles.valid : styles.default,
-              ]}
-            >
-              {touchedFields.nickname && isSuccessMutateValidNickname
-                ? '사용 가능한 닉네임이에요.'
-                : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
-            </HelperText>
-          )}
-        </View>
-        <View style={styles.formContainer}>
-          <Controller
-            name="dateOfBirth"
-            control={control}
-            render={({ field: { value, onBlur } }) => (
-              <>
-                <Text style={[styles.label, errors.dateOfBirth && styles.error]}>생년월일</Text>
-                <Pressable onPress={toggleDatePicker(true)}>
+          <View style={styles.formContainer}>
+            <View style={styles.labelWrap}>
+              <Text
+                style={[
+                  styles.label,
+                  errors.nickname && styles.error,
+                  !errors.nickname && touchedFields.nickname && isSuccessMutateValidNickname && styles.valid,
+                ]}
+              >
+                닉네임
+              </Text>
+            </View>
+            <Controller
+              name="nickname"
+              control={control}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <>
                   <TextInput
-                    style={[styles.input, errors.dateOfBirth && styles.error]}
-                    pointerEvents="none"
-                    editable={false}
-                    placeholder="YYYY / MM / DD"
+                    style={[
+                      styles.input,
+                      errors.nickname && styles.errorBorder,
+                      !errors.nickname && touchedFields.nickname && isSuccessMutateValidNickname && styles.validBorder,
+                    ]}
+                    placeholder="닉네임을 입력해주세요"
+                    onChangeText={onChange}
+                    onBlur={() => {
+                      onBlur();
+                      resetMutateValidNickname();
+
+                      if (!dirtyFields.nickname) {
+                        return;
+                      }
+
+                      if (nickname.length < 2 || nickname.length > 7) {
+                        setError('nickname', { type: 'nickname', message: '* 닉네임 길이 조건을 확인해주세요.' });
+                        return;
+                      }
+
+                      if (nickname.match(/[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9/]/)) {
+                        setError('nickname', { type: 'nickname', message: '* 띄워쓰기, 특수문자는 사용할 수 없어요.' });
+                        return;
+                      }
+
+                      mutateValidNickname(
+                        { nickname },
+                        {
+                          onSuccess: ({ statusCode, data }) => {
+                            if (statusCode !== StatusCodeEnum.enum.S100) {
+                              setError('nickname', { type: 'nickname', message: `* ${data}.` });
+                              return;
+                            }
+
+                            clearErrors('nickname');
+                          },
+                          onError: e => {
+                            Alert.alert('닉네임 중복 여부 검증에 실패했습니다.');
+                            console.error(e.response?.data);
+                          },
+                        },
+                      );
+                    }}
                     value={value}
                   />
-                </Pressable>
-                <HelperText type="info" padding="none" style={[styles.message, styles.default]}>
-                  * 14세 미만은 가입대상이 아닙니다.
-                </HelperText>
-                <DatePicker
-                  modal
-                  open={datePickerOpen}
-                  mode="date"
-                  locale="ko-KR"
-                  date={dayjs().toDate()}
-                  maximumDate={dayjs().subtract(14, 'year').toDate()}
-                  onConfirm={date => {
-                    onBlur();
-                    handleDateChange(date);
-                  }}
-                  onCancel={toggleDatePicker(false)}
-                />
-              </>
+                </>
+              )}
+            />
+            {errors.nickname ? (
+              <HelperText type="error" padding="none" style={[styles.message, styles.error]}>
+                {errors.nickname.message as string}
+              </HelperText>
+            ) : (
+              <HelperText
+                type="info"
+                padding="none"
+                style={[
+                  styles.message,
+                  touchedFields.nickname && isSuccessMutateValidNickname ? styles.valid : styles.default,
+                ]}
+              >
+                {touchedFields.nickname && isSuccessMutateValidNickname
+                  ? '사용 가능한 닉네임이에요.'
+                  : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
+              </HelperText>
             )}
-          />
+          </View>
+          <View style={styles.formContainer}>
+            <Controller
+              name="dateOfBirth"
+              control={control}
+              render={({ field: { value } }) => (
+                <>
+                  <Text style={[styles.label, errors.dateOfBirth && styles.error]}>생년월일</Text>
+                  <Pressable
+                    onPress={() => {
+                      dateTimePickerRef.current?.present();
+                    }}
+                  >
+                    <TextInput
+                      style={[styles.input, errors.dateOfBirth && styles.error]}
+                      pointerEvents="none"
+                      editable={false}
+                      placeholder="YYYY / MM / DD"
+                      value={value}
+                    />
+                  </Pressable>
+                  <HelperText type="info" padding="none" style={[styles.message, styles.default]}>
+                    * 14세 미만은 가입대상이 아닙니다.
+                  </HelperText>
+                </>
+              )}
+            />
+          </View>
+          <View style={styles.genderButtonContainer}>
+            <Pressable
+              style={[styles.genderButton, gender === 'MALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
+              onPress={handleGenderButton('MALE')}
+            >
+              <Text style={styles.genderButtonText}>남성</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.genderButton, gender === 'FEMALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
+              onPress={handleGenderButton('FEMALE')}
+            >
+              <Text style={styles.genderButtonText}>여성</Text>
+            </Pressable>
+          </View>
         </View>
-        <View style={styles.genderButtonContainer}>
-          <Pressable
-            style={[styles.genderButton, gender === 'MALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
-            onPress={handleGenderButton('MALE')}
-          >
-            <Text style={styles.genderButtonText}>남성</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.genderButton, gender === 'FEMALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
-            onPress={handleGenderButton('FEMALE')}
-          >
-            <Text style={styles.genderButtonText}>여성</Text>
-          </Pressable>
-        </View>
+        <Pressable
+          style={[
+            styles.nextButton,
+            !isButtonDisabled && { backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60)}` },
+          ]}
+          disabled={isButtonDisabled}
+          onPress={() => {
+            navigate('SIGN_UP_AGREEMENT');
+          }}
+        >
+          <Text style={styles.nextButtonText}>다음</Text>
+        </Pressable>
       </View>
-      <Pressable
-        style={[
-          styles.nextButton,
-          !isButtonDisabled && { backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60)}` },
-        ]}
-        disabled={isButtonDisabled}
-        onPress={() => {
-          navigate('SIGN_UP_AGREEMENT');
-        }}
-      >
-        <Text style={styles.nextButtonText}>다음</Text>
-      </Pressable>
-    </View>
+      <DateTimePicker
+        ref={dateTimePickerRef}
+        mode="date"
+        title="생년월일"
+        description="만 14세 미만은 가입할 수 없어요."
+        onConfirm={handleDateChange}
+        maximumDate={dayjs().subtract(14, 'year').toDate()}
+      />
+    </>
   );
 };
 
