@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Divider } from 'react-native-paper';
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetModalProvider, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop';
 
 import { Badge } from 'components/Mypage/Badge';
@@ -72,62 +72,55 @@ const BadgeInfo = () => {
   }, []);
 
   return (
-    <BottomSheetModalProvider>
-      <View style={styles.container}>
-        <View style={styles.titleWrap}>
-          <Text style={styles.title}>나의 대표 뱃지</Text>
-          <Text style={styles.subTitle}>피드에 노출되는 대표 뱃지입니다.</Text>
-        </View>
-        <Badge uri={'https://media.bunjang.co.kr/images/crop/981758465_w320.jpg'} name="test 뱃지2" />
-        <Divider style={styles.divider} />
-        <Text>* 대표 뱃지 포함 최대 4개까지 노출할 수 있습니다.</Text>
-        <FlatList
-          contentContainerStyle={styles.flatListContentContainer}
-          style={styles.flatListContainer}
-          data={mockData}
-          renderItem={({ item: { uri, name, description, isRepresentative } }) => (
-            <Badge
-              uri={uri}
-              name={name}
-              isRepresentative={isRepresentative}
-              onPress={() => handlePresentModalPress({ uri, name, description, isRepresentative })}
-            />
-          )}
-          keyExtractor={({ name }) => name}
-          numColumns={3}
-          ItemSeparatorComponent={renderItemSeparatorComponent}
-          columnWrapperStyle={styles.flatListColumnWrapper}
-        />
-        <BottomSheetModal
-          ref={bottomSheetModalRef}
-          index={0}
-          snapPoints={snapPoints}
-          backdropComponent={renderBackdrop}
-        >
-          <BottomSheetView style={styles.modalContainer}>
-            <View ref={bottomSheetContentRef}>
-              <View style={styles.modalTitleWrap}>
-                <Text style={styles.modalTitle}>{selectedBadgeInfo?.name}</Text>
-              </View>
-              <View style={styles.badgeImageWrap}>
-                <Badge uri={selectedBadgeInfo?.uri || ''} />
-              </View>
-              <View style={styles.modalDescriptionWrap}>
-                <Text style={styles.modalDescription}>{selectedBadgeInfo?.description}</Text>
-              </View>
-            </View>
-            {isButtonVisible && (
-              <Pressable
-                style={[styles.button, !isButtonVisible && { backgroundColor: theme.COLORS.PRIMARY.RED_60 }]}
-                onPress={handleSubmit}
-              >
-                <Text style={styles.buttonText}>대표 뱃지로 설정하기</Text>
-              </Pressable>
-            )}
-          </BottomSheetView>
-        </BottomSheetModal>
+    <View style={styles.container}>
+      <View style={styles.titleWrap}>
+        <Text style={styles.title}>나의 대표 뱃지</Text>
+        <Text style={styles.subTitle}>피드에 노출되는 대표 뱃지입니다.</Text>
       </View>
-    </BottomSheetModalProvider>
+      <Badge uri={'https://media.bunjang.co.kr/images/crop/981758465_w320.jpg'} name="test 뱃지2" />
+      <Divider style={styles.divider} />
+      <Text>* 대표 뱃지 포함 최대 4개까지 노출할 수 있습니다.</Text>
+      <FlatList
+        contentContainerStyle={styles.flatListContentContainer}
+        style={styles.flatListContainer}
+        data={mockData}
+        renderItem={({ item: { uri, name, description, isRepresentative } }) => (
+          <Badge
+            uri={uri}
+            name={name}
+            isRepresentative={isRepresentative}
+            onPress={() => handlePresentModalPress({ uri, name, description, isRepresentative })}
+          />
+        )}
+        keyExtractor={({ name }) => name}
+        numColumns={3}
+        ItemSeparatorComponent={renderItemSeparatorComponent}
+        columnWrapperStyle={styles.flatListColumnWrapper}
+      />
+      <BottomSheetModal ref={bottomSheetModalRef} index={0} snapPoints={snapPoints} backdropComponent={renderBackdrop}>
+        <BottomSheetView style={styles.modalContainer}>
+          <View ref={bottomSheetContentRef}>
+            <View style={styles.modalTitleWrap}>
+              <Text style={styles.modalTitle}>{selectedBadgeInfo?.name}</Text>
+            </View>
+            <View style={styles.badgeImageWrap}>
+              <Badge uri={selectedBadgeInfo?.uri || ''} />
+            </View>
+            <View style={styles.modalDescriptionWrap}>
+              <Text style={styles.modalDescription}>{selectedBadgeInfo?.description}</Text>
+            </View>
+          </View>
+          {isButtonVisible && (
+            <Pressable
+              style={[styles.button, !isButtonVisible && { backgroundColor: theme.COLORS.PRIMARY.RED_60 }]}
+              onPress={handleSubmit}
+            >
+              <Text style={styles.buttonText}>대표 뱃지로 설정하기</Text>
+            </Pressable>
+          )}
+        </BottomSheetView>
+      </BottomSheetModal>
+    </View>
   );
 };
 

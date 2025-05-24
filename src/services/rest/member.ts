@@ -18,7 +18,7 @@ const validNickname = async (payload: validNicknameRequestSchemeType): Promise<v
 
 const signUp = async (payload: signUpRequestSchemeType): Promise<signUpResponseSchemeType> => {
   try {
-    const result = await apiClient.post<signUpResponseSchemeType>(MEMBER_API.SIGN_UP, payload);
+    const result = await apiClient.put<signUpResponseSchemeType>(MEMBER_API.SIGN_UP, payload);
     return result.data;
   } catch (e) {
     throw e;

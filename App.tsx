@@ -5,6 +5,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { QueryClient, QueryClientProvider, useIsFetching, useIsMutating } from '@tanstack/react-query';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { Login } from 'screens/Login';
 import { HomeStackNavigator } from 'components/navigators/Stack/Home';
@@ -29,10 +31,14 @@ function AppContent() {
 
   return (
     <View style={styles.container}>
-      {isLoggedIn ? (
+      {!isLoggedIn ? (
         <SafeAreaProvider>
           <KeyboardProvider>
-            <NavigationContainer>{isNeedSignUp ? <Signup /> : <HomeStackNavigator />}</NavigationContainer>
+            <GestureHandlerRootView style={styles.gestureHandlerRoot}>
+              <BottomSheetModalProvider>
+                <NavigationContainer>{isNeedSignUp ? <Signup /> : <HomeStackNavigator />}</NavigationContainer>
+              </BottomSheetModalProvider>
+            </GestureHandlerRootView>
           </KeyboardProvider>
         </SafeAreaProvider>
       ) : (
@@ -59,6 +65,9 @@ function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  gestureHandlerRoot: {
+    flex: 1,
+  },
 });
 
 export default App;

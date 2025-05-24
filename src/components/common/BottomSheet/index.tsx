@@ -1,14 +1,16 @@
 import React, { forwardRef, PropsWithChildren, useCallback, useImperativeHandle, useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
-import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop';
 
 import { theme } from 'styles/theme';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
+import { BottomSheetBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop';
+import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 
 interface Props {
   title: string;
   snapPoints: string[];
+  description?: string;
   buttonConfig?: {
     title: string;
     isDisabled: boolean;
@@ -18,16 +20,18 @@ interface Props {
   onDismiss?: () => void;
 }
 
-const BottomSheet = forwardRef((props: PropsWithChildren<Props>, ref) => {
-  const { title, buttonConfig, handleCloseButton, handleButtonSubmit, onDismiss, snapPoints, children } = props;
+const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>>((props, ref) => {
+  const { title, description, buttonConfig, handleCloseButton, handleButtonSubmit, onDismiss, snapPoints, children } =
+    props;
 
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const innerRef = useRef<BottomSheetModalMethods>(null);
   const handleClose = useCallback(() => {
     if (handleCloseButton) {
       handleCloseButton();
     }
-    bottomSheetModalRef.current?.dismiss();
+    innerRef.current?.dismiss();
   }, [handleCloseButton]);
+
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop disappearsOnIndex={-1} appearsOnIndex={0} pressBehavior="none" {...props} />
@@ -35,14 +39,11 @@ const BottomSheet = forwardRef((props: PropsWithChildren<Props>, ref) => {
     [],
   );
 
-  useImperativeHandle(ref, () => ({
-    present: () => bottomSheetModalRef.current?.present(),
-    dismiss: () => bottomSheetModalRef.current?.dismiss(),
-  }));
+  useImperativeHandle(ref, () => innerRef.current!);
 
   return (
     <BottomSheetModal
-      ref={bottomSheetModalRef}
+      ref={innerRef}
       snapPoints={snapPoints}
       backdropComponent={renderBackdrop}
       handleComponent={null}
@@ -51,10 +52,15 @@ const BottomSheet = forwardRef((props: PropsWithChildren<Props>, ref) => {
       <BottomSheetView style={styles.container}>
         <View>
           <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
-            <Pressable onPress={handleClose}>
-              <CancelIcon />
-            </Pressable>
+            <View style={styles.headerTitleWrap}>
+              <Text style={styles.title}>{title}</Text>
+              <Pressable onPress={handleClose}>
+                <CancelIcon />
+              </Pressable>
+            </View>
+            {description && (
+              <Text style={[styles.description, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>{description}</Text>
+            )}
           </View>
           {children}
         </View>
@@ -87,12 +93,14 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'space-between',
   },
-  header: {
+  header: { gap: 4 },
+  headerTitleWrap: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   title: theme.TYPOGRAPHY.TITLE_1,
+  description: theme.TYPOGRAPHY.BODY_2,
   button: {
     borderRadius: 8,
     justifyContent: 'center',
