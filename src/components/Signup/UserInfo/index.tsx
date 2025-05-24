@@ -1,10 +1,9 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Alert, BackHandler, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Controller, useFormContext } from 'react-hook-form';
-import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { HelperText } from 'react-native-paper';
 import DatePicker from 'react-native-date-picker';
+import { getBottomSpace } from 'react-native-iphone-screen-helper';
 import dayjs from 'dayjs';
 
 import { theme } from 'styles/theme';
@@ -14,6 +13,8 @@ import { hexToRgba } from 'utils/style';
 import { useValidNickname } from 'hooks/queries/member/useValidNickname';
 import { StatusCodeEnum } from 'schemes/shared/enum';
 import type { signUpRequestSchemeType } from 'types/member/scheme/api';
+import { useFocusEffect } from '@react-navigation/native';
+import { useDialog } from 'components/common/Dialog/Provider';
 
 const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_USER_INFO'>) => {
   const {
@@ -25,21 +26,12 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
     clearErrors,
   } = useFormContext<signUpRequestSchemeType>();
 
+  const { showDialog, hideDialog } = useDialog();
   const {
     mutate: mutateValidNickname,
     isSuccess: isSuccessMutateValidNickname,
     reset: resetMutateValidNickname,
   } = useValidNickname();
-
-  const { top, bottom } = useSafeAreaInsets();
-  const heightStyle = useMemo(
-    () => ({
-      height: isAos
-        ? Dimensions.get('screen').height
-        : Dimensions.get('screen').height - getStatusBarHeight() - top - bottom,
-    }),
-    [top, bottom],
-  );
 
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
 
@@ -70,8 +62,27 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
     [setValue],
   );
 
+  // AOS에서 하드웨어 뒤로가기 버튼을 눌렀을 때 Dialog 노출
+  useFocusEffect(() => {
+    const onBackPress = () => {
+      showDialog({
+        title: '회원가입이 중단됩니다.',
+        content: '지금까지 입력한 정보는 저장되지 않아요.\n그래도 나가시겠어요?',
+        leftButtonText: '네',
+        rightButtonText: '아니요',
+        handleRightButton: hideDialog,
+      });
+
+      // 기본 뒤로가기 기능 해제
+      return true;
+    };
+
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  });
+
   return (
-    <ScrollView contentContainerStyle={[styles.container, heightStyle]}>
+    <View style={styles.container}>
       <View style={styles.inputSection}>
         <View style={styles.titleWrap}>
           <Text style={styles.title}>반가워요!</Text>
@@ -225,15 +236,16 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
       >
         <Text style={styles.nextButtonText}>다음</Text>
       </Pressable>
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     justifyContent: 'space-between',
-    paddingVertical: 32,
-    paddingHorizontal: 24,
+    paddingVertical: isAos ? 24 : getBottomSpace() + 24,
+    paddingHorizontal: 20,
   },
   inputSection: {
     gap: 40,
