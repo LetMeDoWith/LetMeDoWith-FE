@@ -10,6 +10,7 @@ import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 interface Props {
   title: string;
   snapPoints: string[];
+  description?: string;
   buttonConfig?: {
     title: string;
     isDisabled: boolean;
@@ -20,7 +21,8 @@ interface Props {
 }
 
 const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>>((props, ref) => {
-  const { title, buttonConfig, handleCloseButton, handleButtonSubmit, onDismiss, snapPoints, children } = props;
+  const { title, description, buttonConfig, handleCloseButton, handleButtonSubmit, onDismiss, snapPoints, children } =
+    props;
 
   const innerRef = useRef<BottomSheetModalMethods>(null);
   const handleClose = useCallback(() => {
@@ -50,10 +52,15 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
       <BottomSheetView style={styles.container}>
         <View>
           <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
-            <Pressable onPress={handleClose}>
-              <CancelIcon />
-            </Pressable>
+            <View style={styles.headerTitleWrap}>
+              <Text style={styles.title}>{title}</Text>
+              <Pressable onPress={handleClose}>
+                <CancelIcon />
+              </Pressable>
+            </View>
+            {description && (
+              <Text style={[styles.description, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>{description}</Text>
+            )}
           </View>
           {children}
         </View>
@@ -86,12 +93,14 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'space-between',
   },
-  header: {
+  header: { gap: 4 },
+  headerTitleWrap: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   title: theme.TYPOGRAPHY.TITLE_1,
+  description: theme.TYPOGRAPHY.BODY_2,
   button: {
     borderRadius: 8,
     justifyContent: 'center',
