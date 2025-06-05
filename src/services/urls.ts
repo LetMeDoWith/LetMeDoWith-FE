@@ -4,8 +4,8 @@ const AUTH_API = {
 } as const;
 
 const MEMBER_API = {
-  VALID_NICKNAME: 'v1/member/nickname',
-  SIGN_UP: 'v1/member',
+  VALID_NICKNAME: 'v1/members/nickname',
+  SIGN_UP: 'v1/members',
 } as const;
 
 const TASK_API = {
