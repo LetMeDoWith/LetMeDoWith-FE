@@ -3,12 +3,26 @@ import { AxiosError } from 'axios';
 
 import { signUp } from 'services/rest/member';
 import { MEMBER_QUERY_KEY } from 'constants/queries';
+import { useAuthStore } from 'stores/auth';
 import type { signUpRequestSchemeType, signUpResponseSchemeType } from 'types/member/scheme/api';
 
-const useSignUp = () =>
-  useMutation<signUpResponseSchemeType, AxiosError, signUpRequestSchemeType>({
+const useSignUp = () => {
+  const { setTokenInfo, setIsNeedSignUp } = useAuthStore(({ actions: { setTokenInfo, setIsNeedSignUp } }) => ({
+    setTokenInfo,
+    setIsNeedSignUp,
+  }));
+
+  return useMutation<signUpResponseSchemeType, AxiosError, signUpRequestSchemeType>({
     mutationKey: MEMBER_QUERY_KEY.SIGN_UP,
     mutationFn: payload => signUp(payload),
+    onSuccess: ({ data }) => {
+      setIsNeedSignUp(false);
+      setTokenInfo({ access: data.atk, refresh: data.rtk, signup: null });
+    },
+    onError: e => {
+      console.error(e.response?.data);
+    },
   });
+};
 
 export { useSignUp };
