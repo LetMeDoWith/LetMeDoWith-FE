@@ -19,15 +19,16 @@ type State = {
   isLoggedIn: boolean;
   isNeedSignUp: boolean;
   isNeedRefreshToken: boolean;
+  isHydrated: boolean;
 };
 
 type Action = {
-  validateTokenInfo: () => void;
   setTokenInfo: (token: Partial<State['tokenInfo']>) => void;
   removeTokenInfo: () => void;
   setIsLoggedIn: (value: boolean) => void;
   setIsNeedSignUp: (value: boolean) => void;
   setIsNeedRefreshToken: (value: boolean) => void;
+  setIsHydrated: (value: boolean) => void;
 };
 
 const initialState = {
@@ -39,6 +40,7 @@ const initialState = {
   isLoggedIn: false,
   isNeedSignUp: false,
   isNeedRefreshToken: false,
+  isHydrated: false,
 };
 
 const useAuthStore = create<State & { actions: Action }>()(
@@ -49,43 +51,7 @@ const useAuthStore = create<State & { actions: Action }>()(
         setIsLoggedIn: (isLoggedIn: boolean) => set({ isLoggedIn }),
         setIsNeedSignUp: (isNeedSignUp: boolean) => set({ isNeedSignUp }),
         setIsNeedRefreshToken: (isNeedRefreshToken: boolean) => set({ isNeedRefreshToken }),
-        validateTokenInfo: () => {
-          try {
-            const { tokenInfo } = get();
-
-            if (!tokenInfo) {
-              return;
-            }
-
-            // 액세스 토큰, refresh 토큰이 존재하는 경우
-            if (tokenInfo.access && tokenInfo.refresh) {
-              // 액세스 토큰이 만료 된 경우
-              if (dayjs().isBefore(tokenInfo.access.expireAt)) {
-                set({ isLoggedIn: false, isNeedSignUp: false });
-                // refresh 토큰이 만료된 경우
-                if (dayjs().isBefore(tokenInfo.refresh.expireAt)) {
-                  set({ isNeedRefreshToken: false });
-                } else {
-                  set({ isNeedRefreshToken: true });
-                }
-              }
-              set({ isLoggedIn: true, isNeedSignUp: false, isNeedRefreshToken: false });
-            }
-
-            // 회원가입을 완료하지 않았을 경우
-            if (tokenInfo.signup) {
-              // 회원가입 토큰이 만료 된 경우
-              if (dayjs().isBefore(tokenInfo.signup.expireAt)) {
-                set({ isLoggedIn: false, isNeedSignUp: false });
-              }
-              set({ isLoggedIn: true, isNeedSignUp: true });
-            }
-
-            set({ tokenInfo });
-          } catch (error) {
-            console.error('토큰 정보 저장에 실패했습니다. ', error);
-          }
-        },
+        setIsHydrated: (isHydrated: boolean) => set({ isHydrated }),
         setTokenInfo: info => {
           set({ tokenInfo: { ...get().tokenInfo, ...info } });
         },
@@ -111,6 +77,55 @@ const useAuthStore = create<State & { actions: Action }>()(
           console.error('onRehydrate error: ', error);
         }
         console.log('mergedState: ', mergedState);
+
+        if (!mergedState?.tokenInfo) {
+          return;
+        }
+
+        const {
+          tokenInfo,
+          actions: { setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken, setTokenInfo, setIsHydrated },
+        } = mergedState;
+
+        try {
+          if (!tokenInfo) {
+            return;
+          }
+
+          // 회원가입을 완료하지 않았을 경우
+          if (tokenInfo.signup) {
+            // 회원가입 토큰이 만료 된 경우
+            if (dayjs().isAfter(tokenInfo.signup.expireAt)) {
+              setIsLoggedIn(false);
+              setIsNeedSignUp(false);
+            }
+            setIsLoggedIn(true);
+            setIsNeedSignUp(true);
+          }
+
+          // 액세스 토큰, refresh 토큰이 존재하는 경우
+          if (tokenInfo.access && tokenInfo.refresh) {
+            // 액세스 토큰이 만료 된 경우
+            if (dayjs().isAfter(tokenInfo.access.expireAt)) {
+              setIsLoggedIn(false);
+              setIsNeedSignUp(false);
+
+              // refresh 토큰이 만료된 경우
+              if (dayjs().isAfter(tokenInfo.refresh.expireAt)) {
+                setIsNeedRefreshToken(true);
+              }
+            }
+
+            setIsLoggedIn(true);
+            setIsNeedSignUp(false);
+            setIsNeedRefreshToken(false);
+          }
+
+          setTokenInfo(tokenInfo);
+          setIsHydrated(true);
+        } catch (error) {
+          console.error('Storage Hydrate에 실패했습니다. ', error);
+        }
       },
     },
   ),

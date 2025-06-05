@@ -24,14 +24,15 @@ function AppContent() {
   const isMutating = useIsMutating();
   const isLoading = isFetching + isMutating > 0;
 
-  const { isLoggedIn, isNeedSignUp } = useAuthStore(({ isLoggedIn, isNeedSignUp }) => ({
+  const { isLoggedIn, isNeedSignUp, isHydrated } = useAuthStore(({ isLoggedIn, isNeedSignUp, isHydrated }) => ({
     isLoggedIn,
     isNeedSignUp,
+    isHydrated,
   }));
 
   return (
     <View style={styles.container}>
-      {!isLoggedIn ? (
+      {isLoggedIn ? (
         <SafeAreaProvider>
           <KeyboardProvider>
             <GestureHandlerRootView style={styles.gestureHandlerRoot}>
@@ -44,7 +45,7 @@ function AppContent() {
       ) : (
         <Login />
       )}
-      {isLoading && <LoadingOverlay />}
+      {(!isHydrated || isLoading) && <LoadingOverlay />}
     </View>
   );
 }
