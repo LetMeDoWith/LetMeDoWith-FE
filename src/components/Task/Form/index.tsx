@@ -14,18 +14,7 @@ import { QuestionCircle } from 'components/common/icons/QuestionCircle';
 import type { TaskModeType } from 'types/shared';
 import { CategoryBottomSheet } from 'components/Task/BottomSheet/CategoryBottomSheet';
 import { RoutineBottomSheet } from 'components/Task/BottomSheet/RoutineBottomSheet';
-
-// TODO: Task 카테고리 API 연동
-const MOCK_CATEGORY_LIST = [
-  { id: 1, name: '카테고리1' },
-  { id: 2, name: '카테고리2' },
-  { id: 3, name: '카테고리3' },
-  { id: 4, name: '카테고리4' },
-  { id: 5, name: '카테고리5' },
-  { id: 6, name: '카테고리6' },
-  { id: 7, name: '카테고리7' },
-  { id: 8, name: '카테고리8' },
-];
+import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategoryList';
 
 const Form = () => {
   const { control, watch, setValue, handleSubmit } = useFormContext();
@@ -34,6 +23,7 @@ const Form = () => {
 
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
   const [taskMode, setTaskMode] = useState<TaskModeType | null>(null);
+  const { data: taskCategoryList } = useFetchTaskCategoryList();
 
   const title = watch('title');
   const startDateTime = watch('startDateTime');
@@ -41,7 +31,7 @@ const Form = () => {
 
   const isFormDisabled = taskMode === null;
   const isButtonDisabled = !title || !startDateTime;
-  const prevSelectedCategory = MOCK_CATEGORY_LIST.find(({ id }) => taskCategoryId === id);
+  const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
 
   const toggleDatePicker = useCallback(
     (isOpen: boolean) => () => {
@@ -83,7 +73,7 @@ const Form = () => {
     }
 
     routineBottomSheetMethodsRef.current?.present();
-  }, [taskMode, isFormDisabled]);
+  }, [isFormDisabled]);
 
   const onSubmit = useCallback<any>((values: FormData) => {
     console.log(values);
@@ -187,7 +177,7 @@ const Form = () => {
                     <Text style={styles.optionalLabel}>(선택)</Text>
                   </View>
                   <Text style={[styles.emptyValue, taskCategoryId && styles.value]}>
-                    {prevSelectedCategory ? prevSelectedCategory.name : '미등록'}
+                    {prevSelectedCategory ? prevSelectedCategory.title : '미등록'}
                   </Text>
                 </Pressable>
               )}
