@@ -8,4 +8,8 @@ const MEMBER_API = {
   SIGN_UP: 'v1/member',
 } as const;
 
-export { AUTH_API, MEMBER_API };
+const TASK_API = {
+  CATEGORY_LIST: 'v1/tasks/category',
+} as const;
+
+export { AUTH_API, MEMBER_API, TASK_API };

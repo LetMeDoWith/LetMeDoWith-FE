@@ -1,24 +1,13 @@
-import React, { forwardRef, RefObject, useCallback, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFormContext } from 'react-hook-form';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 
 import { theme } from 'styles/theme';
 import { BottomSheet } from 'components/common/BottomSheet';
+import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategoryList';
 
-type TaskCategory = { id: number; name: string };
-
-// TODO: Task 카테고리 API 연동
-const MOCK_CATEGORY_LIST = [
-  { id: 1, name: '카테고리1' },
-  { id: 2, name: '카테고리2' },
-  { id: 3, name: '카테고리3' },
-  { id: 4, name: '카테고리4' },
-  { id: 5, name: '카테고리5' },
-  { id: 6, name: '카테고리6' },
-  { id: 7, name: '카테고리7' },
-  { id: 8, name: '카테고리8' },
-];
+type TaskCategory = { id: number; title: string };
 
 interface Props {
   taskCategoryId: number;
@@ -30,6 +19,7 @@ const CategoryBottomSheet = forwardRef<BottomSheetModalMethods, Props>(
     const { setValue } = useFormContext();
     const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
     const innerRef = useRef<BottomSheetModalMethods>(null);
+    const { data: taskCategoryList } = useFetchTaskCategoryList();
 
     const onDismissCategoryBottomSheet = useCallback(() => {
       if (taskCategoryId === null) {
@@ -45,9 +35,9 @@ const CategoryBottomSheet = forwardRef<BottomSheetModalMethods, Props>(
     }, [taskCategoryId, prevSelectedCategory]);
 
     const handleCategory = useCallback(
-      ({ id, name }: TaskCategory) =>
+      ({ id, title }: TaskCategory) =>
         () => {
-          setSelectedCategory({ id, name });
+          setSelectedCategory({ id, title });
         },
       [],
     );
@@ -55,7 +45,7 @@ const CategoryBottomSheet = forwardRef<BottomSheetModalMethods, Props>(
     const handleCategoryBottomSheetButton = useCallback(() => {
       setValue('taskCategoryId', selectedCategory?.id);
       innerRef.current?.dismiss();
-    }, [selectedCategory]);
+    }, [selectedCategory?.id, setValue]);
 
     useImperativeHandle(ref, () => innerRef.current!);
 
@@ -69,7 +59,7 @@ const CategoryBottomSheet = forwardRef<BottomSheetModalMethods, Props>(
         handleButtonSubmit={handleCategoryBottomSheetButton}
       >
         <View style={styles.bottomSheetContentContainer}>
-          {MOCK_CATEGORY_LIST.map(({ id, name }) => (
+          {taskCategoryList?.map(({ id, emoji, title }) => (
             <Pressable
               key={id}
               style={[
@@ -79,15 +69,16 @@ const CategoryBottomSheet = forwardRef<BottomSheetModalMethods, Props>(
                   backgroundColor: theme.COLORS.PRIMARY.RED_98,
                 },
               ]}
-              onPress={handleCategory({ id, name })}
+              onPress={handleCategory({ id, title })}
             >
+              <Text>{emoji}</Text>
               <Text
                 style={[
                   styles.categoryButtonName,
                   selectedCategory?.id === id && { color: theme.COLORS.PRIMARY.RED_60 },
                 ]}
               >
-                {name}
+                {title}
               </Text>
             </Pressable>
           ))}
@@ -105,8 +96,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   categoryButton: {
-    width: '48%',
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    gap: 4,
+    width: '48%',
     borderWidth: 1,
     paddingVertical: 12,
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
