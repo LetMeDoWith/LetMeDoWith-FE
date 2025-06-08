@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 
-import { TaskSuccess } from 'components/common/icons/DoWithModeSuccess';
+import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
 import { theme } from 'styles/theme';
 import type { TaskModeType } from 'types/shared';
@@ -10,48 +10,113 @@ import { BottomSheet } from 'components/common/BottomSheet';
 import { TaskEdit } from 'components/common/icons/TaskEdit';
 import { RoutineEdit } from 'components/common/icons/RoutineEdit';
 import { TaskDelete } from 'components/common/icons/TaskDelete';
+import { TaskStatusEnumType } from 'types/task/scheme/enum';
+import dayjs from 'dayjs';
+import { TASK_STATUS_ENUM } from 'schemes/task/enum';
+import { TaskWait } from 'components/common/icons/TaskWait';
+import { FeedBackIcon } from 'components/common/icons/FeedBackIcon';
+import { TaskFail } from 'components/common/icons/TaskFail';
+import { UploadImage } from 'components/common/icons/UploadImage';
+import { isNil } from 'utils/index';
 
 interface Props {
   mode: TaskModeType;
+  title: string;
+  status: TaskStatusEnumType;
+  taskCategoryName: string | null;
+  startTime: string | null;
+  confirmedImageUrl?: string | null;
+  feedBackCount?: number | null;
 }
 
-const Item = ({ mode }: Props) => {
+const Item = ({ mode, title, status, taskCategoryName, startTime, confirmedImageUrl, feedBackCount }: Props) => {
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
   const handleBottomSheet = () => {
     taskManagementBottomSheetModalRef.current?.present();
+  };
+
+  const renderTaskStatusIcon = (mode: TaskModeType, status: TaskStatusEnumType) => {
+    switch (status) {
+      case TASK_STATUS_ENUM.enum.WAIT:
+        if (mode === 'DOWITH') {
+          return <UploadImage />;
+        }
+
+        return <TaskWait mode={mode} />;
+
+      case TASK_STATUS_ENUM.enum.SUCCESS:
+        return <TaskSuccess mode={mode} />;
+
+      case TASK_STATUS_ENUM.enum.FAIL:
+        return <TaskFail />;
+
+      default:
+        return null;
+    }
   };
 
   return (
     <>
       <View style={styles.container}>
         <View style={styles.leftContainer}>
-          {/* TODO: task 상태에 맞는 아이콘 처리 */}
-          <TaskSuccess mode={mode} />
+          {renderTaskStatusIcon(mode, status)}
           <View style={styles.leftContent}>
-            <Text style={styles.title}>푸쉬업하기</Text>
-            <View style={styles.option}>
-              <Text>12:00</Text>
-              <Text> • </Text>
-              <Text>9:00</Text>
-            </View>
+            <Text style={[styles.title, isDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>{title}</Text>
+            {(startTime || taskCategoryName) && (
+              <View style={styles.option}>
+                {startTime && (
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: isDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60 },
+                    ]}
+                  >
+                    {dayjs(startTime, 'HH:mm').format('HH:mm')}
+                  </Text>
+                )}
+                {startTime && taskCategoryName && (
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: isDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60 },
+                    ]}
+                  >
+                    •
+                  </Text>
+                )}
+                {taskCategoryName && (
+                  <Text
+                    style={[
+                      styles.optionText,
+                      { color: isDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60 },
+                    ]}
+                  >
+                    {taskCategoryName}
+                  </Text>
+                )}
+              </View>
+            )}
           </View>
         </View>
         <View style={styles.rightContainer}>
           <View style={styles.rightContent}>
-            {mode === 'DOWITH' && (
+            {confirmedImageUrl && (
               <Image
                 borderRadius={50}
                 width={24}
                 height={24}
                 source={{
-                  uri: 'https://media.bunjang.co.kr/images/crop/981758465_w320.jpg',
+                  uri: confirmedImageUrl,
                 }}
               />
             )}
-            <Pressable onPress={handleBottomSheet}>
-              {/* TODO: task 상태에 맞는 disabled 처리 */}
-              <EtcDots />
+            {!confirmedImageUrl && !isNil(feedBackCount) && (
+              <FeedBackIcon count={feedBackCount as number} status={status} />
+            )}
+            <Pressable onPress={handleBottomSheet} disabled={isDisabled}>
+              <EtcDots disabled={isDisabled} />
             </Pressable>
           </View>
         </View>
@@ -97,13 +162,13 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'center',
   },
-  title: {
-    fontSize: 14,
-    color: theme.COLORS.GRAY_SCALE.GRAY_20,
-  },
+  title: theme.TYPOGRAPHY.BODY_2,
   option: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
+  optionText: theme.TYPOGRAPHY.CAPTION1_BASIC,
   modalContainer: {
     paddingVertical: 24,
     gap: 20,

@@ -17,7 +17,7 @@ import { isAos } from 'utils/device';
 import { ArrowLeft } from 'components/common/icons/ArrowIcon';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
-import { List } from 'components/Task';
+import { ListContainerView } from 'components/Task/ListContainerView';
 import type { HomeTabScreenProps } from 'types/shared';
 import { FeedbackNotification } from 'components/common/icons/FeedbackNotification';
 
@@ -214,7 +214,7 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
                   hideKnob
                   disablePan
                 />
-                <View style={{ marginHorizontal: 20 }}>
+                <View style={{ flex: 1, marginHorizontal: 20 }}>
                   <Divider style={styles.divider} />
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Text>{selectedDateKoreanString}</Text>
@@ -222,9 +222,8 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
                       <PlusIcon />
                     </TouchableOpacity>
                   </View>
-                  <View>
-                    <List type="DOWITH" />
-                    <List type="TODO" />
+                  <View style={{ flex: 1, marginTop: 16 }}>
+                    <ListContainerView selectedDate={selectedDate} />
                   </View>
                 </View>
               </CalendarProvider>
