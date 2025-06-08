@@ -1,6 +1,10 @@
 import { apiClient } from 'services/apiClient';
 import { TASK_API } from 'services/urls';
-import type { fetchTaskCategoryListResponseSchemeType } from 'types/task/scheme/api';
+import type {
+  fetchTaskCategoryListResponseSchemeType,
+  fetchTaskListRequestSchemeType,
+  fetchTaskListResponseSchemeType,
+} from 'types/task/scheme/api';
 
 const fetchTaskCategoryList = async (): Promise<fetchTaskCategoryListResponseSchemeType> => {
   try {
@@ -11,4 +15,15 @@ const fetchTaskCategoryList = async (): Promise<fetchTaskCategoryListResponseSch
   }
 };
 
-export { fetchTaskCategoryList };
+const fetchTaskList = async (params: fetchTaskListRequestSchemeType): Promise<fetchTaskListResponseSchemeType> => {
+  try {
+    const result = await apiClient.get<fetchTaskListResponseSchemeType>(TASK_API.LIST, {
+      params,
+    });
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export { fetchTaskCategoryList, fetchTaskList };

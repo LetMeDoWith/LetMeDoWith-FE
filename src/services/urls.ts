@@ -10,6 +10,7 @@ const MEMBER_API = {
 
 const TASK_API = {
   CATEGORY_LIST: 'v1/tasks/category',
+  LIST: 'v1/tasks',
 } as const;
 
 export { AUTH_API, MEMBER_API, TASK_API };

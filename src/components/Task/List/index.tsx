@@ -1,14 +1,16 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import type { TaskModeType } from 'types/shared';
 import { theme } from 'styles/theme';
 import { Item } from 'components/Task';
+import type { TaskModeType } from 'types/shared';
+import type { dowithTaskSchemeType, todoTaskSchemeType } from 'types/task/scheme/api';
 
 interface Props {
   type: TaskModeType;
+  items: dowithTaskSchemeType[] | todoTaskSchemeType[];
 }
 
-const List = ({ type }: Props) => {
+const List = ({ type, items }: Props) => {
   const isDoWithMode = type === 'DOWITH';
 
   return (
@@ -28,15 +30,15 @@ const List = ({ type }: Props) => {
           {isDoWithMode ? 'DO WITH' : ' TO DO'}
         </Text>
       </View>
-      <Item mode={isDoWithMode ? 'DOWITH' : 'TODO'} />
+      {items.map(({ id, ...rest }) => (
+        <Item key={id} mode={isDoWithMode ? 'DOWITH' : 'TODO'} {...rest} />
+      ))}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: 16,
-  },
+  container: {},
   chipWrap: {
     alignSelf: 'flex-start',
     height: 26,
