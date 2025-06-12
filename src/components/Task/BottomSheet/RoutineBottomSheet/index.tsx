@@ -20,6 +20,8 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
   const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(true);
 
+  const isValidDatePeriod = selectedStartDate && selectedEndDate;
+
   const getMarkedDates = (start: string | null, end: string | null): MarkedDates => {
     if (!start) {
       return {};
@@ -111,12 +113,23 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
         <View style={styles.dateSection}>
           <View style={styles.dateLeftSection}>
             <Text style={theme.TYPOGRAPHY.SUB_TITLE}>반복 기간</Text>
-            <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_60 }]}>
-              루틴을 반복할 시작일과 종료일을 선택해주세요.
-            </Text>
+            {!isValidDatePeriod && (
+              <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_60 }]}>
+                루틴을 반복할 시작일과 종료일을 선택해주세요.
+              </Text>
+            )}
           </View>
           <Pressable style={styles.dateRightSection} onPress={handleExpanded}>
-            <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>미선택</Text>
+            <Text
+              style={[
+                theme.TYPOGRAPHY.BODY_2,
+                {
+                  color: isValidDatePeriod ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_70,
+                },
+              ]}
+            >
+              {isValidDatePeriod ? `${selectedStartDate} ~ ${selectedEndDate}` : '미선택'}
+            </Text>
             <DropArrow direction={expanded ? 'UP' : 'DOWN'} />
           </Pressable>
           <View />
@@ -148,13 +161,15 @@ const styles = StyleSheet.create({
   dateSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   dateLeftSection: {
     gap: 8,
   },
   dateRightSection: {
+    flex: 1,
     flexDirection: 'row',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     gap: 4,
   },
