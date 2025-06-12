@@ -18,6 +18,7 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
   const todayDateString = dayjs().format('YYYY-MM-DD');
   const [selectedStartDate, setSelectedStartDate] = useState<string | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null);
+  const [selectedPrimaryCategory, setSelectedPrimaryCategory] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | null>(null);
   const [expanded, setExpanded] = useState(true);
 
   const isValidDatePeriod = selectedStartDate && selectedEndDate;
@@ -98,6 +99,10 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
     setExpanded(!expanded);
   };
 
+  const handlePrimaryCategory = (value: 'DAILY' | 'WEEKLY' | 'MONTHLY') => () => {
+    setSelectedPrimaryCategory(value);
+  };
+
   useImperativeHandle(ref, () => innerRef.current!);
 
   return (
@@ -149,6 +154,38 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
             }}
           />
         )}
+        <View style={styles.routineSection}>
+          <Text style={styles.routineSectionTitle}>반복 패턴</Text>
+          <View style={styles.routinePrimaryCategoryButtonSection}>
+            <Pressable
+              style={[
+                styles.routinePrimaryCategoryButton,
+                selectedPrimaryCategory === 'DAILY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+              ]}
+              onPress={handlePrimaryCategory('DAILY')}
+            >
+              <Text style={styles.routinePrimaryCategoryButtonText}>매일</Text>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.routinePrimaryCategoryButton,
+                selectedPrimaryCategory === 'WEEKLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+              ]}
+              onPress={handlePrimaryCategory('WEEKLY')}
+            >
+              <Text style={styles.routinePrimaryCategoryButtonText}>매 주</Text>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.routinePrimaryCategoryButton,
+                selectedPrimaryCategory === 'MONTHLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+              ]}
+              onPress={handlePrimaryCategory('MONTHLY')}
+            >
+              <Text style={styles.routinePrimaryCategoryButtonText}>매 월</Text>
+            </Pressable>
+          </View>
+        </View>
       </View>
     </BottomSheet>
   );
@@ -173,6 +210,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
+  routineSection: {
+    marginTop: 32,
+    gap: 12,
+  },
+  routineSectionTitle: theme.TYPOGRAPHY.SUB_TITLE,
+  routinePrimaryCategoryButtonSection: { flexDirection: 'row', gap: 8 },
+  routinePrimaryCategoryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
+  },
+  routinePrimaryCategoryButtonText: theme.TYPOGRAPHY.SUB_TITLE,
 });
 
 export { RoutineBottomSheet };
