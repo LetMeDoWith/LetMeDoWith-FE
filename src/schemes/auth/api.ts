@@ -18,6 +18,7 @@ const fetchTokenResponseScheme = BaseResponseScheme.extend({
     atk: tokenScheme.nullable(),
     rtk: tokenScheme.nullable(),
     signupToken: tokenScheme.nullable(),
+    memberId: z.string(),
   }),
 });
 

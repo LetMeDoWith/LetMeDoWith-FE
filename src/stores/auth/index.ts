@@ -16,6 +16,7 @@ type State = {
     access: Token | null;
     refresh: Token | null;
   };
+  memberId: string | null;
   isLoggedIn: boolean;
   isNeedSignUp: boolean;
   isNeedRefreshToken: boolean;
@@ -24,6 +25,7 @@ type State = {
 
 type Action = {
   setTokenInfo: (token: Partial<State['tokenInfo']>) => void;
+  setMemberId: (id: State['memberId']) => void;
   removeTokenInfo: () => void;
   setIsLoggedIn: (value: boolean) => void;
   setIsNeedSignUp: (value: boolean) => void;
@@ -37,6 +39,7 @@ const initialState = {
     access: null,
     refresh: null,
   },
+  memberId: null,
   isLoggedIn: false,
   isNeedSignUp: false,
   isNeedRefreshToken: false,
@@ -48,6 +51,7 @@ const useAuthStore = create<State & { actions: Action }>()(
     (set, get) => ({
       ...initialState,
       actions: {
+        setMemberId: (id: State['memberId']) => set({ memberId: id }),
         setIsLoggedIn: (isLoggedIn: boolean) => set({ isLoggedIn }),
         setIsNeedSignUp: (isNeedSignUp: boolean) => set({ isNeedSignUp }),
         setIsNeedRefreshToken: (isNeedRefreshToken: boolean) => set({ isNeedRefreshToken }),
@@ -68,8 +72,9 @@ const useAuthStore = create<State & { actions: Action }>()(
     {
       name: STORAGE_KEY.TOKEN_INFO,
       storage: createJSONStorage(secureStorage),
-      partialize: ({ tokenInfo }) => ({
+      partialize: ({ tokenInfo, memberId }) => ({
         tokenInfo,
+        memberId,
       }),
       onRehydrateStorage: () => (mergedState, error) => {
         console.log('Rehydrating state from encrypted storage');
