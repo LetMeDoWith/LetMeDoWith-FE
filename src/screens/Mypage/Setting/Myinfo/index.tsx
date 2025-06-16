@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { HelperText, IconButton, TextInput } from 'react-native-paper';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
@@ -13,7 +13,8 @@ import { ConfirmModal } from 'components/common/Modal';
 import { DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT, LOGOUT_CONFIRM_MODAL_CONTENT } from 'constants/Mypage';
 import type { SettingStackScreenProps } from 'types/shared';
 import { useDeleteAccount } from 'hooks/queries/member/useDeleteAccount';
-import { useAuthStore } from 'stores/auth';
+import { INITIAL_STORAGE_VALUE, useAuthStore } from 'stores/auth';
+import { secureStorage, STORAGE_KEY } from 'stores/secure';
 
 type FormData = {
   nickname: string;
@@ -61,21 +62,27 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
     setModalType('DELETE_ACCOUNT');
   }, [toggleModalOpen]);
 
-  const onPressConfirmButton = useCallback(() => {
+  const onPressConfirmButton = useCallback(async () => {
     toggleModalOpen();
 
     if (modalType === 'LOGOUT') {
       setIsLoggedIn(false);
       setTokenInfo({ access: null, refresh: null });
       setMemberId(null);
-      // TODO: 스토리지 초기화 필요
+
+      try {
+        await secureStorage().setItem(STORAGE_KEY.AUTH_INFO, JSON.stringify(INITIAL_STORAGE_VALUE));
+      } catch (e) {
+        Alert.alert('스토리지 초기화에 실패했습니다.');
+        throw e;
+      }
     }
   }, [modalType, setIsLoggedIn, setMemberId, setTokenInfo, toggleModalOpen]);
 
   const onPressCancelButton = useCallback(() => {
     toggleModalOpen();
 
-    if (modalType === 'DELETE_ACCOUNT') {
+    if (modalType === 'DELETE_ACCOUNT' && memberId) {
       mutateDeleteAccount({ memberId });
       return;
     }
