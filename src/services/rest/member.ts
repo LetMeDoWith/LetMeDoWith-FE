@@ -1,6 +1,7 @@
 import { MEMBER_API } from 'services/urls';
 import { apiClient } from 'services/apiClient';
 import type {
+  deleteAccountResponseSchemeType,
   signUpRequestSchemeType,
   signUpResponseSchemeType,
   validNicknameRequestSchemeType,
@@ -25,4 +26,15 @@ const signUp = async (payload: signUpRequestSchemeType): Promise<signUpResponseS
   }
 };
 
-export { validNickname, signUp };
+const deleteAccount = async (memberId: string): Promise<deleteAccountResponseSchemeType> => {
+  try {
+    const result = await apiClient.delete<deleteAccountResponseSchemeType>(MEMBER_API.DELETE_ACCOUNT, {
+      params: { memberId },
+    });
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export { validNickname, signUp, deleteAccount };

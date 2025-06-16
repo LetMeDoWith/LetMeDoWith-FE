@@ -12,6 +12,8 @@ import { BasicMenu } from 'components/Mypage/Setting/Menu';
 import { ConfirmModal } from 'components/common/Modal';
 import { DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT, LOGOUT_CONFIRM_MODAL_CONTENT } from 'constants/Mypage';
 import type { SettingStackScreenProps } from 'types/shared';
+import { useDeleteAccount } from 'hooks/queries/member/useDeleteAccount';
+import { useAuthStore } from 'stores/auth';
 
 type FormData = {
   nickname: string;
@@ -19,8 +21,17 @@ type FormData = {
 };
 
 const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>) => {
+  const { memberId, setTokenInfo, setIsLoggedIn, setMemberId } = useAuthStore(
+    ({ memberId, actions: { setTokenInfo, setIsLoggedIn, setMemberId } }) => ({
+      memberId,
+      setTokenInfo,
+      setIsLoggedIn,
+      setMemberId,
+    }),
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'LOGOUT' | 'DELETE_ACCOUNT' | null>(null);
+  const { mutate: mutateDeleteAccount } = useDeleteAccount();
 
   const {
     watch,
@@ -53,22 +64,22 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
   const onPressConfirmButton = useCallback(() => {
     toggleModalOpen();
 
-    if (modalType === 'DELETE_ACCOUNT') {
-      return;
+    if (modalType === 'LOGOUT') {
+      setIsLoggedIn(false);
+      setTokenInfo({ access: null, refresh: null });
+      setMemberId(null);
+      // TODO: 스토리지 초기화 필요
     }
-
-    // TODO: 로그아웃 API 연동
-  }, [modalType, toggleModalOpen]);
+  }, [modalType, setIsLoggedIn, setMemberId, setTokenInfo, toggleModalOpen]);
 
   const onPressCancelButton = useCallback(() => {
     toggleModalOpen();
 
-    if (modalType === 'LOGOUT') {
+    if (modalType === 'DELETE_ACCOUNT') {
+      mutateDeleteAccount({ memberId });
       return;
     }
-
-    // TODO: 회원 탈퇴 API 연동
-  }, [modalType, toggleModalOpen]);
+  }, [memberId, modalType, mutateDeleteAccount, toggleModalOpen]);
 
   const onSubmit = useCallback((values: FormData) => {
     console.log(values);

@@ -24,4 +24,14 @@ const signUpRequestScheme = z.object({
 
 const signUpResponseScheme = fetchTokenResponseScheme;
 
-export { validNicknameRequestScheme, validNicknameResponseScheme, signUpRequestScheme, signUpResponseScheme };
+const deleteAccountResponseScheme = BaseResponseScheme.extend({
+  data: z.object({}),
+});
+
+export {
+  validNicknameRequestScheme,
+  validNicknameResponseScheme,
+  signUpRequestScheme,
+  signUpResponseScheme,
+  deleteAccountResponseScheme,
+};
