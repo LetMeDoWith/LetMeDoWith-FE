@@ -1,6 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { Alert, AppState } from 'react-native';
-import dayjs from 'dayjs';
+import { AppState } from 'react-native';
 
 import type { ProviderEnumType } from 'types/auth/scheme/enum';
 import { useAuthStore } from 'stores/auth';
@@ -12,9 +11,23 @@ import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
  * @param provider 인증 공급자 (GOOGLE | KAKAO | APPLE)
  */
 const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetStateAction<string | null>>] => {
-  const { tokenInfo, isHydrated, setTokenInfo, setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken } = useAuthStore(
-    ({ tokenInfo, isHydrated, actions: { setTokenInfo, setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken } }) => ({
+  const {
+    tokenInfo,
+    isNeedRefreshToken,
+    isHydrated,
+    setTokenInfo,
+    setIsLoggedIn,
+    setIsNeedSignUp,
+    setIsNeedRefreshToken,
+  } = useAuthStore(
+    ({
       tokenInfo,
+      isNeedRefreshToken,
+      isHydrated,
+      actions: { setTokenInfo, setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken },
+    }) => ({
+      tokenInfo,
+      isNeedRefreshToken,
       isHydrated,
       setTokenInfo,
       setIsLoggedIn,
@@ -36,28 +49,6 @@ const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetS
     mutateFetchToken(
       { provider, idToken },
       {
-        onSuccess: ({ data }) => {
-          setIsLoggedIn(true);
-
-          // 회원 가입이 필요한 경우
-          if (data.signupToken) {
-            setIsNeedSignUp(true);
-            setTokenInfo({ signup: data.signupToken });
-            return;
-          }
-
-          if (!data.atk || !data.rtk) {
-            return;
-          }
-
-          // 회원가입이 완료 되었을 경우
-          setIsNeedSignUp(false);
-          setTokenInfo({ access: data.atk, refresh: data.rtk });
-        },
-        onError: e => {
-          console.error('토큰 발급 실패 ', e.response?.data);
-          Alert.alert('토큰 발급에 실패했습니다.');
-        },
         onSettled: () => {
           setIdToken(null);
         },
@@ -67,13 +58,10 @@ const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetS
 
   // 토큰 재발급 로직 수행
   useEffect(() => {
-    console.log('isHydrated: ', isHydrated);
     const subscription = AppState.addEventListener('change', state => {
       // Foreground 복귀시마다 토큰 재발급 로직 수행여부 체크
       if (state === 'active') {
-        if (isHydrated && dayjs().isAfter(tokenInfo.access?.expireAt) && tokenInfo.refresh?.token) {
-          console.log('통과');
-
+        if (isHydrated && isNeedRefreshToken && tokenInfo.refresh?.token) {
           mutateRefreshToken(
             { refreshToken: tokenInfo.refresh.token },
             {
@@ -87,10 +75,6 @@ const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetS
                 setIsNeedRefreshToken(false);
                 setIsNeedSignUp(false);
               },
-              onError: e => {
-                console.error('토큰 재발급 실패 ', e.response?.data);
-                Alert.alert('토큰 재발급에 실패했습니다.');
-              },
             },
           );
         }
@@ -98,7 +82,16 @@ const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetS
 
       return () => subscription.remove();
     });
-  }, [tokenInfo, isHydrated, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, setTokenInfo, mutateRefreshToken]);
+  }, [
+    tokenInfo,
+    isNeedRefreshToken,
+    isHydrated,
+    setIsLoggedIn,
+    setIsNeedRefreshToken,
+    setIsNeedSignUp,
+    setTokenInfo,
+    mutateRefreshToken,
+  ]);
 
   return [idToken, setIdToken];
 };

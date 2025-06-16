@@ -102,9 +102,7 @@ const useAuthStore = create<State & { actions: Action }>()(
             // 회원가입 토큰이 만료 된 경우
             if (dayjs().isAfter(tokenInfo.signup.expireAt)) {
               setIsLoggedIn(false);
-              setIsNeedSignUp(false);
             }
-            setIsLoggedIn(true);
             setIsNeedSignUp(true);
           }
 
@@ -112,21 +110,20 @@ const useAuthStore = create<State & { actions: Action }>()(
           if (tokenInfo.access && tokenInfo.refresh) {
             // 액세스 토큰이 만료 된 경우
             if (dayjs().isAfter(tokenInfo.access.expireAt)) {
-              setIsLoggedIn(false);
-              setIsNeedSignUp(false);
-
               // refresh 토큰이 만료된 경우
               if (dayjs().isAfter(tokenInfo.refresh.expireAt)) {
                 setIsNeedRefreshToken(true);
               }
+              setIsLoggedIn(false);
+              setIsNeedSignUp(false);
             }
 
+            setTokenInfo(tokenInfo);
             setIsLoggedIn(true);
             setIsNeedSignUp(false);
             setIsNeedRefreshToken(false);
           }
 
-          setTokenInfo(tokenInfo);
           setIsHydrated(true);
         } catch (error) {
           console.error('Storage Hydrate에 실패했습니다. ', error);
