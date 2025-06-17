@@ -1,5 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 import { Divider } from 'react-native-paper';
 import { Calendar } from 'react-native-calendars';
@@ -13,12 +13,25 @@ import { DropArrow } from 'components/common/icons/DropArrow';
 
 dayjs.extend(isSameOrBefore);
 
+const WEEKLY_DAY_INFO = [
+  { code: 'SUNDAY', name: '일' },
+  { code: 'MONDAY', name: '월' },
+  { code: 'TUESDAY', name: '화' },
+  { code: 'WEDNESDAY', name: '수' },
+  { code: 'THURSDAY', name: '목' },
+  { code: 'FRIDAY', name: '금' },
+  { code: 'SATURDAY', name: '토' },
+] as const;
+
 const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, ref) => {
   const innerRef = useRef<BottomSheetModalMethods>(null);
   const todayDateString = dayjs().format('YYYY-MM-DD');
   const [selectedStartDate, setSelectedStartDate] = useState<string | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null);
   const [selectedPrimaryCategory, setSelectedPrimaryCategory] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | null>(null);
+  const [selectedWeeklyDaySet, setSelectedWeeklyDaySet] = useState<
+    Set<'SUNDAY' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY'>
+  >(new Set());
   const [expanded, setExpanded] = useState(true);
 
   const isValidDatePeriod = selectedStartDate && selectedEndDate;
@@ -100,6 +113,10 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
   };
 
   const handlePrimaryCategory = (value: 'DAILY' | 'WEEKLY' | 'MONTHLY') => () => {
+    // 선택한 반복 패턴이 매 주가 아닐 경우 선택한 요일 Set 초기화
+    if (value !== 'WEEKLY') {
+      setSelectedWeeklyDaySet(new Set());
+    }
     setSelectedPrimaryCategory(value);
   };
 
@@ -140,52 +157,93 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
           <View />
         </View>
         <Divider style={{ marginVertical: 20 }} />
-        {expanded && (
-          <Calendar
-            markingType="period"
-            markedDates={getMarkedDates(selectedStartDate, selectedEndDate)}
-            minDate={todayDateString}
-            onDayPress={date => {
-              if (!selectedStartDate) {
-                setSelectedStartDate(date.dateString);
-                return;
-              }
-              setSelectedEndDate(date.dateString);
-            }}
-          />
-        )}
-        <View style={styles.routineSection}>
-          <Text style={styles.routineSectionTitle}>반복 패턴</Text>
-          <View style={styles.routinePrimaryCategoryButtonSection}>
-            <Pressable
-              style={[
-                styles.routinePrimaryCategoryButton,
-                selectedPrimaryCategory === 'DAILY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
-              ]}
-              onPress={handlePrimaryCategory('DAILY')}
-            >
-              <Text style={styles.routinePrimaryCategoryButtonText}>매일</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.routinePrimaryCategoryButton,
-                selectedPrimaryCategory === 'WEEKLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
-              ]}
-              onPress={handlePrimaryCategory('WEEKLY')}
-            >
-              <Text style={styles.routinePrimaryCategoryButtonText}>매 주</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.routinePrimaryCategoryButton,
-                selectedPrimaryCategory === 'MONTHLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
-              ]}
-              onPress={handlePrimaryCategory('MONTHLY')}
-            >
-              <Text style={styles.routinePrimaryCategoryButtonText}>매 월</Text>
-            </Pressable>
+        {/* TODO: ScrollView 동작하게 해야 함 */}
+        <ScrollView>
+          {expanded && (
+            <Calendar
+              markingType="period"
+              markedDates={getMarkedDates(selectedStartDate, selectedEndDate)}
+              minDate={todayDateString}
+              onDayPress={date => {
+                if (!selectedStartDate) {
+                  setSelectedStartDate(date.dateString);
+                  return;
+                }
+                setSelectedEndDate(date.dateString);
+              }}
+            />
+          )}
+          <View style={styles.routineSection}>
+            <Text style={styles.routineSectionTitle}>반복 패턴</Text>
+            <View style={styles.routinePrimaryCategoryButtonSection}>
+              <Pressable
+                style={[
+                  styles.routinePrimaryCategoryButton,
+                  selectedPrimaryCategory === 'DAILY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+                ]}
+                onPress={handlePrimaryCategory('DAILY')}
+              >
+                <Text style={styles.routinePrimaryCategoryButtonText}>매일</Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.routinePrimaryCategoryButton,
+                  selectedPrimaryCategory === 'WEEKLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+                ]}
+                onPress={handlePrimaryCategory('WEEKLY')}
+              >
+                <Text style={styles.routinePrimaryCategoryButtonText}>매 주</Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.routinePrimaryCategoryButton,
+                  selectedPrimaryCategory === 'MONTHLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+                ]}
+                onPress={handlePrimaryCategory('MONTHLY')}
+              >
+                <Text style={styles.routinePrimaryCategoryButtonText}>매 월</Text>
+              </Pressable>
+            </View>
+            {selectedPrimaryCategory === 'WEEKLY' && (
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {WEEKLY_DAY_INFO.map(({ code, name }) => (
+                  <Pressable
+                    key={code}
+                    style={{
+                      flex: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: 38,
+                      borderRadius: 8,
+                      backgroundColor: selectedWeeklyDaySet.has(code)
+                        ? theme.COLORS.GRAY_SCALE.GRAY_30
+                        : theme.COLORS.GRAY_SCALE.GRAY_96,
+                    }}
+                    onPress={() => {
+                      setSelectedWeeklyDaySet(prev => {
+                        const newSet = new Set(prev);
+                        if (newSet.has(code)) {
+                          newSet.delete(code);
+                        } else {
+                          newSet.add(code);
+                        }
+                        return newSet;
+                      });
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: selectedWeeklyDaySet.has(code) ? theme.COLORS.DEFAULT.WHITE : theme.COLORS.DEFAULT.BLACK,
+                      }}
+                    >
+                      {name}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
           </View>
-        </View>
+        </ScrollView>
       </View>
     </BottomSheet>
   );
