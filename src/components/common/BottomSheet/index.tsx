@@ -1,6 +1,6 @@
 import React, { forwardRef, PropsWithChildren, useCallback, useImperativeHandle, useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 
 import { theme } from 'styles/theme';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
@@ -49,21 +49,19 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
       handleComponent={null}
       onDismiss={onDismiss}
     >
-      <BottomSheetView style={styles.container}>
-        <View>
-          <View style={styles.header}>
-            <View style={styles.headerTitleWrap}>
-              <Text style={styles.title}>{title}</Text>
-              <Pressable onPress={handleClose}>
-                <CancelIcon />
-              </Pressable>
-            </View>
-            {description && (
-              <Text style={[styles.description, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>{description}</Text>
-            )}
+      <View style={styles.container}>
+        <BottomSheetView style={styles.header}>
+          <View style={styles.headerTitleWrap}>
+            <Text style={styles.title}>{title}</Text>
+            <Pressable onPress={handleClose}>
+              <CancelIcon />
+            </Pressable>
           </View>
-          {children}
-        </View>
+          {description && (
+            <Text style={[styles.description, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>{description}</Text>
+          )}
+        </BottomSheetView>
+        <BottomSheetScrollView showsVerticalScrollIndicator={false}>{children}</BottomSheetScrollView>
         {buttonConfig && (
           <Pressable
             style={[
@@ -78,7 +76,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
             <Text style={styles.buttonTitle}>{buttonConfig.title}</Text>
           </Pressable>
         )}
-      </BottomSheetView>
+      </View>
     </BottomSheetModal>
   );
 });
