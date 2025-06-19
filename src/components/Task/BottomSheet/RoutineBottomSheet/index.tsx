@@ -1,7 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
-import { Divider } from 'react-native-paper';
+import { Divider, Switch } from 'react-native-paper';
 import { Calendar } from 'react-native-calendars';
 import type { MarkedDates } from 'react-native-calendars/src/types';
 import dayjs from 'dayjs';
@@ -34,6 +34,7 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
   >(new Set());
   const [selectedMonthlyDaySet, setSelectedMonthlyDaySet] = useState<Set<number>>(new Set());
   const [expanded, setExpanded] = useState(true);
+  const [isExcludeHolidays, setIsExcludeHolidays] = useState(false);
 
   const isValidDatePeriod = selectedStartDate && selectedEndDate;
 
@@ -98,9 +99,16 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
     return marked;
   };
 
+  const handleExcludeHolidays = () => setIsExcludeHolidays(!isExcludeHolidays);
+
   const handleDismiss = () => {
     setSelectedStartDate(null);
     setSelectedEndDate(null);
+    setIsExcludeHolidays(false);
+    setSelectedPrimaryCategory(null);
+    setSelectedWeeklyDaySet(new Set());
+    setSelectedMonthlyDaySet(new Set());
+    setExpanded(true);
   };
 
   const handleSubmit = () => {};
@@ -166,6 +174,7 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
         <Divider style={{ marginVertical: 20 }} />
         {expanded && (
           <Calendar
+            style={{ marginBottom: 32 }}
             markingType="period"
             markedDates={getMarkedDates(selectedStartDate, selectedEndDate)}
             minDate={todayDateString}
@@ -249,11 +258,12 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
           )}
           {selectedPrimaryCategory === 'MONTHLY' && (
             <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-              {Array.from({ length: 31 }, (_, index) => (
+              {Array.from({ length: 32 }, (_, index) => (
                 <Pressable
                   key={index + 1}
                   style={{
-                    width: '12.2857%',
+                    // TODO: % 단위 말고 다른 방법으로 구현 필요
+                    width: index !== 31 ? '12.2857%' : '54.1429%',
                     justifyContent: 'center',
                     alignItems: 'center',
                     height: 38,
@@ -281,12 +291,19 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, unknown>((props, 
                         : theme.COLORS.DEFAULT.BLACK,
                     }}
                   >
-                    {index + 1}
+                    {index < 31 ? index + 1 : '마지막 날'}
                   </Text>
                 </Pressable>
               ))}
             </View>
           )}
+        </View>
+        <View style={styles.selectHolidaySection}>
+          <View style={styles.selectHolidayTitleWrap}>
+            <Text style={theme.TYPOGRAPHY.SUB_TITLE}>공휴일 제외하기</Text>
+            <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>(선택)</Text>
+          </View>
+          <Switch value={isExcludeHolidays} color={theme.COLORS.PRIMARY.RED_60} onValueChange={handleExcludeHolidays} />
         </View>
       </View>
     </BottomSheet>
@@ -313,7 +330,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   routineSection: {
-    marginTop: 32,
     gap: 12,
   },
   routineSectionTitle: theme.TYPOGRAPHY.SUB_TITLE,
@@ -326,6 +342,17 @@ const styles = StyleSheet.create({
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
   },
   routinePrimaryCategoryButtonText: theme.TYPOGRAPHY.SUB_TITLE,
+  selectHolidaySection: {
+    marginTop: 32,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectHolidayTitleWrap: {
+    flexDirection: 'row',
+    gap: 4,
+    alignItems: 'center',
+  },
 });
 
 export { RoutineBottomSheet };
