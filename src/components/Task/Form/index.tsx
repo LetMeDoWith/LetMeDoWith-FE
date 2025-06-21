@@ -219,7 +219,7 @@ const Form = () => {
         taskCategoryId={taskCategoryId}
         prevSelectedCategory={prevSelectedCategory}
       />
-      <RoutineBottomSheet ref={routineBottomSheetMethodsRef} />
+      <RoutineBottomSheet ref={routineBottomSheetMethodsRef} taskMode={taskMode} />
     </>
   );
 };
