@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import dayjs from 'dayjs';
 
@@ -148,7 +148,8 @@ interface Props {
 const ListContainerView = ({ selectedDate }: Props) => {
   const year = dayjs(selectedDate).year();
   const month = dayjs(selectedDate).month() + 1;
-  const { data: taskList } = useFetchTaskList({ year, month });
+  const yearMonth = useMemo(() => ({ year, month }), [year, month]);
+  const { data: taskList } = useFetchTaskList(yearMonth);
 
   return taskList ? (
     <ScrollView contentContainerStyle={{ paddingBottom: 134, gap: 16 }} showsVerticalScrollIndicator={false}>
