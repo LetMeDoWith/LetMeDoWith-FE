@@ -77,7 +77,6 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
     return (
       <TouchableOpacity
         style={[{ padding: 6 }, date?.dateString === selectedDate && styles.selectedDay]}
-        disabled={state === 'disabled'}
         onPress={handleDayPress(date)}
       >
         <View>
