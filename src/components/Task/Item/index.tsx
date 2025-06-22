@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
@@ -18,6 +19,8 @@ import { FeedBackIcon } from 'components/common/icons/FeedBackIcon';
 import { TaskFail } from 'components/common/icons/TaskFail';
 import { UploadImage } from 'components/common/icons/UploadImage';
 import { isNil } from 'utils/index';
+
+dayjs.extend(customParseFormat);
 
 interface Props {
   mode: TaskModeType;
@@ -73,7 +76,7 @@ const Item = ({ mode, title, status, taskCategoryName, startTime, confirmedImage
                       { color: isDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60 },
                     ]}
                   >
-                    {dayjs(startTime, 'HH:mm').format('HH:mm')}
+                    {dayjs(startTime, 'HH:mm:ss').format('HH:mm')}
                   </Text>
                 )}
                 {startTime && taskCategoryName && (

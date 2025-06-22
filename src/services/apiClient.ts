@@ -11,16 +11,11 @@ const apiClient = axios.create({ baseURL: BASE_URL });
 apiClient.interceptors.request.use(config => {
   const {
     tokenInfo: { access, signup },
-    isLoggedIn,
-    isNeedSignUp,
   } = useAuthStore.getState();
 
   config.headers = config.headers || {};
   config.headers['User-Agent'] = UserAgent.getUserAgent();
-
-  if (isLoggedIn) {
-    config.headers.Authorization = `Bearer ${isNeedSignUp ? signup?.token : access?.token}`;
-  }
+  config.headers.Authorization = `Bearer ${signup?.token ?? access?.token}`;
 
   return config;
 });

@@ -54,7 +54,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
   );
 
   const handleGenderButton = useCallback(
-    (value: 'MALE' | 'FEMALE') => () => {
+    (value: 'M' | 'F') => () => {
       setValue('gender', value);
     },
     [setValue],
@@ -201,14 +201,14 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
           </View>
           <View style={styles.genderButtonContainer}>
             <Pressable
-              style={[styles.genderButton, gender === 'MALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
-              onPress={handleGenderButton('MALE')}
+              style={[styles.genderButton, gender === 'M' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
+              onPress={handleGenderButton('M')}
             >
               <Text style={styles.genderButtonText}>남성</Text>
             </Pressable>
             <Pressable
-              style={[styles.genderButton, gender === 'FEMALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
-              onPress={handleGenderButton('FEMALE')}
+              style={[styles.genderButton, gender === 'F' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
+              onPress={handleGenderButton('F')}
             >
               <Text style={styles.genderButtonText}>여성</Text>
             </Pressable>
