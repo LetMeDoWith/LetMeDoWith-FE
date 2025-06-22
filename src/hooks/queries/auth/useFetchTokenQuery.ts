@@ -33,7 +33,7 @@ const useFetchTokenQuery = () => {
         return;
       }
 
-      if (!data.atk || !data.rtk) {
+      if (!data.atk || !data.rtk || !data.memberId) {
         return;
       }
 
