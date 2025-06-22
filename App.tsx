@@ -47,7 +47,7 @@ function AppContent() {
     setIsLoggedIn,
     setIsNeedRefreshToken,
     setIsNeedSignUp,
-    removeTokenInfo,
+    initAuthInfo,
   } = useAuthStore(
     ({
       tokenInfo,
@@ -55,7 +55,7 @@ function AppContent() {
       isLoggedIn,
       isNeedSignUp,
       isHydrated,
-      actions: { setTokenInfo, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, removeTokenInfo },
+      actions: { setTokenInfo, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, initAuthInfo },
     }) => ({
       tokenInfo,
       isNeedRefreshToken,
@@ -66,7 +66,7 @@ function AppContent() {
       setIsLoggedIn,
       setIsNeedRefreshToken,
       setIsNeedSignUp,
-      removeTokenInfo,
+      initAuthInfo,
     }),
   );
 
@@ -135,7 +135,7 @@ function AppContent() {
   ]);
 
   // useEffect(() => {
-  //   removeTokenInfo();
+  //   initAuthInfo();
   // }, []);
 
   return (

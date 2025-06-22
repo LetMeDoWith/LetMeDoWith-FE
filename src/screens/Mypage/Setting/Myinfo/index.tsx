@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { HelperText, IconButton, TextInput } from 'react-native-paper';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
@@ -21,15 +21,10 @@ type FormData = {
 };
 
 const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>) => {
-  const { memberId, setTokenInfo, setIsLoggedIn, setMemberId, removeTokenInfo } = useAuthStore(
-    ({ memberId, actions: { setTokenInfo, setIsLoggedIn, setMemberId, removeTokenInfo } }) => ({
-      memberId,
-      setTokenInfo,
-      setIsLoggedIn,
-      setMemberId,
-      removeTokenInfo,
-    }),
-  );
+  const { memberId, initAuthInfo } = useAuthStore(({ memberId, actions: { initAuthInfo } }) => ({
+    memberId,
+    initAuthInfo,
+  }));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'LOGOUT' | 'DELETE_ACCOUNT' | null>(null);
   const { mutate: mutateDeleteAccount } = useDeleteAccount();
@@ -66,12 +61,9 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
     toggleModalOpen();
 
     if (modalType === 'LOGOUT') {
-      removeTokenInfo();
-      setIsLoggedIn(false);
-      setTokenInfo({ access: null, refresh: null });
-      setMemberId(null);
+      initAuthInfo();
     }
-  }, [modalType, setIsLoggedIn, setMemberId, setTokenInfo, toggleModalOpen]);
+  }, [modalType, toggleModalOpen]);
 
   const onPressCancelButton = useCallback(() => {
     toggleModalOpen();

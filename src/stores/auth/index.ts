@@ -26,7 +26,7 @@ type State = {
 type Action = {
   setTokenInfo: (token: Partial<State['tokenInfo']>) => void;
   setMemberId: (id: State['memberId']) => void;
-  removeTokenInfo: () => void;
+  initAuthInfo: () => void;
   setIsLoggedIn: (value: boolean) => void;
   setIsNeedSignUp: (value: boolean) => void;
   setIsNeedRefreshToken: (value: boolean) => void;
@@ -63,10 +63,10 @@ const useAuthStore = create<State & { actions: Action }>()(
         setTokenInfo: info => {
           set({ tokenInfo: { ...get().tokenInfo, ...info } });
         },
-        removeTokenInfo: async () => {
+        initAuthInfo: async () => {
           try {
             await secureStorage().setItem(STORAGE_KEY.AUTH_INFO, JSON.stringify(INITIAL_STORAGE_VALUE));
-            set(initialState);
+            set({ ...initialState, isHydrated: true });
           } catch (error) {
             console.error('토큰 정보 삭제에 실패했습니다.', error);
           }
@@ -93,15 +93,7 @@ const useAuthStore = create<State & { actions: Action }>()(
 
         const {
           tokenInfo,
-          actions: {
-            setIsLoggedIn,
-            setIsNeedSignUp,
-            setIsNeedRefreshToken,
-            setTokenInfo,
-            setMemberId,
-            removeTokenInfo,
-            setIsHydrated,
-          },
+          actions: { setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken, setTokenInfo, initAuthInfo, setIsHydrated },
         } = mergedState;
 
         try {
@@ -137,13 +129,7 @@ const useAuthStore = create<State & { actions: Action }>()(
               }
 
               // refresh 토큰이 만료되었을 경우 인증 정보 상태 및 스토리지 초기화
-              removeTokenInfo();
-              setMemberId(null);
-              setTokenInfo({
-                signup: null,
-                access: null,
-                refresh: null,
-              });
+              initAuthInfo();
             }
           }
 
