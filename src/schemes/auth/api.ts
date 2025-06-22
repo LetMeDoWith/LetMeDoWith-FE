@@ -30,6 +30,7 @@ const refreshTokenResponseScheme = BaseResponseScheme.extend({
   data: z.object({
     atk: tokenScheme,
     rtk: tokenScheme,
+    memberId: z.string(),
   }),
 });
 

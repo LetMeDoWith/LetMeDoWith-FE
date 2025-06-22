@@ -12,6 +12,8 @@ import { BasicMenu } from 'components/Mypage/Setting/Menu';
 import { ConfirmModal } from 'components/common/Modal';
 import { DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT, LOGOUT_CONFIRM_MODAL_CONTENT } from 'constants/Mypage';
 import type { SettingStackScreenProps } from 'types/shared';
+import { useDeleteAccount } from 'hooks/queries/member/useDeleteAccount';
+import { useAuthStore } from 'stores/auth';
 
 type FormData = {
   nickname: string;
@@ -19,8 +21,13 @@ type FormData = {
 };
 
 const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>) => {
+  const { memberId, initAuthInfo } = useAuthStore(({ memberId, actions: { initAuthInfo } }) => ({
+    memberId,
+    initAuthInfo,
+  }));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'LOGOUT' | 'DELETE_ACCOUNT' | null>(null);
+  const { mutate: mutateDeleteAccount } = useDeleteAccount();
 
   const {
     watch,
@@ -50,25 +57,22 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
     setModalType('DELETE_ACCOUNT');
   }, [toggleModalOpen]);
 
-  const onPressConfirmButton = useCallback(() => {
+  const onPressConfirmButton = useCallback(async () => {
     toggleModalOpen();
 
-    if (modalType === 'DELETE_ACCOUNT') {
-      return;
+    if (modalType === 'LOGOUT') {
+      initAuthInfo();
     }
-
-    // TODO: 로그아웃 API 연동
   }, [modalType, toggleModalOpen]);
 
   const onPressCancelButton = useCallback(() => {
     toggleModalOpen();
 
-    if (modalType === 'LOGOUT') {
+    if (modalType === 'DELETE_ACCOUNT' && memberId) {
+      mutateDeleteAccount({ memberId });
       return;
     }
-
-    // TODO: 회원 탈퇴 API 연동
-  }, [modalType, toggleModalOpen]);
+  }, [memberId, modalType, mutateDeleteAccount, toggleModalOpen]);
 
   const onSubmit = useCallback((values: FormData) => {
     console.log(values);

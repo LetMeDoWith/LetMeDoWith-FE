@@ -11,12 +11,13 @@ import { useAuthStore } from 'stores/auth';
  * 토큰 재발급 Mutation Query Hook
  */
 const useRefreshTokenQuery = () => {
-  const { setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken } = useAuthStore(
-    ({ actions: { setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken } }) => ({
+  const { setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId } = useAuthStore(
+    ({ actions: { setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId } }) => ({
       setTokenInfo,
       setIsNeedSignUp,
       setIsLoggedIn,
       setIsNeedRefreshToken,
+      setMemberId,
     }),
   );
 
@@ -24,7 +25,7 @@ const useRefreshTokenQuery = () => {
     mutationKey: AUTH_QUERY_KEY.REFRESH_TOKEN,
     mutationFn: payload => refreshToken(payload),
     onSuccess: ({ data }) => {
-      if (!data.atk || !data.rtk) {
+      if (!data.atk || !data.rtk || !data.memberId) {
         return;
       }
 
@@ -33,6 +34,7 @@ const useRefreshTokenQuery = () => {
       setIsLoggedIn(true);
       setIsNeedRefreshToken(false);
       setIsNeedSignUp(false);
+      setMemberId(data.memberId);
     },
     onError: e => {
       console.error('토큰 재발급 실패 ', e.response?.data);
