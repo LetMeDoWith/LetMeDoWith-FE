@@ -89,13 +89,26 @@ const useAuthStore = create<State & { actions: Action }>()(
 
         const {
           tokenInfo,
-          actions: { setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken, setTokenInfo, setIsHydrated },
+          actions: {
+            setIsLoggedIn,
+            setIsNeedSignUp,
+            setIsNeedRefreshToken,
+            setTokenInfo,
+            setMemberId,
+            removeTokenInfo,
+            setIsHydrated,
+          },
         } = mergedState;
 
         try {
           if (!tokenInfo) {
             return;
           }
+
+          setTokenInfo(tokenInfo);
+          setIsLoggedIn(false);
+          setIsNeedSignUp(false);
+          setIsNeedRefreshToken(false);
 
           // 회원가입을 완료하지 않았을 경우
           if (tokenInfo.signup) {
@@ -110,18 +123,24 @@ const useAuthStore = create<State & { actions: Action }>()(
           if (tokenInfo.access && tokenInfo.refresh) {
             // 액세스 토큰이 만료 된 경우
             if (dayjs().isAfter(tokenInfo.access.expireAt)) {
-              // refresh 토큰이 만료된 경우
-              if (dayjs().isAfter(tokenInfo.refresh.expireAt)) {
-                setIsNeedRefreshToken(true);
-              }
               setIsLoggedIn(false);
               setIsNeedSignUp(false);
-            }
 
-            setTokenInfo(tokenInfo);
-            setIsLoggedIn(true);
-            setIsNeedSignUp(false);
-            setIsNeedRefreshToken(false);
+              // refresh 토큰이 만료되지 않았을 경우
+              if (dayjs().isBefore(tokenInfo.refresh.expireAt)) {
+                setIsNeedRefreshToken(true);
+                return;
+              }
+
+              // refresh 토큰이 만료되었을 경우 인증 정보 상태 및 스토리지 초기화
+              removeTokenInfo();
+              setMemberId(null);
+              setTokenInfo({
+                signup: null,
+                access: null,
+                refresh: null,
+              });
+            }
           }
 
           setIsHydrated(true);
