@@ -65,7 +65,7 @@ const useAuthStore = create<State & { actions: Action }>()(
         },
         removeTokenInfo: async () => {
           try {
-            await EncryptedStorage.removeItem(STORAGE_KEY.AUTH_INFO);
+            await secureStorage().setItem(STORAGE_KEY.AUTH_INFO, JSON.stringify(INITIAL_STORAGE_VALUE));
             set(initialState);
           } catch (error) {
             console.error('토큰 정보 삭제에 실패했습니다.', error);

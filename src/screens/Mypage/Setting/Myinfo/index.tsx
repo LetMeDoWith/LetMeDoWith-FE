@@ -13,8 +13,7 @@ import { ConfirmModal } from 'components/common/Modal';
 import { DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT, LOGOUT_CONFIRM_MODAL_CONTENT } from 'constants/Mypage';
 import type { SettingStackScreenProps } from 'types/shared';
 import { useDeleteAccount } from 'hooks/queries/member/useDeleteAccount';
-import { INITIAL_STORAGE_VALUE, useAuthStore } from 'stores/auth';
-import { secureStorage, STORAGE_KEY } from 'stores/secure';
+import { useAuthStore } from 'stores/auth';
 
 type FormData = {
   nickname: string;
@@ -22,12 +21,13 @@ type FormData = {
 };
 
 const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>) => {
-  const { memberId, setTokenInfo, setIsLoggedIn, setMemberId } = useAuthStore(
-    ({ memberId, actions: { setTokenInfo, setIsLoggedIn, setMemberId } }) => ({
+  const { memberId, setTokenInfo, setIsLoggedIn, setMemberId, removeTokenInfo } = useAuthStore(
+    ({ memberId, actions: { setTokenInfo, setIsLoggedIn, setMemberId, removeTokenInfo } }) => ({
       memberId,
       setTokenInfo,
       setIsLoggedIn,
       setMemberId,
+      removeTokenInfo,
     }),
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,16 +66,10 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
     toggleModalOpen();
 
     if (modalType === 'LOGOUT') {
+      removeTokenInfo();
       setIsLoggedIn(false);
       setTokenInfo({ access: null, refresh: null });
       setMemberId(null);
-
-      try {
-        await secureStorage().setItem(STORAGE_KEY.AUTH_INFO, JSON.stringify(INITIAL_STORAGE_VALUE));
-      } catch (e) {
-        Alert.alert('스토리지 초기화에 실패했습니다.');
-        throw e;
-      }
     }
   }, [modalType, setIsLoggedIn, setMemberId, setTokenInfo, toggleModalOpen]);
 
