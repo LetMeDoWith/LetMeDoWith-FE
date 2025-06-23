@@ -1,4 +1,3 @@
-import EncryptedStorage from 'react-native-encrypted-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import dayjs from 'dayjs';
@@ -68,7 +67,7 @@ const useAuthStore = create<State & { actions: Action }>()(
             await secureStorage().setItem(STORAGE_KEY.AUTH_INFO, JSON.stringify(INITIAL_STORAGE_VALUE));
             set({ ...initialState, isHydrated: true });
           } catch (error) {
-            console.error('토큰 정보 삭제에 실패했습니다.', error);
+            console.error('인증 정보 초기화에 실패했습니다.', error);
           }
         },
       },
@@ -93,16 +92,31 @@ const useAuthStore = create<State & { actions: Action }>()(
 
         const {
           tokenInfo,
-          actions: { setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken, setTokenInfo, initAuthInfo, setIsHydrated },
+          memberId,
+          actions: {
+            setIsLoggedIn,
+            setIsNeedSignUp,
+            setIsNeedRefreshToken,
+            setTokenInfo,
+            initAuthInfo,
+            setIsHydrated,
+            setMemberId,
+          },
         } = mergedState;
 
         try {
-          if (!tokenInfo) {
+          // 초기 토큰 정보가 아얘 없는 경우
+          if (
+            !tokenInfo ||
+            (tokenInfo.signup === null && tokenInfo.access === null && tokenInfo.refresh === null && !memberId)
+          ) {
+            setIsHydrated(true);
             return;
           }
 
           setTokenInfo(tokenInfo);
-          setIsLoggedIn(false);
+          setMemberId(memberId);
+          setIsLoggedIn(true);
           setIsNeedSignUp(false);
           setIsNeedRefreshToken(false);
 
