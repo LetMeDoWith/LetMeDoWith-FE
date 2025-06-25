@@ -6,6 +6,7 @@ import { Calendar } from 'react-native-calendars';
 import type { MarkedDates } from 'react-native-calendars/src/types';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import { useFormContext } from 'react-hook-form';
 
 import { theme } from 'styles/theme';
 import { BottomSheet } from 'components/common/BottomSheet';
@@ -29,6 +30,7 @@ interface Props {
 }
 
 const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMode }, ref) => {
+  const { setValue, watch } = useFormContext();
   const innerRef = useRef<BottomSheetModalMethods>(null);
   const todayDateString = dayjs().format('YYYY-MM-DD');
   // 투두 모드에서 사용하는 선택 기간 상태
@@ -37,16 +39,32 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
   // 두윗 모드에서 사용하는 선택한 일자들 상태
   const [selectedDateSet, setSelectedDateSet] = useState<Set<string>>(new Set());
   const [selectedPrimaryCategory, setSelectedPrimaryCategory] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | null>(null);
-  const [selectedWeeklyDaySet, setSelectedWeeklyDaySet] = useState<
-    Set<'SUNDAY' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY'>
-  >(new Set());
+  const [selectedWeeklyDaySet, setSelectedWeeklyDaySet] = useState<Set<number>>(new Set());
   const [selectedMonthlyDaySet, setSelectedMonthlyDaySet] = useState<Set<number>>(new Set());
   const [expanded, setExpanded] = useState(true);
   const [isExcludeHolidays, setIsExcludeHolidays] = useState(false);
 
   const isTodoMode = taskMode === 'TODO';
-  const isValidDatePeriod = selectedStartDate && selectedEndDate;
+  const isValidDatePeriod = selectedStartDate !== null && selectedEndDate !== null;
   const isValidDateSet = selectedDateSet.size > 0;
+  const routineCondition = watch('routineCondition');
+
+  // 등록한 루틴이 유효한지 검사하는 함수 (루틴 기간, 반복 패턴을 종류에 맞게 설정했는지)
+  const isValidRoutineCondition = () => {
+    if (!isValidDatePeriod) {
+      return false;
+    }
+
+    if (selectedPrimaryCategory === 'DAILY') {
+      return true;
+    }
+
+    if (selectedPrimaryCategory === 'WEEKLY') {
+      return selectedWeeklyDaySet.size > 0;
+    }
+
+    return selectedMonthlyDaySet.size > 0;
+  };
 
   // 두윗 모드에서 사용되는 선택한 일자들 중 제일 빠른 일자와 먼 일자 반환
   const getMinMaxDate = (dateSet: Set<string>) => {
@@ -140,7 +158,7 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
 
   const handleExcludeHolidays = () => setIsExcludeHolidays(!isExcludeHolidays);
 
-  const handleDismiss = () => {
+  const initRoutineCondition = () => {
     setSelectedStartDate(null);
     setSelectedEndDate(null);
     setSelectedDateSet(new Set());
@@ -149,9 +167,99 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
     setSelectedWeeklyDaySet(new Set());
     setSelectedMonthlyDaySet(new Set());
     setExpanded(true);
+
+    setValue('routineCondition', {
+      startDate: null,
+      endDate: null,
+      cycle: null,
+      pattern: [],
+      isExcludeHolidays: false,
+    });
   };
 
-  const handleSubmit = () => {};
+  // 닫기 버튼을 눌렀을 때 이미 루틴이 설정된 경우를 제외하고 모두 초기화
+  const handleCloseButton = () => {
+    // 등록하지 않은 상태일 때
+    if (routineCondition.startDate === null || routineCondition.endDate === null || routineCondition.cycle === null) {
+      initRoutineCondition();
+      return;
+    }
+
+    // 상태 초기화가 필요한지 여부
+    let isNeedInit = true;
+
+    /*
+      값은 설정했지만 등록하기 버튼을 누르지 않았을 경우 이전 값으로 모두 롤백
+     */
+    if (routineCondition.startDate !== selectedStartDate) {
+      setSelectedStartDate(routineCondition.startDate);
+      isNeedInit = false;
+    }
+
+    if (routineCondition.endDate !== selectedEndDate) {
+      setSelectedEndDate(routineCondition.endDate);
+      isNeedInit = false;
+    }
+
+    if (routineCondition.cycle !== selectedPrimaryCategory) {
+      if (routineCondition.cycle === 'DAILY') {
+        isNeedInit = false;
+      }
+
+      if (routineCondition.cycle === 'WEEKLY') {
+        setSelectedWeeklyDaySet(new Set(routineCondition.pattern as number[]));
+        setSelectedMonthlyDaySet(new Set());
+        isNeedInit = false;
+      }
+
+      if (routineCondition.cycle === 'MONTHLY') {
+        setSelectedMonthlyDaySet(new Set(routineCondition.pattern as number[]));
+        setSelectedWeeklyDaySet(new Set());
+        isNeedInit = false;
+      }
+
+      setSelectedPrimaryCategory(routineCondition.cycle);
+    } else {
+      if (routineCondition.cycle === 'DAILY') {
+        isNeedInit = false;
+      }
+
+      if (routineCondition.cycle === 'WEEKLY' && routineCondition.pattern !== Array.from(selectedWeeklyDaySet)) {
+        setSelectedWeeklyDaySet(new Set(routineCondition.pattern as number[]));
+        isNeedInit = false;
+      }
+
+      if (routineCondition.cycle === 'MONTHLY' && routineCondition.pattern !== Array.from(selectedMonthlyDaySet)) {
+        setSelectedMonthlyDaySet(new Set(routineCondition.pattern as number[]));
+        isNeedInit = false;
+      }
+    }
+
+    if (routineCondition.isExcludeHolidays !== isExcludeHolidays) {
+      setIsExcludeHolidays(routineCondition.isExcludeHolidays);
+      isNeedInit = false;
+    }
+
+    if (isNeedInit) {
+      initRoutineCondition();
+    }
+  };
+
+  const handleSubmit = () => {
+    setValue('routineCondition.startDate', selectedStartDate);
+    setValue('routineCondition.endDate', selectedEndDate);
+    setValue('routineCondition.cycle', selectedPrimaryCategory);
+
+    if (selectedPrimaryCategory === 'DAILY') {
+      setValue('routineCondition.pattern', []);
+    } else if (selectedPrimaryCategory === 'WEEKLY') {
+      setValue('routineCondition.pattern', Array.from(selectedWeeklyDaySet));
+    } else {
+      setValue('routineCondition.pattern', Array.from(selectedMonthlyDaySet));
+    }
+
+    innerRef.current?.close();
+  };
 
   const handleExpanded = () => {
     if (expanded) {
@@ -181,9 +289,9 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
     <BottomSheet
       ref={innerRef}
       title="루틴 등록하기"
-      buttonConfig={{ title: '등록하기', isDisabled: false }}
+      buttonConfig={{ title: '등록하기', isDisabled: !isValidRoutineCondition() }}
       snapPoints={['90%']}
-      onDismiss={handleDismiss}
+      handleCloseButton={handleCloseButton}
       handleButtonSubmit={handleSubmit}
     >
       <View style={styles.container}>
@@ -294,7 +402,7 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
             </View>
             {selectedPrimaryCategory === 'WEEKLY' && (
               <View style={{ flexDirection: 'row', gap: 6 }}>
-                {WEEKLY_DAY_INFO.map(({ code, name }) => (
+                {WEEKLY_DAY_INFO.map(({ code, value, name }) => (
                   <Pressable
                     key={code}
                     style={{
@@ -303,17 +411,17 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
                       alignItems: 'center',
                       height: 38,
                       borderRadius: 8,
-                      backgroundColor: selectedWeeklyDaySet.has(code)
+                      backgroundColor: selectedWeeklyDaySet.has(value)
                         ? theme.COLORS.GRAY_SCALE.GRAY_30
                         : theme.COLORS.GRAY_SCALE.GRAY_96,
                     }}
                     onPress={() => {
                       setSelectedWeeklyDaySet(prev => {
                         const newSet = new Set(prev);
-                        if (newSet.has(code)) {
-                          newSet.delete(code);
+                        if (newSet.has(value)) {
+                          newSet.delete(value);
                         } else {
-                          newSet.add(code);
+                          newSet.add(value);
                         }
                         return newSet;
                       });
@@ -321,7 +429,9 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
                   >
                     <Text
                       style={{
-                        color: selectedWeeklyDaySet.has(code) ? theme.COLORS.DEFAULT.WHITE : theme.COLORS.DEFAULT.BLACK,
+                        color: selectedWeeklyDaySet.has(value)
+                          ? theme.COLORS.DEFAULT.WHITE
+                          : theme.COLORS.DEFAULT.BLACK,
                       }}
                     >
                       {name}

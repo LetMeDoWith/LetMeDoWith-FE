@@ -7,10 +7,14 @@ const TaskForm = () => {
     defaultValues: {
       title: '',
       taskCategoryId: null,
-      startDateTime: '',
-      isRoutine: false,
-      routineStartDateTime: '',
-      routineEndDateTime: '',
+      startTime: '',
+      routineCondition: {
+        startDate: null,
+        endDate: null,
+        cycle: null,
+        pattern: [],
+        isExcludeHolidays: false,
+      },
     },
   });
 

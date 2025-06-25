@@ -15,6 +15,7 @@ import type { TaskModeType } from 'types/shared';
 import { CategoryBottomSheet } from 'components/Task/BottomSheet/CategoryBottomSheet';
 import { RoutineBottomSheet } from 'components/Task/BottomSheet/RoutineBottomSheet';
 import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategoryList';
+import { ExclamationMarkCircle } from 'components/common/icons/ExclamationMarkCircle';
 
 const Form = () => {
   const { control, watch, setValue, handleSubmit } = useFormContext();
@@ -26,11 +27,12 @@ const Form = () => {
   const { data: taskCategoryList } = useFetchTaskCategoryList();
 
   const title = watch('title');
-  const startDateTime = watch('startDateTime');
+  const startTime = watch('startTime');
   const taskCategoryId = watch('taskCategoryId');
+  const routineConditionCycle = watch('routineCondition.cycle');
 
   const isFormDisabled = taskMode === null;
-  const isButtonDisabled = !title || !startDateTime;
+  const isButtonDisabled = !title || !startTime;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
 
   const toggleDatePicker = useCallback(
@@ -54,7 +56,7 @@ const Form = () => {
 
   const handleDateChange = useCallback(
     (date: Date) => {
-      setValue('startDateTime', dayjs(date).format('HH:mm'));
+      setValue('startTime', dayjs(date).format('HH:mm'));
       setDatePickerOpen(false);
     },
     [setValue],
@@ -85,7 +87,7 @@ const Form = () => {
         <View>
           <View style={styles.modeWrap}>
             <View style={styles.modeLabel}>
-              <Text style={styles.labelTitle}>모드 선택</Text>
+              <Text style={theme.TYPOGRAPHY.SUB_TITLE}>모드 선택</Text>
               <View style={styles.modeLabelAlertWrap}>
                 <Text style={styles.modeLabelAlert}>사용 가능한 두윗 모드: 3개</Text>
                 <QuestionCircle />
@@ -128,7 +130,9 @@ const Form = () => {
           <View style={{ gap: 16, marginTop: 32 }}>
             <View style={{ gap: 12 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
+                <Text
+                  style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                >
                   제목
                 </Text>
                 <Text style={isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }}>{title.length}/40</Text>
@@ -157,10 +161,10 @@ const Form = () => {
               style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
               onPress={toggleDatePicker(true)}
             >
-              <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
+              <Text style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
                 시작 시간
               </Text>
-              <Text style={startDateTime ? styles.value : styles.emptyValue}>{startDateTime || '미등록'}</Text>
+              <Text style={startTime ? styles.value : styles.emptyValue}>{startTime || '미등록'}</Text>
             </Pressable>
             <Controller
               name="taskCategoryId"
@@ -171,10 +175,14 @@ const Form = () => {
                   onPress={handlePresentModalPress}
                 >
                   <View style={styles.optionalLabelWrap}>
-                    <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
+                    <Text
+                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                    >
                       카테고리
                     </Text>
-                    <Text style={styles.optionalLabel}>(선택)</Text>
+                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                      (선택)
+                    </Text>
                   </View>
                   <Text style={[styles.emptyValue, taskCategoryId && styles.value]}>
                     {prevSelectedCategory ? prevSelectedCategory.title : '미등록'}
@@ -186,13 +194,39 @@ const Form = () => {
               style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
               onPress={handleTaskRoutine}
             >
-              <View style={styles.optionalLabelWrap}>
-                <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
-                  루틴 설정
-                </Text>
-                <Text style={styles.optionalLabel}>(선택)</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <View style={{ gap: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text
+                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                    >
+                      루틴 설정
+                    </Text>
+                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                      (선택)
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <ExclamationMarkCircle />
+                    <Text
+                      style={[
+                        theme.TYPOGRAPHY.CAPTION1_BASIC,
+                        { color: isFormDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_50 },
+                      ]}
+                    >
+                      모드를 변경하면 루틴이 초기화 돼요.
+                    </Text>
+                  </View>
+                </View>
               </View>
-              <Text style={styles.emptyValue}>미등록</Text>
+              <Text
+                style={[
+                  theme.TYPOGRAPHY.BODY_2,
+                  { color: routineConditionCycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
+                ]}
+              >
+                {routineConditionCycle ? '사용자 지정' : '미등록'}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -245,11 +279,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
-  labelTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: theme.COLORS.DEFAULT.BLACK,
-  },
   modeButtonWrap: {
     flexDirection: 'row',
     gap: 8,
@@ -272,10 +301,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-  },
-  optionalLabel: {
-    color: theme.COLORS.GRAY_SCALE.GRAY_70,
-    fontSize: 12,
   },
   emptyValue: {
     color: theme.COLORS.GRAY_SCALE.GRAY_80,
