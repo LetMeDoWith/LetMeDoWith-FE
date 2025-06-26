@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { BaseResponseScheme } from 'schemes/shared/api';
-import { CREATION_TYPE_ENUM, TASK_STATUS_ENUM } from 'schemes/task/enum';
+import { CREATION_TYPE_ENUM, TASK_ROUTINE_CYCLE_ENUM, TASK_STATUS_ENUM } from 'schemes/task/enum';
 
 const taskCategoryScheme = z.object({
   id: z.number().describe('조회한 Task Category의 id'),
@@ -48,6 +48,40 @@ const fetchTaskListResponseScheme = BaseResponseScheme.extend({
   }),
 });
 
+const addTodoTaskRequestScheme = z.object({
+  title: z.string().describe('테스크 제목'),
+  taskCategoryId: z.number().nullable().describe('테스크 카테고리 id'),
+  date: z.string().describe('테스크 수행일자'),
+  startTime: z.string().nullable().describe('테스크 시작시간'),
+  routineCondition: z
+    .object({
+      startDate: z.string().describe('루틴 시작일자'),
+      endDate: z.string().describe('루틴 종료일자'),
+      cycle: TASK_ROUTINE_CYCLE_ENUM.describe('루틴 주기'),
+      pattern: z.array(z.number()).describe('루틴 패턴 (요일 등)'),
+      isExcludeHolidays: z.boolean().describe('휴일 제외 여부'),
+    })
+    .optional(),
+});
+
+const addTodoTaskResponseDataScheme = z.object({
+  todoTaskList: z.array(
+    z.object({
+      id: z.number().describe('테스크 id'),
+      taskCategoryId: z.number().nullable().describe('테스크 카테고리 id'),
+      title: z.string().describe('테스크 제목'),
+      date: z.string().describe('테스크 수행일자'),
+      startTime: z.string().nullable().describe('테스크 시작시간'),
+      isRoutine: z.boolean().describe('루틴 여부'),
+    }),
+  ),
+  routineDates: z.array(z.string()).describe('루틴 날짜 목록'),
+});
+
+const addTodoTaskResponseScheme = BaseResponseScheme.extend({
+  data: addTodoTaskResponseDataScheme,
+});
+
 export {
   taskCategoryScheme,
   fetchTaskCategoryListResponseScheme,
@@ -56,4 +90,7 @@ export {
   dowithTaskScheme,
   fetchTaskListResponseDataScheme,
   fetchTaskListResponseScheme,
+  addTodoTaskRequestScheme,
+  addTodoTaskResponseDataScheme,
+  addTodoTaskResponseScheme,
 };

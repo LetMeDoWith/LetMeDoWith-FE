@@ -1,6 +1,8 @@
 import { apiClient } from 'services/apiClient';
 import { TASK_API } from 'services/urls';
 import type {
+  addTodoTaskRequestSchemeType,
+  addTodoTaskResponseSchemeType,
   fetchTaskCategoryListResponseSchemeType,
   fetchTaskListRequestSchemeType,
   fetchTaskListResponseSchemeType,
@@ -26,4 +28,13 @@ const fetchTaskList = async (params: fetchTaskListRequestSchemeType): Promise<fe
   }
 };
 
-export { fetchTaskCategoryList, fetchTaskList };
+const addTodoTask = async (payload: addTodoTaskRequestSchemeType): Promise<addTodoTaskResponseSchemeType> => {
+  try {
+    const result = await apiClient.post<addTodoTaskResponseSchemeType>(TASK_API.ADD_TODO, payload);
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export { fetchTaskCategoryList, fetchTaskList, addTodoTask };

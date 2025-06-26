@@ -16,6 +16,8 @@ import { CategoryBottomSheet } from 'components/Task/BottomSheet/CategoryBottomS
 import { RoutineBottomSheet } from 'components/Task/BottomSheet/RoutineBottomSheet';
 import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategoryList';
 import { ExclamationMarkCircle } from 'components/common/icons/ExclamationMarkCircle';
+import { useAddTodoTask } from 'hooks/queries/task/useAddTodoTask';
+import type { addTodoTaskRequestSchemeType } from 'types/task/scheme/api';
 
 const Form = () => {
   const { control, watch, setValue, handleSubmit } = useFormContext();
@@ -25,14 +27,16 @@ const Form = () => {
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
   const [taskMode, setTaskMode] = useState<TaskModeType | null>(null);
   const { data: taskCategoryList } = useFetchTaskCategoryList();
+  const { mutate: addTodoTaskMutate, isPending: isAddTodoTaskMutateLoading } = useAddTodoTask();
 
   const title = watch('title');
   const startTime = watch('startTime');
   const taskCategoryId = watch('taskCategoryId');
   const routineConditionCycle = watch('routineCondition.cycle');
 
+  const isTodoMode = taskMode === 'TODO';
   const isFormDisabled = taskMode === null;
-  const isButtonDisabled = !title || !startTime;
+  const isButtonDisabled = isTodoMode ? !title || isAddTodoTaskMutateLoading : !title || !startTime;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
 
   const toggleDatePicker = useCallback(
@@ -77,8 +81,9 @@ const Form = () => {
     routineBottomSheetMethodsRef.current?.present();
   }, [isFormDisabled]);
 
-  const onSubmit = useCallback<any>((values: FormData) => {
+  const onSubmit = useCallback((values: addTodoTaskRequestSchemeType) => {
     console.log(values);
+    addTodoTaskMutate(values);
   }, []);
 
   return (
@@ -107,7 +112,7 @@ const Form = () => {
               >
                 <TodoMode />
                 <Text style={[styles.modeButtonText, taskMode === 'TODO' && { color: theme.COLORS.SECONDARY.BLUE_60 }]}>
-                  혼자 하는 투두 모드
+                  혼자 하는 TO DO
                 </Text>
               </Pressable>
               <Pressable
@@ -122,7 +127,7 @@ const Form = () => {
               >
                 <DowithMode />
                 <Text style={[styles.modeButtonText, taskMode === 'DOWITH' && { color: theme.COLORS.PRIMARY.RED_60 }]}>
-                  혼자 하는 두윗 모드
+                  함께 하는 DO WITH
                 </Text>
               </Pressable>
             </View>
@@ -161,9 +166,18 @@ const Form = () => {
               style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
               onPress={toggleDatePicker(true)}
             >
-              <Text style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
-                시작 시간
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text
+                  style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                >
+                  시작 시간
+                </Text>
+                {taskMode === 'TODO' && (
+                  <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                    (선택)
+                  </Text>
+                )}
+              </View>
               <Text style={startTime ? styles.value : styles.emptyValue}>{startTime || '미등록'}</Text>
             </Pressable>
             <Controller
@@ -235,7 +249,14 @@ const Form = () => {
           disabled={isButtonDisabled}
           onPress={handleSubmit(onSubmit)}
         >
-          <Text style={styles.buttonText}>저장하기</Text>
+          <Text
+            style={[
+              styles.buttonText,
+              isAddTodoTaskMutateLoading && { backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80 },
+            ]}
+          >
+            저장하기
+          </Text>
         </Pressable>
       </View>
       <DatePicker

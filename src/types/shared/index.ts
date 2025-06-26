@@ -33,9 +33,6 @@ type TaskModeType = 'TODO' | 'DOWITH';
 
 type TaskFormStackParamList = {
   FORM: undefined;
-  ROUTINE_FORM: {
-    mode: TaskModeType;
-  };
 };
 
 type TaskFormStackScreenProps<T extends keyof TaskFormStackParamList> = StackScreenProps<TaskFormStackParamList, T>;
