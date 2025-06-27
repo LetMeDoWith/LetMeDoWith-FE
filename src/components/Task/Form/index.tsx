@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import React, { useCallback, useRef, useState } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
 import DatePicker from 'react-native-date-picker';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
@@ -20,7 +20,7 @@ import { useAddTodoTask } from 'hooks/queries/task/useAddTodoTask';
 import type { addTodoTaskRequestSchemeType } from 'types/task/scheme/api';
 
 const Form = () => {
-  const { control, watch, setValue, handleSubmit } = useFormContext();
+  const { control, watch, setValue, handleSubmit } = useFormContext<addTodoTaskRequestSchemeType>();
   const categoryBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
   const routineBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
 
@@ -81,7 +81,7 @@ const Form = () => {
     routineBottomSheetMethodsRef.current?.present();
   }, [isFormDisabled]);
 
-  const onSubmit = useCallback((values: addTodoTaskRequestSchemeType) => {
+  const onSubmit: SubmitHandler<addTodoTaskRequestSchemeType> = useCallback(values => {
     console.log(values);
     addTodoTaskMutate(values);
   }, []);
@@ -198,7 +198,7 @@ const Form = () => {
                       (선택)
                     </Text>
                   </View>
-                  <Text style={[styles.emptyValue, taskCategoryId && styles.value]}>
+                  <Text style={[styles.emptyValue, taskCategoryId !== null && styles.value]}>
                     {prevSelectedCategory ? prevSelectedCategory.title : '미등록'}
                   </Text>
                 </Pressable>
