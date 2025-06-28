@@ -14,6 +14,7 @@ const TASK_QUERY_KEY = {
   LIST: ['task', 'list'],
   ADD_TODO: ['task', 'add', 'todo'],
   ADD_DOWITH: ['task', 'add', 'dowith'],
+  UPDATE_TODO_STATUS: ['task', 'update', 'todo', 'status'],
 } as const;
 
 export { AUTH_QUERY_KEY, MEMBER_QUERY_KEY, TASK_QUERY_KEY };

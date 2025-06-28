@@ -5,7 +5,10 @@ import type {
   fetchTaskCategoryListResponseSchemeType,
   fetchTaskListRequestSchemeType,
   fetchTaskListResponseSchemeType,
+  updateTodoTaskResponseSchemeType,
 } from 'types/task/scheme/api';
+import type { TaskStatusEnumType } from 'types/task/scheme/enum';
+import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 
 const fetchTaskCategoryList = async (): Promise<fetchTaskCategoryListResponseSchemeType> => {
   try {
@@ -45,4 +48,20 @@ const addDowithTask = async (payload: addTaskRequestSchemeType): Promise<undefin
   }
 };
 
-export { fetchTaskCategoryList, fetchTaskList, addTodoTask, addDowithTask };
+const updateStatusTodoTask = async ({
+  id,
+  status,
+}: {
+  id: number;
+  status: TaskStatusEnumType;
+}): Promise<updateTodoTaskResponseSchemeType> => {
+  try {
+    const baseUrl = status === TASK_STATUS_ENUM.enum.WAIT ? TASK_API.SUCCESS_TODO : TASK_API.WAIT_TODO;
+    const result = await apiClient.patch<updateTodoTaskResponseSchemeType>(baseUrl.replace(':id', String(id)));
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export { fetchTaskCategoryList, fetchTaskList, addTodoTask, updateStatusTodoTask };

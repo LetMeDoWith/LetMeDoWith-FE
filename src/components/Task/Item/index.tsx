@@ -19,22 +19,39 @@ import { FeedBackIcon } from 'components/common/icons/FeedBackIcon';
 import { TaskFail } from 'components/common/icons/TaskFail';
 import { UploadImage } from 'components/common/icons/UploadImage';
 import { isNil } from 'utils/index';
+import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
 
 dayjs.extend(customParseFormat);
 
 interface Props {
+  id: number;
   mode: TaskModeType;
   title: string;
   status: TaskStatusEnumType;
   taskCategoryName: string | null;
   startTime: string | null;
+  year: number;
+  month: number;
   confirmedImageUrl?: string | null;
   feedBackCount?: number | null;
 }
 
-const Item = ({ mode, title, status, taskCategoryName, startTime, confirmedImageUrl, feedBackCount }: Props) => {
+const Item = ({
+  id,
+  mode,
+  title,
+  status,
+  taskCategoryName,
+  startTime,
+  year,
+  month,
+  confirmedImageUrl,
+  feedBackCount,
+}: Props) => {
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
+
+  const { mutate: completeTodoTaskMutate } = useUpdateTodoTask({ year, month });
 
   const handleBottomSheet = () => {
     taskManagementBottomSheetModalRef.current?.present();
@@ -60,11 +77,20 @@ const Item = ({ mode, title, status, taskCategoryName, startTime, confirmedImage
     }
   };
 
+  const handleTodoTaskStatus = (mode: TaskModeType, id: number, status: TaskStatusEnumType) => () => {
+    // TODO task가 아니거나 상태가 실패면 무시
+    if (mode === 'DOWITH' || status === 'FAIL') {
+      return;
+    }
+
+    completeTodoTaskMutate({ id, status });
+  };
+
   return (
     <>
       <View style={styles.container}>
         <View style={styles.leftContainer}>
-          {renderTaskStatusIcon(mode, status)}
+          <Pressable onPress={handleTodoTaskStatus(mode, id, status)}>{renderTaskStatusIcon(mode, status)}</Pressable>
           <View style={styles.leftContent}>
             <Text style={[styles.title, isDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>{title}</Text>
             {(startTime || taskCategoryName) && (
