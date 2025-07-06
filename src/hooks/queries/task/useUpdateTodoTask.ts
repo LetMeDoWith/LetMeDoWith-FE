@@ -17,12 +17,8 @@ const useUpdateTodoTask = ({ year, month }: Props) => {
   return useMutation<updateTodoTaskResponseSchemeType, AxiosError, { id: number; status: TaskStatusEnumType }>({
     mutationKey: TASK_QUERY_KEY.UPDATE_TODO_STATUS,
     mutationFn: payload => updateStatusTodoTask(payload),
-    onSuccess: async ({ data }) => {
-      console.log('투두 테스크 상태 업데이트 요청 성공!: ', data);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [...TASK_QUERY_KEY.LIST, year, month] });
-    },
-    onError: e => {
-      console.error('투두 테스크 상태 업데이트 실패 ', e.response?.data);
     },
   });
 };
