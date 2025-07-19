@@ -14,13 +14,12 @@ import LinearGradient from 'react-native-linear-gradient';
 import { theme } from 'styles/theme';
 import { TrafficGreenLight } from 'components/common/icons/TrafficGreenLight';
 import { isAos } from 'utils/device';
-import { ArrowLeft } from 'components/common/icons/ArrowIcon';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { ListContainerView } from 'components/Task/ListContainerView';
 import type { HomeTabScreenProps } from 'types/shared';
 import { FeedbackNotification } from 'components/common/icons/FeedbackNotification';
-import { Calendar } from 'components/common/icons/Calendar';
+import { CustomCalendarHeader } from 'components/Task';
 
 LocaleConfig.locales.kr = {
   monthNames: ['01월', '02월', '03월', '04월', '05월', '06월', '07월', '08월', '09월', '10월', '11월', '12월'],
@@ -61,10 +60,6 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
     setSelectedDate(date.dateString);
   };
 
-  const toggleWeekView = () => {
-    setIsWeekView(!isWeekView);
-  };
-
   const renderDayComponent = ({
     date,
     state,
@@ -76,7 +71,7 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
 
     return (
       <TouchableOpacity
-        style={[{ padding: 6 }, date?.dateString === selectedDate && styles.selectedDay]}
+        style={[{ padding: 6, overflow: 'hidden' }, date?.dateString === selectedDate && styles.selectedDay]}
         onPress={handleDayPress(date)}
       >
         <View>
@@ -94,44 +89,15 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
     );
   };
 
-  const moveDate = (date: Date, isWeekView: boolean, amount: number) => () => {
-    setCurrentDate(prev =>
-      dayjs(prev)
-        .add(amount, isWeekView ? 'week' : 'month')
-        .format('YYYY-MM-DD'),
-    );
-  };
-
-  const renderCustomHeader = (date: Date) => {
-    return (
-      <View style={styles.customHeaderContainer}>
-        <View style={styles.customHeaderLeft}>
-          <Calendar />
-          <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{dayjs(date).format('YYYY년 MM월')}</Text>
-        </View>
-        <View style={styles.customHeaderRight}>
-          <View style={styles.weekCalendarArrowWrap}>
-            <TouchableOpacity onPress={moveDate(date, isWeekView, -1)}>
-              <ArrowLeft />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={moveDate(date, isWeekView, 1)}>
-              <ArrowRight />
-            </TouchableOpacity>
-          </View>
-          <Pressable
-            style={{
-              backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96,
-              padding: 10,
-              borderRadius: 8,
-            }}
-            onPress={toggleWeekView}
-          >
-            <Text style={theme.TYPOGRAPHY.CAPTION_2}>{isWeekView ? '주' : '월'}</Text>
-          </Pressable>
-        </View>
-      </View>
-    );
-  };
+  const renderCustomHeader = (date: Date) => (
+    <CustomCalendarHeader
+      type="EXPANDABLE"
+      date={date}
+      isWeekView={isWeekView}
+      setIsWeekView={setIsWeekView}
+      setCurrentDate={setCurrentDate}
+    />
+  );
 
   return (
     <>
@@ -265,20 +231,9 @@ const styles = StyleSheet.create({
   calendarWrap: {
     marginHorizontal: -20,
   },
-  customHeaderContainer: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  customHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  customHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  contentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  weekCalendarArrowWrap: {
-    flexDirection: 'row',
-    gap: 12,
-  },
   selectedDay: {
     backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_40,
+    padding: 8,
     borderRadius: 10,
   },
   selectedDayText: {
