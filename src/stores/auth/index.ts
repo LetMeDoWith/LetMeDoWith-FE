@@ -1,4 +1,3 @@
-import EncryptedStorage from 'react-native-encrypted-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import dayjs from 'dayjs';
