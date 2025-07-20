@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "build:android": "cd android && ./gradlew assembleRelease"
+    "build:android": "cd android && ./gradlew assembleRelease",
+    "build:ios": "cd ios && xcodebuild -workspace LetMeDoWith.xcworkspace -scheme LetMeDoWith -configuration Release -sdk iphoneos -archivePath ./build/LetMeDoWith.xcarchive archive && xcodebuild -exportArchive -archivePath ./build/LetMeDoWith.xcarchive -exportPath ./build/ipa -exportOptionsPlist ./ExportOptions.plist"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^4.6.4",
