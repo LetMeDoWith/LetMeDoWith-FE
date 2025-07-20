@@ -17,6 +17,7 @@
 		E72FBCE5B643443495B04653 /* Roboto-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */; };
 		F61F819E2B77759C00AB4F5F /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = F61F819D2B77759C00AB4F5F /* main.jsbundle */; };
 		F65652D02B7A478100B54887 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = F65652CF2B7A478100B54887 /* FirebaseAnalytics */; };
+		F669D01B2E2CDE0000EDA9CA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F669D01A2E2CDE0000EDA9CA /* GoogleService-Info.plist */; };
 		F67547132BDD3A06001B263D /* Fontisto.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F67547002BDD3A06001B263D /* Fontisto.ttf */; };
 		F67547142BDD3A06001B263D /* Octicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F67547012BDD3A06001B263D /* Octicons.ttf */; };
 		F67547152BDD3A06001B263D /* Feather.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F67547022BDD3A06001B263D /* Feather.ttf */; };
@@ -36,7 +37,6 @@
 		F67547232BDD3A06001B263D /* SimpleLineIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F67547102BDD3A06001B263D /* SimpleLineIcons.ttf */; };
 		F67547242BDD3A06001B263D /* FontAwesome6_Brands.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F67547112BDD3A06001B263D /* FontAwesome6_Brands.ttf */; };
 		F67547252BDD3A06001B263D /* MaterialIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F67547122BDD3A06001B263D /* MaterialIcons.ttf */; };
-		F6B419D02B93608F00C3ADA9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F6B419CF2B93608F00C3ADA9 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +71,7 @@
 		D2011623B8BF974AEAE0295F /* libPods-LetMeDoWith-LetMeDoWithTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LetMeDoWith-LetMeDoWithTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F61F819D2B77759C00AB4F5F /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
+		F669D01A2E2CDE0000EDA9CA /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../GoogleService-Info.plist"; sourceTree = "<group>"; };
 		F67547002BDD3A06001B263D /* Fontisto.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fontisto.ttf; sourceTree = "<group>"; };
 		F67547012BDD3A06001B263D /* Octicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Octicons.ttf; sourceTree = "<group>"; };
 		F67547022BDD3A06001B263D /* Feather.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Feather.ttf; sourceTree = "<group>"; };
@@ -94,7 +95,6 @@
 		F67BE2A12B7678F4006D11D9 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		F67BE2A22B77352D006D11D9 /* hermes.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = hermes.xcframework; path = "Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework"; sourceTree = "<group>"; };
 		F67BE2A42B77353C006D11D9 /* libReact-hermes.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-hermes.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F6B419CF2B93608F00C3ADA9 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		F6C3C8D62B9C5610009715FA /* LetMeDoWith.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = LetMeDoWith.entitlements; path = LetMeDoWith/LetMeDoWith.entitlements; sourceTree = "<group>"; };
 		F6D7839D2B777B4200B632D3 /* libReact-hermes.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-hermes.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6F1ADF42B77440E0028D224 /* libReact-hermes.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libReact-hermes.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -141,9 +141,9 @@
 		13B07FAE1A68108700A75B9A /* LetMeDoWith */ = {
 			isa = PBXGroup;
 			children = (
+				F669D01A2E2CDE0000EDA9CA /* GoogleService-Info.plist */,
 				F67546FF2BDD3A06001B263D /* Fonts */,
 				F6C3C8D62B9C5610009715FA /* LetMeDoWith.entitlements */,
-				F6B419CF2B93608F00C3ADA9 /* GoogleService-Info.plist */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -364,11 +364,11 @@
 				F67547142BDD3A06001B263D /* Octicons.ttf in Resources */,
 				F67547182BDD3A06001B263D /* FontAwesome5_Brands.ttf in Resources */,
 				F675471D2BDD3A06001B263D /* FontAwesome5_Solid.ttf in Resources */,
-				F6B419D02B93608F00C3ADA9 /* GoogleService-Info.plist in Resources */,
 				F67547222BDD3A06001B263D /* FontAwesome6_Solid.ttf in Resources */,
 				F67547212BDD3A06001B263D /* EvilIcons.ttf in Resources */,
 				F67547232BDD3A06001B263D /* SimpleLineIcons.ttf in Resources */,
 				F67547242BDD3A06001B263D /* FontAwesome6_Brands.ttf in Resources */,
+				F669D01B2E2CDE0000EDA9CA /* GoogleService-Info.plist in Resources */,
 				F67547162BDD3A06001B263D /* FontAwesome6_Regular.ttf in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				F67547152BDD3A06001B263D /* Feather.ttf in Resources */,
@@ -599,7 +599,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = LetMeDoWith/LetMeDoWith.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = K7ZW79L446;
+				DEVELOPMENT_TEAM = U3N4285KF6;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = LetMeDoWith/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -612,7 +612,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith;
+				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith2;
 				PRODUCT_NAME = LetMeDoWith;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -628,7 +628,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = LetMeDoWith/LetMeDoWith.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = K7ZW79L446;
+				DEVELOPMENT_TEAM = U3N4285KF6;
 				INFOPLIST_FILE = LetMeDoWith/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -640,7 +640,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith;
+				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith2;
 				PRODUCT_NAME = LetMeDoWith;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -717,10 +717,7 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = false;
@@ -789,10 +786,7 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = false;
