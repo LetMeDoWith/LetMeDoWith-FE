@@ -1,4 +1,4 @@
-package com.teamdowith.letmedowith
+package com.teamdowith.letmedowith2
 
 import android.os.Bundle;
 import com.facebook.react.ReactActivity
