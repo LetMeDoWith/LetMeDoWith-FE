@@ -33,13 +33,13 @@ const useFetchTokenQuery = () => {
         return;
       }
 
-      if (!data.atk || !data.rtk || !data.memberId) {
+      if (!data.accessToken || !data.refreshToken || !data.memberId) {
         return;
       }
 
       // 이미 존재하는 회원일 경우
       setIsNeedSignUp(false);
-      setTokenInfo({ access: data.atk, refresh: data.rtk });
+      setTokenInfo({ access: data.accessToken, refresh: data.refreshToken });
       setMemberId(data.memberId);
     },
     onError: e => {

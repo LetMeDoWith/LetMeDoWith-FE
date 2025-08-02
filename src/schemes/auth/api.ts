@@ -15,8 +15,8 @@ const fetchTokenRequestScheme = z.object({
 
 const fetchTokenResponseScheme = BaseResponseScheme.extend({
   data: z.object({
-    atk: tokenScheme.nullable(),
-    rtk: tokenScheme.nullable(),
+    accessToken: tokenScheme.nullable(),
+    refreshToken: tokenScheme.nullable(),
     signupToken: tokenScheme.nullable(),
     memberId: z.string(),
   }),
@@ -28,8 +28,8 @@ const refreshTokenRequestScheme = z.object({
 
 const refreshTokenResponseScheme = BaseResponseScheme.extend({
   data: z.object({
-    atk: tokenScheme,
-    rtk: tokenScheme,
+    accessToken: tokenScheme,
+    refreshToken: tokenScheme,
     memberId: z.string(),
   }),
 });

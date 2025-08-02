@@ -44,7 +44,7 @@ const INITIAL_STORAGE_VALUE = {
 const initialState = {
   ...INITIAL_STORAGE_VALUE,
   isLoggedIn: false,
-  isNeedSignUp: false,
+  isNeedSignUp: true,
   isNeedRefreshToken: false,
   isHydrated: false,
 };
@@ -117,8 +117,6 @@ const useAuthStore = create<State & { actions: Action }>()(
           setTokenInfo(tokenInfo);
           setMemberId(memberId);
           setIsLoggedIn(true);
-          setIsNeedSignUp(false);
-          setIsNeedRefreshToken(false);
 
           // 회원가입을 완료하지 않았을 경우
           if (tokenInfo.signup) {
@@ -126,8 +124,8 @@ const useAuthStore = create<State & { actions: Action }>()(
             if (dayjs().isAfter(tokenInfo.signup.expireAt)) {
               setIsLoggedIn(false);
             }
-            setIsNeedSignUp(true);
           }
+          setIsNeedSignUp(false);
 
           // 액세스 토큰, refresh 토큰이 존재하는 경우
           if (tokenInfo.access && tokenInfo.refresh) {
