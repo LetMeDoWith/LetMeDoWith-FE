@@ -19,6 +19,7 @@ import { ExclamationMarkCircle } from 'components/common/icons/ExclamationMarkCi
 import { useAddTodoTask } from 'hooks/queries/task/useAddTodoTask';
 import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
 import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
+import { isNil } from 'utils/index';
 
 const Form = () => {
   const { control, watch, setValue, handleSubmit } = useFormContext<addTaskRequestSchemeType>();
@@ -64,7 +65,7 @@ const Form = () => {
 
   const handleDateChange = useCallback(
     (date: Date) => {
-      setValue('startTime', dayjs(date).format('HH:mm:ss'));
+      setValue('startTime', dayjs(date).format('HH:mm') + ':00');
       setDatePickerOpen(false);
     },
     [setValue],
@@ -87,13 +88,18 @@ const Form = () => {
 
   const onSubmit: SubmitHandler<addTaskRequestSchemeType> = useCallback(
     values => {
-      console.log(values);
+      const payload = {
+        ...values,
+        ...(isNil(values.routineCondition?.startDate) && { routineCondition: null }),
+      };
+
+      console.log(payload);
       if (isTodoMode) {
-        addTodoTaskMutate(values);
+        addTodoTaskMutate(payload);
         return;
       }
 
-      addDowithTaskMutate(values);
+      addDowithTaskMutate(payload);
     },
     [isTodoMode],
   );
@@ -190,7 +196,9 @@ const Form = () => {
                   </Text>
                 )}
               </View>
-              <Text style={startTime ? styles.value : styles.emptyValue}>{startTime || '미등록'}</Text>
+              <Text style={startTime ? styles.value : styles.emptyValue}>
+                {startTime ? dayjs(startTime, 'HH:mm:ss').format('HH:mm') : '미등록'}
+              </Text>
             </Pressable>
             <Controller
               name="taskCategoryId"

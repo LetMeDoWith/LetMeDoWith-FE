@@ -12,9 +12,9 @@ const TaskForm = () => {
       date: dayjs().format('YYYY-MM-DD'),
       startTime: null,
       routineCondition: {
-        startDate: null,
-        endDate: null,
-        cycle: null,
+        startDate: undefined,
+        endDate: undefined,
+        cycle: undefined,
         pattern: [],
         isExcludeHolidays: false,
       },

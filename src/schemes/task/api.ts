@@ -53,31 +53,15 @@ const addTaskRequestScheme = z.object({
   taskCategoryId: z.number().nullable().describe('테스크 카테고리 id'),
   date: z.string().describe('테스크 수행일자'),
   startTime: z.string().nullable().describe('테스크 시작시간'),
-  routineCondition: z.object({
-    startDate: z.string().nullable().describe('루틴 시작일자'),
-    endDate: z.string().nullable().describe('루틴 종료일자'),
-    cycle: TASK_ROUTINE_CYCLE_ENUM.nullable().describe('루틴 주기'),
-    pattern: z.array(z.number()).describe('루틴 패턴 (요일 등)'),
-    isExcludeHolidays: z.boolean().describe('휴일 제외 여부'),
-  }),
-});
-
-const addTodoTaskResponseDataScheme = z.object({
-  todoTaskList: z.array(
-    z.object({
-      id: z.number().describe('테스크 id'),
-      taskCategoryId: z.number().nullable().describe('테스크 카테고리 id'),
-      title: z.string().describe('테스크 제목'),
-      date: z.string().describe('테스크 수행일자'),
-      startTime: z.string().nullable().describe('테스크 시작시간'),
-      isRoutine: z.boolean().describe('루틴 여부'),
-    }),
-  ),
-  routineDates: z.array(z.string()).describe('루틴 날짜 목록'),
-});
-
-const addTodoTaskResponseScheme = BaseResponseScheme.extend({
-  data: addTodoTaskResponseDataScheme,
+  routineCondition: z
+    .object({
+      startDate: z.string().describe('루틴 시작일자'),
+      endDate: z.string().describe('루틴 종료일자'),
+      cycle: TASK_ROUTINE_CYCLE_ENUM.describe('루틴 주기'),
+      pattern: z.array(z.number()).describe('루틴 패턴 (요일 등)'),
+      isExcludeHolidays: z.boolean().describe('휴일 제외 여부'),
+    })
+    .nullable(),
 });
 
 export {
@@ -89,6 +73,4 @@ export {
   fetchTaskListResponseDataScheme,
   fetchTaskListResponseScheme,
   addTaskRequestScheme,
-  addTodoTaskResponseDataScheme,
-  addTodoTaskResponseScheme,
 };
