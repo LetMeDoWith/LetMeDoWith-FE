@@ -151,12 +151,17 @@ const ListContainerView = ({ selectedDate }: Props) => {
   const yearMonth = useMemo(() => ({ year, month }), [year, month]);
   const { data: taskList } = useFetchTaskList(yearMonth);
 
-  console.log('taskList: ', taskList);
-  // TODO: taskList 날짜별로 필터링 필요
-  return taskList ? (
+  const filteredTaskList = taskList
+    ? {
+        dowithTasks: taskList.dowithTasks.filter(task => task.date === selectedDate),
+        todoTasks: taskList.todoTasks.filter(task => task.date === selectedDate),
+      }
+    : null;
+
+  return filteredTaskList ? (
     <ScrollView contentContainerStyle={{ paddingBottom: 134, gap: 16 }} showsVerticalScrollIndicator={false}>
-      <List type="DOWITH" items={taskList.dowithTasks} />
-      <List type="TODO" items={taskList.todoTasks} />
+      <List type="DOWITH" items={filteredTaskList.dowithTasks} />
+      <List type="TODO" items={filteredTaskList.todoTasks} />
     </ScrollView>
   ) : null;
 };
