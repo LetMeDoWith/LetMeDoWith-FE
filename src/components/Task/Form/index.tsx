@@ -18,6 +18,7 @@ import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategor
 import { ExclamationMarkCircle } from 'components/common/icons/ExclamationMarkCircle';
 import { useAddTodoTask } from 'hooks/queries/task/useAddTodoTask';
 import type { addTodoTaskRequestSchemeType } from 'types/task/scheme/api';
+import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
 
 const Form = () => {
   const { control, watch, setValue, handleSubmit } = useFormContext<addTodoTaskRequestSchemeType>();
@@ -28,6 +29,7 @@ const Form = () => {
   const [taskMode, setTaskMode] = useState<TaskModeType | null>(null);
   const { data: taskCategoryList } = useFetchTaskCategoryList();
   const { mutate: addTodoTaskMutate, isPending: isAddTodoTaskMutateLoading } = useAddTodoTask();
+  const { mutate: addDowithTaskMutate, isPending: isAddDowithTaskMutateLoading } = useAddDowithTask();
 
   const title = watch('title');
   const startTime = watch('startTime');
@@ -36,7 +38,9 @@ const Form = () => {
 
   const isTodoMode = taskMode === 'TODO';
   const isFormDisabled = taskMode === null;
-  const isButtonDisabled = isTodoMode ? !title || isAddTodoTaskMutateLoading : !title || !startTime;
+  const isButtonDisabled = isTodoMode
+    ? !title || isAddTodoTaskMutateLoading
+    : !title || !startTime || isAddDowithTaskMutateLoading;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
 
   const toggleDatePicker = useCallback(
@@ -60,7 +64,7 @@ const Form = () => {
 
   const handleDateChange = useCallback(
     (date: Date) => {
-      setValue('startTime', dayjs(date).format('HH:mm'));
+      setValue('startTime', dayjs(date).format('HH:mm:ss'));
       setDatePickerOpen(false);
     },
     [setValue],
@@ -81,10 +85,18 @@ const Form = () => {
     routineBottomSheetMethodsRef.current?.present();
   }, [isFormDisabled]);
 
-  const onSubmit: SubmitHandler<addTodoTaskRequestSchemeType> = useCallback(values => {
-    console.log(values);
-    addTodoTaskMutate(values);
-  }, []);
+  const onSubmit: SubmitHandler<addTodoTaskRequestSchemeType> = useCallback(
+    values => {
+      console.log(values);
+      if (isTodoMode) {
+        addTodoTaskMutate(values);
+        return;
+      }
+
+      addDowithTaskMutate(values);
+    },
+    [isTodoMode],
+  );
 
   return (
     <>
@@ -252,7 +264,9 @@ const Form = () => {
           <Text
             style={[
               styles.buttonText,
-              isAddTodoTaskMutateLoading && { backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80 },
+              (isAddTodoTaskMutateLoading || isAddDowithTaskMutateLoading) && {
+                backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
+              },
             ]}
           >
             저장하기

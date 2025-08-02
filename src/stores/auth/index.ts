@@ -139,11 +139,10 @@ const useAuthStore = create<State & { actions: Action }>()(
               // refresh 토큰이 만료되지 않았을 경우
               if (dayjs().isBefore(tokenInfo.refresh.expireAt)) {
                 setIsNeedRefreshToken(true);
-                return;
+              } else {
+                // refresh 토큰이 만료되었을 경우 인증 정보 상태 및 스토리지 초기화
+                initAuthInfo();
               }
-
-              // refresh 토큰이 만료되었을 경우 인증 정보 상태 및 스토리지 초기화
-              initAuthInfo();
             }
           }
 

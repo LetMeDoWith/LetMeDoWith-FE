@@ -37,4 +37,13 @@ const addTodoTask = async (payload: addTodoTaskRequestSchemeType): Promise<addTo
   }
 };
 
-export { fetchTaskCategoryList, fetchTaskList, addTodoTask };
+const addDowithTask = async (payload: addTodoTaskRequestSchemeType): Promise<string> => {
+  try {
+    const result = await apiClient.post<string>(TASK_API.ADD_DOWITH, payload);
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export { fetchTaskCategoryList, fetchTaskList, addTodoTask, addDowithTask };
