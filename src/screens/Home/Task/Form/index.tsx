@@ -2,10 +2,10 @@ import { FormProvider, useForm } from 'react-hook-form';
 import dayjs from 'dayjs';
 
 import { TaskFormStackNavigator } from 'components/navigators/Stack/Task';
-import type { addTodoTaskRequestSchemeType } from 'types/task/scheme/api';
+import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
 
 const TaskForm = () => {
-  const methods = useForm<addTodoTaskRequestSchemeType>({
+  const methods = useForm<addTaskRequestSchemeType>({
     defaultValues: {
       title: '',
       taskCategoryId: null,

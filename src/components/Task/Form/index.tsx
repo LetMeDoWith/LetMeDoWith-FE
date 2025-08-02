@@ -17,11 +17,11 @@ import { RoutineBottomSheet } from 'components/Task/BottomSheet/RoutineBottomShe
 import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategoryList';
 import { ExclamationMarkCircle } from 'components/common/icons/ExclamationMarkCircle';
 import { useAddTodoTask } from 'hooks/queries/task/useAddTodoTask';
-import type { addTodoTaskRequestSchemeType } from 'types/task/scheme/api';
+import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
 import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
 
 const Form = () => {
-  const { control, watch, setValue, handleSubmit } = useFormContext<addTodoTaskRequestSchemeType>();
+  const { control, watch, setValue, handleSubmit } = useFormContext<addTaskRequestSchemeType>();
   const categoryBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
   const routineBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
 
@@ -85,7 +85,7 @@ const Form = () => {
     routineBottomSheetMethodsRef.current?.present();
   }, [isFormDisabled]);
 
-  const onSubmit: SubmitHandler<addTodoTaskRequestSchemeType> = useCallback(
+  const onSubmit: SubmitHandler<addTaskRequestSchemeType> = useCallback(
     values => {
       console.log(values);
       if (isTodoMode) {

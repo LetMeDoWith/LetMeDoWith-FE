@@ -48,7 +48,7 @@ const fetchTaskListResponseScheme = BaseResponseScheme.extend({
   }),
 });
 
-const addTodoTaskRequestScheme = z.object({
+const addTaskRequestScheme = z.object({
   title: z.string().describe('테스크 제목'),
   taskCategoryId: z.number().nullable().describe('테스크 카테고리 id'),
   date: z.string().describe('테스크 수행일자'),
@@ -88,7 +88,7 @@ export {
   dowithTaskScheme,
   fetchTaskListResponseDataScheme,
   fetchTaskListResponseScheme,
-  addTodoTaskRequestScheme,
+  addTaskRequestScheme,
   addTodoTaskResponseDataScheme,
   addTodoTaskResponseScheme,
 };

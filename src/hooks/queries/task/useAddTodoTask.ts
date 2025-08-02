@@ -5,13 +5,13 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
 import { addTodoTask } from 'services/rest/task';
-import type { addTodoTaskRequestSchemeType, addTodoTaskResponseSchemeType } from 'types/task/scheme/api';
+import type { addTaskRequestSchemeType, addTodoTaskResponseSchemeType } from 'types/task/scheme/api';
 import type { RootStackParamList } from 'types/shared';
 
 const useAddTodoTask = () => {
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList, 'TASK_FORM'>>();
 
-  return useMutation<addTodoTaskResponseSchemeType, AxiosError, addTodoTaskRequestSchemeType>({
+  return useMutation<addTodoTaskResponseSchemeType, AxiosError, addTaskRequestSchemeType>({
     mutationKey: TASK_QUERY_KEY.ADD_TODO,
     mutationFn: payload => addTodoTask(payload),
     onSuccess: async ({ data }) => {

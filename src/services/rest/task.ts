@@ -1,7 +1,7 @@
 import { apiClient } from 'services/apiClient';
 import { TASK_API } from 'services/urls';
 import type {
-  addTodoTaskRequestSchemeType,
+  addTaskRequestSchemeType,
   addTodoTaskResponseSchemeType,
   fetchTaskCategoryListResponseSchemeType,
   fetchTaskListRequestSchemeType,
@@ -28,7 +28,7 @@ const fetchTaskList = async (params: fetchTaskListRequestSchemeType): Promise<fe
   }
 };
 
-const addTodoTask = async (payload: addTodoTaskRequestSchemeType): Promise<addTodoTaskResponseSchemeType> => {
+const addTodoTask = async (payload: addTaskRequestSchemeType): Promise<addTodoTaskResponseSchemeType> => {
   try {
     const result = await apiClient.post<addTodoTaskResponseSchemeType>(TASK_API.ADD_TODO, payload);
     return result.data;
@@ -37,7 +37,7 @@ const addTodoTask = async (payload: addTodoTaskRequestSchemeType): Promise<addTo
   }
 };
 
-const addDowithTask = async (payload: addTodoTaskRequestSchemeType): Promise<string> => {
+const addDowithTask = async (payload: addTaskRequestSchemeType): Promise<string> => {
   try {
     const result = await apiClient.post<string>(TASK_API.ADD_DOWITH, payload);
     return result.data;
