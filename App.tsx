@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Alert, AppState, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -30,6 +30,22 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
   if ('action' in event && event.action && event.action.type === 'error') {
     const errorData = event.action.error.response.data;
     const errorMessage = errorData.message;
+
+    const {
+      tokenInfo,
+      actions: { setIsNeedRefreshToken },
+    } = useAuthStore.getState();
+
+    // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우 토큰 재발급 상태로 수정
+    if (
+      tokenInfo.access?.token &&
+      dayjs().isAfter(tokenInfo.access?.expireAt) &&
+      tokenInfo.refresh?.token &&
+      dayjs().isBefore(tokenInfo.refresh?.expireAt)
+    ) {
+      setIsNeedRefreshToken(true);
+      return;
+    }
 
     if ('query' in event) {
       Alert.alert(`[QueryCacheNotifyEvent Error]: ${errorMessage}`);
@@ -83,6 +99,8 @@ function AppContent() {
     }),
   );
 
+  // 토큰 재발급 진행중 관련 flag 변수
+  const isTokenRefreshingRef = useRef(false);
   const isFetching = useIsFetching();
   const isMutating = useIsMutating();
   const isLoading = isFetching + isMutating > 0;
@@ -95,7 +113,8 @@ function AppContent() {
       return;
     }
 
-    if (isNeedRefreshToken && tokenInfo.refresh?.token) {
+    if (!isTokenRefreshingRef.current && isNeedRefreshToken && tokenInfo.refresh?.token) {
+      isTokenRefreshingRef.current = true;
       mutateRefreshToken(
         { refreshToken: tokenInfo.refresh.token },
         {
@@ -109,34 +128,23 @@ function AppContent() {
             setIsNeedRefreshToken(false);
             setIsNeedSignUp(false);
           },
+          onSettled: () => {
+            isTokenRefreshingRef.current = false;
+          },
         },
       );
     }
 
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') {
-        // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우
+        // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우 토큰 재발급 상태로 수정
         if (
           tokenInfo.access?.token &&
           dayjs().isAfter(tokenInfo.access?.expireAt) &&
           tokenInfo.refresh?.token &&
           dayjs().isBefore(tokenInfo.refresh?.expireAt)
         ) {
-          mutateRefreshToken(
-            { refreshToken: tokenInfo.refresh.token },
-            {
-              onSuccess: ({ data }) => {
-                if (!data.accessToken || !data.refreshToken) {
-                  return;
-                }
-                // 토큰 재발급이 완료 되었을 경우
-                setTokenInfo({ access: data.accessToken, refresh: data.refreshToken });
-                setIsLoggedIn(true);
-                setIsNeedRefreshToken(false);
-                setIsNeedSignUp(false);
-              },
-            },
-          );
+          setIsNeedRefreshToken(true);
         }
       }
     });
