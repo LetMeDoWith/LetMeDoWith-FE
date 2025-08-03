@@ -8,9 +8,11 @@ import type { dowithTaskSchemeType, todoTaskSchemeType } from 'types/task/scheme
 interface Props {
   type: TaskModeType;
   items: dowithTaskSchemeType[] | todoTaskSchemeType[];
+  year: number;
+  month: number;
 }
 
-const List = ({ type, items }: Props) => {
+const List = ({ type, items, year, month }: Props) => {
   const isDoWithMode = type === 'DOWITH';
 
   return (
@@ -31,7 +33,7 @@ const List = ({ type, items }: Props) => {
         </Text>
       </View>
       {items.map(({ id, ...rest }) => (
-        <Item key={id} mode={isDoWithMode ? 'DOWITH' : 'TODO'} {...rest} />
+        <Item key={id} id={id} mode={isDoWithMode ? 'DOWITH' : 'TODO'} year={year} month={month} {...rest} />
       ))}
     </View>
   );

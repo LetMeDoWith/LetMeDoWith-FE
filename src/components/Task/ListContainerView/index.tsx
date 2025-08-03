@@ -160,8 +160,8 @@ const ListContainerView = ({ selectedDate }: Props) => {
 
   return filteredTaskList ? (
     <ScrollView contentContainerStyle={{ paddingBottom: 134, gap: 16 }} showsVerticalScrollIndicator={false}>
-      <List type="DOWITH" items={filteredTaskList.dowithTasks} />
-      <List type="TODO" items={filteredTaskList.todoTasks} />
+      <List type="DOWITH" items={filteredTaskList.dowithTasks} year={year} month={month} />
+      <List type="TODO" items={filteredTaskList.todoTasks} year={year} month={month} />
     </ScrollView>
   ) : null;
 };
