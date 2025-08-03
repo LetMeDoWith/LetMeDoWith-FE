@@ -1,12 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Alert, AppState, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
-import { QueryClient, QueryClientProvider, useIsFetching, useIsMutating } from '@tanstack/react-query';
+import {
+  MutationCacheNotifyEvent,
+  QueryCacheNotifyEvent,
+  QueryClient,
+  QueryClientProvider,
+  useIsFetching,
+  useIsMutating,
+} from '@tanstack/react-query';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import dayjs from 'dayjs';
 
 import { Login } from 'screens/Login';
 import { HomeStackNavigator } from 'components/navigators/Stack/Home';
@@ -18,23 +26,44 @@ import { DialogProvider } from 'components/common/Dialog/Provider';
 import { LoadingOverlay } from 'components/common/LoadingOverlay';
 import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
 
+const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEvent) => {
+  if ('action' in event && event.action && event.action.type === 'error') {
+    const errorData = event.action.error.response.data;
+    const errorMessage = errorData.message;
+
+    const {
+      tokenInfo,
+      actions: { setIsNeedRefreshToken },
+    } = useAuthStore.getState();
+
+    // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우 토큰 재발급 상태로 수정
+    if (
+      tokenInfo.access?.token &&
+      dayjs().isAfter(tokenInfo.access?.expireAt) &&
+      tokenInfo.refresh?.token &&
+      dayjs().isBefore(tokenInfo.refresh?.expireAt)
+    ) {
+      setIsNeedRefreshToken(true);
+      return;
+    }
+
+    if ('query' in event) {
+      Alert.alert(`[QueryCacheNotifyEvent Error]: ${errorMessage}`);
+      console.error('[QueryCacheNotifyEvent Error]:', errorData);
+    } else if ('mutation' in event) {
+      Alert.alert(`[MutationCacheNotifyEvent Error]: ${errorMessage}`);
+      console.error('[MutationCacheNotifyEvent Error]:', errorData);
+    } else {
+      Alert.alert(`[Unknown Event Error]: ${errorMessage}`);
+      console.error('[Unknown Event Error]:', errorData);
+    }
+  }
+};
+
 const queryClient = new QueryClient();
 // 전역 에러 핸들링(모든 쿼리/뮤테이션)
-queryClient.getQueryCache().subscribe(event => {
-  if ('action' in event && event.action && event.action.type === 'error') {
-    const errorMessage = event.action.error.response.data.message;
-    Alert.alert(`에러가 발생했습니다. ${errorMessage}`);
-    console.error('Query Error:', errorMessage);
-  }
-});
-
-queryClient.getMutationCache().subscribe(event => {
-  if ('action' in event && event.action && event.action.type === 'error') {
-    const errorMessage = event.action.error.response.data.message;
-    Alert.alert(`에러가 발생했습니다. ${errorMessage}`);
-    console.error('Mutation Error:', errorMessage);
-  }
-});
+queryClient.getQueryCache().subscribe(subscribeListener);
+queryClient.getMutationCache().subscribe(subscribeListener);
 
 function AppContent() {
   const {
@@ -70,6 +99,8 @@ function AppContent() {
     }),
   );
 
+  // 토큰 재발급 진행중 관련 flag 변수
+  const isTokenRefreshingRef = useRef(false);
   const isFetching = useIsFetching();
   const isMutating = useIsMutating();
   const isLoading = isFetching + isMutating > 0;
@@ -82,19 +113,23 @@ function AppContent() {
       return;
     }
 
-    if (isNeedRefreshToken && tokenInfo.refresh?.token) {
+    if (!isTokenRefreshingRef.current && isNeedRefreshToken && tokenInfo.refresh?.token) {
+      isTokenRefreshingRef.current = true;
       mutateRefreshToken(
         { refreshToken: tokenInfo.refresh.token },
         {
           onSuccess: ({ data }) => {
-            if (!data.atk || !data.rtk) {
+            if (!data.accessToken || !data.refreshToken) {
               return;
             }
             // 토큰 재발급이 완료 되었을 경우
-            setTokenInfo({ access: data.atk, refresh: data.rtk });
+            setTokenInfo({ access: data.accessToken, refresh: data.refreshToken });
             setIsLoggedIn(true);
             setIsNeedRefreshToken(false);
             setIsNeedSignUp(false);
+          },
+          onSettled: () => {
+            isTokenRefreshingRef.current = false;
           },
         },
       );
@@ -102,22 +137,14 @@ function AppContent() {
 
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') {
-        if (isNeedRefreshToken && tokenInfo.refresh?.token) {
-          mutateRefreshToken(
-            { refreshToken: tokenInfo.refresh.token },
-            {
-              onSuccess: ({ data }) => {
-                if (!data.atk || !data.rtk) {
-                  return;
-                }
-                // 토큰 재발급이 완료 되었을 경우
-                setTokenInfo({ access: data.atk, refresh: data.rtk });
-                setIsLoggedIn(true);
-                setIsNeedRefreshToken(false);
-                setIsNeedSignUp(false);
-              },
-            },
-          );
+        // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우 토큰 재발급 상태로 수정
+        if (
+          tokenInfo.access?.token &&
+          dayjs().isAfter(tokenInfo.access?.expireAt) &&
+          tokenInfo.refresh?.token &&
+          dayjs().isBefore(tokenInfo.refresh?.expireAt)
+        ) {
+          setIsNeedRefreshToken(true);
         }
       }
     });

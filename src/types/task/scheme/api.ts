@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import {
+  addTaskRequestScheme,
   dowithTaskScheme,
   fetchTaskCategoryListResponseScheme,
   fetchTaskListRequestScheme,
@@ -17,6 +18,7 @@ type todoTaskSchemeType = z.infer<typeof todoTaskScheme>;
 type dowithTaskSchemeType = z.infer<typeof dowithTaskScheme>;
 type fetchTaskListResponseSchemeDataType = z.infer<typeof fetchTaskListResponseDataScheme>;
 type fetchTaskListResponseSchemeType = z.infer<typeof fetchTaskListResponseScheme>;
+type addTaskRequestSchemeType = z.infer<typeof addTaskRequestScheme>;
 
 export type {
   taskCategorySchemeType,
@@ -26,4 +28,5 @@ export type {
   dowithTaskSchemeType,
   fetchTaskListResponseSchemeDataType,
   fetchTaskListResponseSchemeType,
+  addTaskRequestSchemeType,
 };

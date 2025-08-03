@@ -21,7 +21,7 @@ const useSignUp = () => {
     onSuccess: ({ data }) => {
       console.log('signup success data: ', data);
       setIsNeedSignUp(false);
-      setTokenInfo({ access: data.atk, refresh: data.rtk, signup: null });
+      setTokenInfo({ access: data.accessToken, refresh: data.refreshToken, signup: null });
       setMemberId(data.memberId);
     },
     onError: e => {

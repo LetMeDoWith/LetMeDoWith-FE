@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import React, { useCallback, useRef, useState } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
 import DatePicker from 'react-native-date-picker';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
@@ -15,22 +15,33 @@ import type { TaskModeType } from 'types/shared';
 import { CategoryBottomSheet } from 'components/Task/BottomSheet/CategoryBottomSheet';
 import { RoutineBottomSheet } from 'components/Task/BottomSheet/RoutineBottomSheet';
 import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategoryList';
+import { ExclamationMarkCircle } from 'components/common/icons/ExclamationMarkCircle';
+import { useAddTodoTask } from 'hooks/queries/task/useAddTodoTask';
+import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
+import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
+import { isNil } from 'utils/index';
 
 const Form = () => {
-  const { control, watch, setValue, handleSubmit } = useFormContext();
+  const { control, watch, setValue, handleSubmit } = useFormContext<addTaskRequestSchemeType>();
   const categoryBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
   const routineBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
 
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
   const [taskMode, setTaskMode] = useState<TaskModeType | null>(null);
   const { data: taskCategoryList } = useFetchTaskCategoryList();
+  const { mutate: addTodoTaskMutate, isPending: isAddTodoTaskMutateLoading } = useAddTodoTask();
+  const { mutate: addDowithTaskMutate, isPending: isAddDowithTaskMutateLoading } = useAddDowithTask();
 
   const title = watch('title');
-  const startDateTime = watch('startDateTime');
+  const startTime = watch('startTime');
   const taskCategoryId = watch('taskCategoryId');
+  const routineConditionCycle = watch('routineCondition.cycle');
 
+  const isTodoMode = taskMode === 'TODO';
   const isFormDisabled = taskMode === null;
-  const isButtonDisabled = !title || !startDateTime;
+  const isButtonDisabled = isTodoMode
+    ? !title || isAddTodoTaskMutateLoading
+    : !title || !startTime || isAddDowithTaskMutateLoading;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
 
   const toggleDatePicker = useCallback(
@@ -54,7 +65,7 @@ const Form = () => {
 
   const handleDateChange = useCallback(
     (date: Date) => {
-      setValue('startDateTime', dayjs(date).format('HH:mm'));
+      setValue('startTime', dayjs(date).format('HH:mm') + ':00');
       setDatePickerOpen(false);
     },
     [setValue],
@@ -75,9 +86,23 @@ const Form = () => {
     routineBottomSheetMethodsRef.current?.present();
   }, [isFormDisabled]);
 
-  const onSubmit = useCallback<any>((values: FormData) => {
-    console.log(values);
-  }, []);
+  const onSubmit: SubmitHandler<addTaskRequestSchemeType> = useCallback(
+    values => {
+      const payload = {
+        ...values,
+        ...(isNil(values.routineCondition?.startDate) && { routineCondition: null }),
+      };
+
+      console.log(payload);
+      if (isTodoMode) {
+        addTodoTaskMutate(payload);
+        return;
+      }
+
+      addDowithTaskMutate(payload);
+    },
+    [isTodoMode],
+  );
 
   return (
     <>
@@ -85,7 +110,7 @@ const Form = () => {
         <View>
           <View style={styles.modeWrap}>
             <View style={styles.modeLabel}>
-              <Text style={styles.labelTitle}>모드 선택</Text>
+              <Text style={theme.TYPOGRAPHY.SUB_TITLE}>모드 선택</Text>
               <View style={styles.modeLabelAlertWrap}>
                 <Text style={styles.modeLabelAlert}>사용 가능한 두윗 모드: 3개</Text>
                 <QuestionCircle />
@@ -105,7 +130,7 @@ const Form = () => {
               >
                 <TodoMode />
                 <Text style={[styles.modeButtonText, taskMode === 'TODO' && { color: theme.COLORS.SECONDARY.BLUE_60 }]}>
-                  혼자 하는 투두 모드
+                  혼자 하는 TO DO
                 </Text>
               </Pressable>
               <Pressable
@@ -120,7 +145,7 @@ const Form = () => {
               >
                 <DowithMode />
                 <Text style={[styles.modeButtonText, taskMode === 'DOWITH' && { color: theme.COLORS.PRIMARY.RED_60 }]}>
-                  혼자 하는 두윗 모드
+                  함께 하는 DO WITH
                 </Text>
               </Pressable>
             </View>
@@ -128,7 +153,9 @@ const Form = () => {
           <View style={{ gap: 16, marginTop: 32 }}>
             <View style={{ gap: 12 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
+                <Text
+                  style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                >
                   제목
                 </Text>
                 <Text style={isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }}>{title.length}/40</Text>
@@ -157,10 +184,21 @@ const Form = () => {
               style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
               onPress={toggleDatePicker(true)}
             >
-              <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
-                시작 시간
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text
+                  style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                >
+                  시작 시간
+                </Text>
+                {taskMode === 'TODO' && (
+                  <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                    (선택)
+                  </Text>
+                )}
+              </View>
+              <Text style={startTime ? styles.value : styles.emptyValue}>
+                {startTime ? dayjs(startTime, 'HH:mm:ss').format('HH:mm') : '미등록'}
               </Text>
-              <Text style={startDateTime ? styles.value : styles.emptyValue}>{startDateTime || '미등록'}</Text>
             </Pressable>
             <Controller
               name="taskCategoryId"
@@ -171,12 +209,16 @@ const Form = () => {
                   onPress={handlePresentModalPress}
                 >
                   <View style={styles.optionalLabelWrap}>
-                    <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
+                    <Text
+                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                    >
                       카테고리
                     </Text>
-                    <Text style={styles.optionalLabel}>(선택)</Text>
+                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                      (선택)
+                    </Text>
                   </View>
-                  <Text style={[styles.emptyValue, taskCategoryId && styles.value]}>
+                  <Text style={[styles.emptyValue, taskCategoryId !== null && styles.value]}>
                     {prevSelectedCategory ? prevSelectedCategory.title : '미등록'}
                   </Text>
                 </Pressable>
@@ -186,13 +228,39 @@ const Form = () => {
               style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
               onPress={handleTaskRoutine}
             >
-              <View style={styles.optionalLabelWrap}>
-                <Text style={[styles.labelTitle, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>
-                  루틴 설정
-                </Text>
-                <Text style={styles.optionalLabel}>(선택)</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <View style={{ gap: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text
+                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                    >
+                      루틴 설정
+                    </Text>
+                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                      (선택)
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <ExclamationMarkCircle />
+                    <Text
+                      style={[
+                        theme.TYPOGRAPHY.CAPTION1_BASIC,
+                        { color: isFormDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_50 },
+                      ]}
+                    >
+                      모드를 변경하면 루틴이 초기화 돼요.
+                    </Text>
+                  </View>
+                </View>
               </View>
-              <Text style={styles.emptyValue}>미등록</Text>
+              <Text
+                style={[
+                  theme.TYPOGRAPHY.BODY_2,
+                  { color: routineConditionCycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
+                ]}
+              >
+                {routineConditionCycle ? '사용자 지정' : '미등록'}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -201,7 +269,16 @@ const Form = () => {
           disabled={isButtonDisabled}
           onPress={handleSubmit(onSubmit)}
         >
-          <Text style={styles.buttonText}>저장하기</Text>
+          <Text
+            style={[
+              styles.buttonText,
+              (isAddTodoTaskMutateLoading || isAddDowithTaskMutateLoading) && {
+                backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
+              },
+            ]}
+          >
+            저장하기
+          </Text>
         </Pressable>
       </View>
       <DatePicker
@@ -245,11 +322,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
-  labelTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: theme.COLORS.DEFAULT.BLACK,
-  },
   modeButtonWrap: {
     flexDirection: 'row',
     gap: 8,
@@ -272,10 +344,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-  },
-  optionalLabel: {
-    color: theme.COLORS.GRAY_SCALE.GRAY_70,
-    fontSize: 12,
   },
   emptyValue: {
     color: theme.COLORS.GRAY_SCALE.GRAY_80,

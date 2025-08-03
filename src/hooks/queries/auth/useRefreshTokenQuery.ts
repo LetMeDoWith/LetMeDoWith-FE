@@ -25,12 +25,12 @@ const useRefreshTokenQuery = () => {
     mutationKey: AUTH_QUERY_KEY.REFRESH_TOKEN,
     mutationFn: payload => refreshToken(payload),
     onSuccess: ({ data }) => {
-      if (!data.atk || !data.rtk || !data.memberId) {
+      if (!data.accessToken || !data.refreshToken || !data.memberId) {
         return;
       }
 
       // 토큰 재발급이 완료 되었을 경우
-      setTokenInfo({ access: data.atk, refresh: data.rtk });
+      setTokenInfo({ access: data.accessToken, refresh: data.refreshToken });
       setIsLoggedIn(true);
       setIsNeedRefreshToken(false);
       setIsNeedSignUp(false);

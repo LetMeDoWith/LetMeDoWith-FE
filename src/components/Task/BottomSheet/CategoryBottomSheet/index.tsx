@@ -10,7 +10,7 @@ import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategor
 type TaskCategory = { id: number; title: string };
 
 interface Props {
-  taskCategoryId: number;
+  taskCategoryId: number | null;
   prevSelectedCategory?: TaskCategory;
 }
 

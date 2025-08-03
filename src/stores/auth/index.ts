@@ -44,7 +44,7 @@ const INITIAL_STORAGE_VALUE = {
 const initialState = {
   ...INITIAL_STORAGE_VALUE,
   isLoggedIn: false,
-  isNeedSignUp: false,
+  isNeedSignUp: true,
   isNeedRefreshToken: false,
   isHydrated: false,
 };
@@ -67,7 +67,7 @@ const useAuthStore = create<State & { actions: Action }>()(
             await secureStorage().setItem(STORAGE_KEY.AUTH_INFO, JSON.stringify(INITIAL_STORAGE_VALUE));
             set({ ...initialState, isHydrated: true });
           } catch (error) {
-            console.error('토큰 정보 삭제에 실패했습니다.', error);
+            console.error('인증 정보 초기화에 실패했습니다.', error);
           }
         },
       },
@@ -92,18 +92,31 @@ const useAuthStore = create<State & { actions: Action }>()(
 
         const {
           tokenInfo,
-          actions: { setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken, setTokenInfo, initAuthInfo, setIsHydrated },
+          memberId,
+          actions: {
+            setIsLoggedIn,
+            setIsNeedSignUp,
+            setIsNeedRefreshToken,
+            setTokenInfo,
+            initAuthInfo,
+            setIsHydrated,
+            setMemberId,
+          },
         } = mergedState;
 
         try {
-          if (!tokenInfo) {
+          // 초기 토큰 정보가 아얘 없는 경우
+          if (
+            !tokenInfo ||
+            (tokenInfo.signup === null && tokenInfo.access === null && tokenInfo.refresh === null && !memberId)
+          ) {
+            setIsHydrated(true);
             return;
           }
 
           setTokenInfo(tokenInfo);
-          setIsLoggedIn(false);
-          setIsNeedSignUp(false);
-          setIsNeedRefreshToken(false);
+          setMemberId(memberId);
+          setIsLoggedIn(true);
 
           // 회원가입을 완료하지 않았을 경우
           if (tokenInfo.signup) {
@@ -111,8 +124,8 @@ const useAuthStore = create<State & { actions: Action }>()(
             if (dayjs().isAfter(tokenInfo.signup.expireAt)) {
               setIsLoggedIn(false);
             }
-            setIsNeedSignUp(true);
           }
+          setIsNeedSignUp(false);
 
           // 액세스 토큰, refresh 토큰이 존재하는 경우
           if (tokenInfo.access && tokenInfo.refresh) {
@@ -124,11 +137,10 @@ const useAuthStore = create<State & { actions: Action }>()(
               // refresh 토큰이 만료되지 않았을 경우
               if (dayjs().isBefore(tokenInfo.refresh.expireAt)) {
                 setIsNeedRefreshToken(true);
-                return;
+              } else {
+                // refresh 토큰이 만료되었을 경우 인증 정보 상태 및 스토리지 초기화
+                initAuthInfo();
               }
-
-              // refresh 토큰이 만료되었을 경우 인증 정보 상태 및 스토리지 초기화
-              initAuthInfo();
             }
           }
 
