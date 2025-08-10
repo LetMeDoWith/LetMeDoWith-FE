@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 import { Divider, Switch } from 'react-native-paper';
 import { Calendar } from 'react-native-calendars';
-import type { MarkedDates } from 'react-native-calendars/src/types';
+import type { DateData, MarkedDates } from 'react-native-calendars/src/types';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { useFormContext } from 'react-hook-form';
@@ -12,6 +12,7 @@ import { theme } from 'styles/theme';
 import { BottomSheet } from 'components/common/BottomSheet';
 import { DropArrow } from 'components/common/icons/DropArrow';
 import type { TaskModeType } from 'types/shared';
+import { CustomCalendarHeader } from 'components/Task';
 
 dayjs.extend(isSameOrBefore);
 
@@ -33,6 +34,7 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
   const { setValue, watch } = useFormContext();
   const innerRef = useRef<BottomSheetModalMethods>(null);
   const todayDateString = dayjs().format('YYYY-MM-DD');
+  const [currentDate, setCurrentDate] = useState(todayDateString);
   // 투두 모드에서 사용하는 선택 기간 상태
   const [selectedStartDate, setSelectedStartDate] = useState<string | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null);
@@ -250,6 +252,27 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
     setSelectedPrimaryCategory(value);
   };
 
+  const handleDayPress = (date: DateData) => {
+    // 선택한 날짜가 없을 경우 시작날짜로 지정
+    if (!selectedStartDate) {
+      setSelectedStartDate(date.dateString);
+      return;
+    }
+
+    // 선택한 날짜(date.dateString)가 selectedStartDate보다 빠른 경우 시작날짜 재지정 및 종료날짜 초기화
+    if (dayjs(date.dateString).isBefore(dayjs(selectedStartDate))) {
+      setSelectedStartDate(date.dateString);
+      setSelectedEndDate(null);
+      return;
+    }
+
+    setSelectedEndDate(date.dateString);
+  };
+
+  const renderCustomHeader = (date: Date) => (
+    <CustomCalendarHeader type="NORMAL" date={date} setCurrentDate={setCurrentDate} />
+  );
+
   useEffect(() => {
     initRoutineCondition();
   }, [taskMode]);
@@ -292,17 +315,14 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
         <Divider style={{ marginVertical: 20 }} />
         {expanded && (
           <Calendar
+            initialDate={currentDate}
             style={{ marginBottom: 32 }}
             markingType={'period'}
             markedDates={getMarkedPeriodDates(selectedStartDate, selectedEndDate)}
             minDate={todayDateString}
-            onDayPress={date => {
-              if (!selectedStartDate) {
-                setSelectedStartDate(date.dateString);
-                return;
-              }
-              setSelectedEndDate(date.dateString);
-            }}
+            renderHeader={renderCustomHeader}
+            onDayPress={handleDayPress}
+            hideArrows
           />
         )}
         <View style={styles.routineSection}>

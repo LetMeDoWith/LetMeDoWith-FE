@@ -12,7 +12,9 @@ type SignUpStackScreenProps<T extends keyof SignUpStackParamList> = StackScreenP
 type RootStackParamList = {
   HOME: undefined;
   SETTING: undefined;
-  TASK_FORM: undefined;
+  TASK_FORM: {
+    date: string;
+  };
   FEEDBACK: undefined;
 };
 

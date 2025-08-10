@@ -1,15 +1,19 @@
 import { FormProvider, useForm } from 'react-hook-form';
-import dayjs from 'dayjs';
 
 import { TaskFormStackNavigator } from 'components/navigators/Stack/Task';
 import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
+import type { RootStackScreenProps } from 'types/shared';
 
-const TaskForm = () => {
+const TaskForm = ({
+  route: {
+    params: { date },
+  },
+}: RootStackScreenProps<'TASK_FORM'>) => {
   const methods = useForm<addTaskRequestSchemeType>({
     defaultValues: {
       title: '',
       taskCategoryId: null,
-      date: dayjs().format('YYYY-MM-DD'),
+      date,
       startTime: null,
       routineCondition: {
         startDate: undefined,

@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import dayjs from 'dayjs';
 import { Divider } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
-import { LocaleConfig } from 'react-native-calendars/src';
 import { Positions } from 'react-native-calendars/src/expandableCalendar';
 import type { DateData } from 'react-native-calendars/src/types';
 import type { DayProps } from 'react-native-calendars/src/calendar/day';
@@ -14,23 +13,20 @@ import LinearGradient from 'react-native-linear-gradient';
 import { theme } from 'styles/theme';
 import { TrafficGreenLight } from 'components/common/icons/TrafficGreenLight';
 import { isAos } from 'utils/device';
-import { ArrowLeft } from 'components/common/icons/ArrowIcon';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { ListContainerView } from 'components/Task/ListContainerView';
 import type { HomeTabScreenProps } from 'types/shared';
 import { FeedbackNotification } from 'components/common/icons/FeedbackNotification';
-import { Calendar } from 'components/common/icons/Calendar';
+import { CustomCalendarHeader } from 'components/Task';
+import { TaskStatusMarking } from 'components/common/icons/TaskStatusMarking';
+import { useFetchTaskList } from 'hooks/queries/task/useFetchTaskList';
+import { TASK_STATUS_ENUM } from 'schemes/task/enum';
+import { TASK_STATUS } from 'constants/Task';
+import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
 
-LocaleConfig.locales.kr = {
-  monthNames: ['01월', '02월', '03월', '04월', '05월', '06월', '07월', '08월', '09월', '10월', '11월', '12월'],
-  monthNamesShort: ['01월', '02월', '03월', '04월', '05월', '06월', '07월', '08월', '09월', '10월', '11월', '12월'],
-  dayNames: ['화요일', '수요일', '목요일', '금요일', '토요일', '일요일', '월요일'],
-  dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
-  today: '오늘',
-};
-
-LocaleConfig.defaultLocale = 'kr';
+// 요일 시작: 0=일, 1=월
+const FIRST_DAY = 0;
 
 const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   const { top } = useSafeAreaInsets();
@@ -38,8 +34,19 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   const [currentDate, setCurrentDate] = useState(todayDateString);
   const [selectedDate, setSelectedDate] = useState(todayDateString);
   const [isWeekView, setIsWeekView] = useState(true);
+  const selectedDateKoreanString = dayjs(selectedDate).format('YYYY년 MM월 DD일 dddd');
 
-  const selectedDateKoreanString = dayjs(selectedDate).format('YYYY년 MM월 DD일');
+  const year = dayjs(selectedDate).year();
+  const month = dayjs(selectedDate).month() + 1;
+  const yearMonth = useMemo(() => ({ year, month }), [year, month]);
+
+  const { data: taskList } = useFetchTaskList(yearMonth);
+  const selectedDateTaskList = taskList
+    ? {
+        dowithTasks: taskList.dowithTasks.filter(task => task.date === selectedDate),
+        todoTasks: taskList.todoTasks.filter(task => task.date === selectedDate),
+      }
+    : null;
 
   const handleBadge = () => {
     console.log('대표 뱃지 클릭');
@@ -50,7 +57,7 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   };
 
   const handlePressPlusIcon = () => {
-    navigate('TASK_FORM');
+    navigate('TASK_FORM', { date: selectedDate });
   };
 
   const handleDayPress = (date?: DateData) => () => {
@@ -61,9 +68,146 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
     setSelectedDate(date.dateString);
   };
 
-  const toggleWeekView = () => {
-    setIsWeekView(!isWeekView);
+  const startOfWeek = (targetDay: dayjs.Dayjs, firstDay: number) => {
+    const diff = (targetDay.day() - firstDay + 7) % 7;
+    return targetDay.subtract(diff, 'day');
   };
+
+  // 월뷰에서 실제로 "보이는 마지막 주" 7일(압축 규칙 반영)
+  const getLastVisibleWeekDates = (current: string, firstDay: number) => {
+    // 달의 마지막 날
+    const end = dayjs(current).endOf('month');
+    // 압축되면 직전 주가 마지막 줄
+    const base = end.day() === firstDay ? end.subtract(1, 'day') : end;
+    const start = startOfWeek(base, firstDay);
+    return Array.from({ length: 7 }, (_, i) => start.add(i, 'day').format('YYYY-MM-DD'));
+  };
+
+  // 이번 달이 화면에 몇 줄로 보이는지 계산
+  const getWeeksCount = (current: string, firstDay: number) => {
+    const currentDate = dayjs(current);
+    const gridStart = startOfWeek(currentDate.startOf('month'), firstDay);
+    // 마지막 보이는 토/일까지
+    const gridEnd = startOfWeek(currentDate.endOf('month'), firstDay).add(6, 'day');
+    return Math.round(gridEnd.diff(gridStart, 'day') / 7) + 1;
+  };
+
+  const hasIconOnDates = (dates: string[], taskList?: fetchTaskListResponseSchemeDataType) =>
+    !!taskList &&
+    dates.some(
+      date =>
+        taskList.dowithTasks.some(task => task.date === date) || taskList.todoTasks.some(task => task.date === date),
+    );
+
+  const getCalendarMarginBottom = () => {
+    // 주간 보기
+    if (isWeekView) {
+      const weekStart = startOfWeek(dayjs(currentDate), FIRST_DAY);
+      const weekDates = Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day').format('YYYY-MM-DD'));
+      return hasIconOnDates(weekDates, taskList) ? 30 : 0;
+    }
+
+    // 월간 보기
+    const lastWeekDates = getLastVisibleWeekDates(currentDate, FIRST_DAY);
+    const weeks = getWeeksCount(currentDate, FIRST_DAY); // 5 또는 6
+    const lastRowHasIcon = hasIconOnDates(lastWeekDates, taskList);
+
+    if (weeks === 7) {
+      return lastRowHasIcon ? 10 : -10;
+    } else {
+      return lastRowHasIcon ? -40 : -60;
+    }
+  };
+
+  const getTaskStatus = useCallback((taskList: fetchTaskListResponseSchemeDataType) => {
+    const { dowithTasks, todoTasks } = taskList;
+    const isDowithSuccessStatusExisted = dowithTasks.some(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
+    const isDowithFailStatusALL = dowithTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.FAIL);
+    const isDowithSuccessStatusALL = dowithTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
+    const isDowithWaitStatusALL = dowithTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.WAIT);
+    const isTodoSuccessStatusExisted = todoTasks.some(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
+    const isTodoFailStatusALL = todoTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.FAIL);
+    const isTodoSuccessStatusALL = todoTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
+    const isTodoWaitStatusALL = todoTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.WAIT);
+
+    // 모든 종류의 task가 등록된 경우
+    if (dowithTasks.length > 0 && todoTasks.length > 0) {
+      // 모든 종류의 task가 실패 상태일 경우
+      if (isDowithFailStatusALL && isTodoFailStatusALL) {
+        return TASK_STATUS.ALL_FAIL;
+      }
+
+      // 모든 종류의 task가 성공 상태일 경우
+      if (isDowithSuccessStatusALL && isTodoSuccessStatusALL) {
+        return TASK_STATUS.ALL_SUCCESS;
+      }
+
+      // task가 모두 대기 상태일 경우
+      if (isDowithWaitStatusALL && isTodoWaitStatusALL) {
+        return TASK_STATUS.ALL_WAIT;
+      }
+
+      // 등록한 task 중 성공 상태가 존재할 경우
+      if (isDowithSuccessStatusExisted || isTodoSuccessStatusExisted) {
+        return TASK_STATUS.ALL_SOME_SUCCESS;
+      }
+
+      return TASK_STATUS.NONE;
+    }
+
+    // 두윗 Task만 등록된 경우
+    if (dowithTasks.length > 0 && todoTasks.length === 0) {
+      // 두윗 task가 모두 실패 상태일 경우
+      if (isDowithFailStatusALL) {
+        return TASK_STATUS.DOWITH_FAIL;
+      }
+
+      // 두윗 task가 모두 성공 상태일 경우
+      if (isDowithSuccessStatusALL) {
+        return TASK_STATUS.DOWITH_SUCCESS;
+      }
+
+      // 두윗 task가 모두 대기 상태일 경우
+      if (isDowithWaitStatusALL) {
+        return TASK_STATUS.DOWITH_WAIT;
+      }
+
+      // 등록한 두윗 task 중 성공 상태가 존재할 경우
+      if (isDowithSuccessStatusExisted) {
+        return TASK_STATUS.DOWITH_SOME_SUCCESS;
+      }
+
+      return TASK_STATUS.NONE;
+    }
+
+    // 투두 Task만 등록된 경우
+    if (dowithTasks.length === 0 && todoTasks.length > 0) {
+      // 투두 task를 모두 실패했을 경우
+      if (isTodoFailStatusALL) {
+        return TASK_STATUS.TODO_FAIL;
+      }
+
+      // 투두 task를 모두 성공했을 경우
+      if (isTodoSuccessStatusALL) {
+        return TASK_STATUS.TODO_SUCCESS;
+      }
+
+      // 투두 task가 모두 대기 상태일 경우
+      if (isTodoWaitStatusALL) {
+        return TASK_STATUS.TODO_WAIT;
+      }
+
+      // 등록한 투두 task 중 성공 상태가 존재할 경우
+      if (isTodoSuccessStatusExisted) {
+        return TASK_STATUS.TODO_SOME_SUCCESS;
+      }
+
+      return TASK_STATUS.NONE;
+    }
+
+    // Task가 등록되지 않았을 경우
+    return TASK_STATUS.NONE;
+  }, []);
 
   const renderDayComponent = ({
     date,
@@ -73,65 +217,49 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
     date?: DateData;
   }) => {
     // const isToday = date?.dateString === todayDateString;
+    const targetDayTaskList = {
+      dowithTasks: taskList?.dowithTasks.filter(task => task.date === date?.dateString) ?? [],
+      todoTasks: taskList?.todoTasks.filter(task => task.date === date?.dateString) ?? [],
+    };
+
+    const { dowithTasks, todoTasks } = targetDayTaskList;
+
+    // 등록한 Task가 있어야만 task 상태 마킹 노출
+    const isStatusMarkingVisible = todoTasks.length > 0 || dowithTasks.length > 0;
 
     return (
-      <TouchableOpacity
-        style={[{ padding: 6 }, date?.dateString === selectedDate && styles.selectedDay]}
-        onPress={handleDayPress(date)}
-      >
-        <View>
-          <Text
-            style={[
-              theme.TYPOGRAPHY.CAPTION_2,
-              date?.dateString === selectedDate && styles.selectedDayText,
-              state === 'disabled' && { color: theme.COLORS.GRAY_SCALE.GRAY_80 },
-            ]}
-          >
-            {date?.day}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  const moveDate = (date: Date, isWeekView: boolean, amount: number) => () => {
-    setCurrentDate(prev =>
-      dayjs(prev)
-        .add(amount, isWeekView ? 'week' : 'month')
-        .format('YYYY-MM-DD'),
-    );
-  };
-
-  const renderCustomHeader = (date: Date) => {
-    return (
-      <View style={styles.customHeaderContainer}>
-        <View style={styles.customHeaderLeft}>
-          <Calendar />
-          <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{dayjs(date).format('YYYY년 MM월')}</Text>
-        </View>
-        <View style={styles.customHeaderRight}>
-          <View style={styles.weekCalendarArrowWrap}>
-            <TouchableOpacity onPress={moveDate(date, isWeekView, -1)}>
-              <ArrowLeft />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={moveDate(date, isWeekView, 1)}>
-              <ArrowRight />
-            </TouchableOpacity>
+      <View style={styles.dayWrap}>
+        <TouchableOpacity
+          style={[styles.calendarDay, date?.dateString === selectedDate && styles.selectedDay]}
+          onPress={handleDayPress(date)}
+        >
+          <View>
+            <Text
+              style={[
+                theme.TYPOGRAPHY.CAPTION_2,
+                date?.dateString === selectedDate && styles.selectedDayText,
+                state === 'disabled' && { color: theme.COLORS.GRAY_SCALE.GRAY_80 },
+              ]}
+            >
+              {date?.day}
+            </Text>
           </View>
-          <Pressable
-            style={{
-              backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96,
-              padding: 10,
-              borderRadius: 8,
-            }}
-            onPress={toggleWeekView}
-          >
-            <Text style={theme.TYPOGRAPHY.CAPTION_2}>{isWeekView ? '주' : '월'}</Text>
-          </Pressable>
-        </View>
+        </TouchableOpacity>
+        {isStatusMarkingVisible && <TaskStatusMarking status={getTaskStatus(targetDayTaskList)} />}
       </View>
     );
   };
+
+  const renderCustomHeader = (date: Date) => (
+    <CustomCalendarHeader
+      type="EXPANDABLE"
+      date={date}
+      isWeekView={isWeekView}
+      setIsWeekView={setIsWeekView}
+      setCurrentDate={setCurrentDate}
+      setSelectedDate={setSelectedDate}
+    />
+  );
 
   return (
     <>
@@ -185,11 +313,11 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
               <CalendarProvider style={styles.calendarWrap} date={currentDate}>
                 <ExpandableCalendar
                   key={isWeekView ? 'isWeekView' : 'monthView'}
-                  style={!isWeekView && { marginBottom: isAos ? -24 : -44 }}
                   initialPosition={isWeekView ? Positions.CLOSED : Positions.OPEN}
                   markedDates={{
                     [selectedDate]: { selected: true },
                   }}
+                  firstDay={FIRST_DAY}
                   dayComponent={renderDayComponent}
                   renderHeader={renderCustomHeader}
                   closeOnDayPress={false}
@@ -198,17 +326,20 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
                   hideKnob
                   disablePan
                 />
+                <View style={{ marginBottom: getCalendarMarginBottom() }} />
                 <View style={{ flex: 1, marginHorizontal: 20 }}>
                   <Divider style={styles.divider} />
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text>{selectedDateKoreanString}</Text>
+                    <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{selectedDateKoreanString}</Text>
                     <TouchableOpacity onPress={handlePressPlusIcon}>
                       <PlusIcon />
                     </TouchableOpacity>
                   </View>
-                  <View style={{ flex: 1, marginTop: 16 }}>
-                    <ListContainerView selectedDate={selectedDate} />
-                  </View>
+                  {selectedDateTaskList ? (
+                    <View style={{ flex: 1, marginTop: 16 }}>
+                      <ListContainerView year={year} month={month} taskList={selectedDateTaskList} />
+                    </View>
+                  ) : null}
                 </View>
               </CalendarProvider>
             </View>
@@ -265,21 +396,19 @@ const styles = StyleSheet.create({
   calendarWrap: {
     marginHorizontal: -20,
   },
-  customHeaderContainer: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  customHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  customHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  contentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  calendarDay: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  weekCalendarArrowWrap: {
-    flexDirection: 'row',
-    gap: 12,
+  dayWrap: {
+    alignItems: 'center',
   },
   selectedDay: {
     backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_40,
-    borderRadius: 10,
+    padding: 8,
+    borderRadius: 14,
   },
   selectedDayText: {
     color: theme.COLORS.DEFAULT.WHITE,
@@ -287,7 +416,8 @@ const styles = StyleSheet.create({
   divider: {
     borderWidth: 0.5,
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
-    marginVertical: 24,
+    marginTop: 12,
+    marginBottom: 24,
   },
 });
 export { Home };
