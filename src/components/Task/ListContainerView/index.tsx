@@ -1,9 +1,8 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { ScrollView } from 'react-native';
-import dayjs from 'dayjs';
 
 import { List } from 'components/Task';
-import { useFetchTaskList } from 'hooks/queries/task/useFetchTaskList';
+import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
 
 // NOTE: 임시 Mock Data
 // const MOCK_DATA = {
@@ -142,28 +141,16 @@ import { useFetchTaskList } from 'hooks/queries/task/useFetchTaskList';
 // };
 
 interface Props {
-  selectedDate: string;
+  year: number;
+  month: number;
+  taskList: fetchTaskListResponseSchemeDataType;
 }
 
-const ListContainerView = ({ selectedDate }: Props) => {
-  const year = dayjs(selectedDate).year();
-  const month = dayjs(selectedDate).month() + 1;
-  const yearMonth = useMemo(() => ({ year, month }), [year, month]);
-  const { data: taskList } = useFetchTaskList(yearMonth);
-
-  const filteredTaskList = taskList
-    ? {
-        dowithTasks: taskList.dowithTasks.filter(task => task.date === selectedDate),
-        todoTasks: taskList.todoTasks.filter(task => task.date === selectedDate),
-      }
-    : null;
-
-  return filteredTaskList ? (
-    <ScrollView contentContainerStyle={{ paddingBottom: 134, gap: 16 }} showsVerticalScrollIndicator={false}>
-      <List type="DOWITH" items={filteredTaskList.dowithTasks} year={year} month={month} />
-      <List type="TODO" items={filteredTaskList.todoTasks} year={year} month={month} />
-    </ScrollView>
-  ) : null;
-};
+const ListContainerView = ({ year, month, taskList }: Props) => (
+  <ScrollView contentContainerStyle={{ paddingBottom: 134, gap: 16 }} showsVerticalScrollIndicator={false}>
+    <List type="DOWITH" items={taskList.dowithTasks} year={year} month={month} />
+    <List type="TODO" items={taskList.todoTasks} year={year} month={month} />
+  </ScrollView>
+);
 
 export { ListContainerView };

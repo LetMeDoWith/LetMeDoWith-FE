@@ -9,12 +9,13 @@ import { theme } from 'styles/theme';
 interface Props {
   type: 'NORMAL' | 'EXPANDABLE';
   date: Date;
+  setCurrentDate: Dispatch<SetStateAction<string>>;
+  setSelectedDate: Dispatch<SetStateAction<string>>;
   isWeekView?: boolean;
   setIsWeekView?: Dispatch<SetStateAction<boolean>>;
-  setCurrentDate: Dispatch<SetStateAction<string>>;
 }
 
-const CustomCalendarHeader = ({ type, date, isWeekView, setIsWeekView, setCurrentDate }: Props) => {
+const CustomCalendarHeader = ({ type, date, setCurrentDate, setSelectedDate, isWeekView, setIsWeekView }: Props) => {
   const isExpandableType = type === 'EXPANDABLE';
 
   const moveDate = (date: Date, amount: number, isWeekView?: boolean) => () => {
@@ -33,11 +34,22 @@ const CustomCalendarHeader = ({ type, date, isWeekView, setIsWeekView, setCurren
     setIsWeekView(!isWeekView);
   };
 
+  const handleTodayButton = () => {
+    const today = dayjs().format('YYYY-MM-DD');
+    setSelectedDate(today);
+    setCurrentDate(today);
+  };
+
   return (
     <View style={styles.customHeaderContainer}>
       <View style={styles.customHeaderLeft}>
         {isExpandableType && <Calendar />}
         <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{dayjs(date).format('YYYY년 MM월')}</Text>
+        {isExpandableType && (
+          <TouchableOpacity style={styles.todayButton} onPress={handleTodayButton}>
+            <Text style={theme.TYPOGRAPHY.CAPTION_2}>오늘</Text>
+          </TouchableOpacity>
+        )}
       </View>
       <View style={styles.customHeaderRight}>
         <View style={styles.weekCalendarArrowWrap}>
@@ -73,6 +85,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   customHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  todayButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
   customHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   weekCalendarArrowWrap: {
     flexDirection: 'row',

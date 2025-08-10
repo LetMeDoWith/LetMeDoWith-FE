@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import dayjs from 'dayjs';
 import { Divider } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
-import { LocaleConfig } from 'react-native-calendars/src';
 import { Positions } from 'react-native-calendars/src/expandableCalendar';
 import type { DateData } from 'react-native-calendars/src/types';
 import type { DayProps } from 'react-native-calendars/src/calendar/day';
@@ -20,16 +19,11 @@ import { ListContainerView } from 'components/Task/ListContainerView';
 import type { HomeTabScreenProps } from 'types/shared';
 import { FeedbackNotification } from 'components/common/icons/FeedbackNotification';
 import { CustomCalendarHeader } from 'components/Task';
-
-LocaleConfig.locales.kr = {
-  monthNames: ['01월', '02월', '03월', '04월', '05월', '06월', '07월', '08월', '09월', '10월', '11월', '12월'],
-  monthNamesShort: ['01월', '02월', '03월', '04월', '05월', '06월', '07월', '08월', '09월', '10월', '11월', '12월'],
-  dayNames: ['화요일', '수요일', '목요일', '금요일', '토요일', '일요일', '월요일'],
-  dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
-  today: '오늘',
-};
-
-LocaleConfig.defaultLocale = 'kr';
+import { TaskStatusMarking } from 'components/common/icons/TaskStatusMarking';
+import { useFetchTaskList } from 'hooks/queries/task/useFetchTaskList';
+import { TASK_STATUS_ENUM } from 'schemes/task/enum';
+import { TASK_STATUS } from 'constants/Task';
+import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
 
 const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   const { top } = useSafeAreaInsets();
@@ -37,8 +31,19 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   const [currentDate, setCurrentDate] = useState(todayDateString);
   const [selectedDate, setSelectedDate] = useState(todayDateString);
   const [isWeekView, setIsWeekView] = useState(true);
+  const selectedDateKoreanString = dayjs(selectedDate).format('YYYY년 MM월 DD일 dddd');
 
-  const selectedDateKoreanString = dayjs(selectedDate).format('YYYY년 MM월 DD일');
+  const year = dayjs(selectedDate).year();
+  const month = dayjs(selectedDate).month() + 1;
+  const yearMonth = useMemo(() => ({ year, month }), [year, month]);
+
+  const { data: taskList } = useFetchTaskList(yearMonth);
+  const selectedDateTaskList = taskList
+    ? {
+        dowithTasks: taskList.dowithTasks.filter(task => task.date === selectedDate),
+        todoTasks: taskList.todoTasks.filter(task => task.date === selectedDate),
+      }
+    : null;
 
   const handleBadge = () => {
     console.log('대표 뱃지 클릭');
@@ -49,7 +54,7 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   };
 
   const handlePressPlusIcon = () => {
-    navigate('TASK_FORM');
+    navigate('TASK_FORM', { date: selectedDate });
   };
 
   const handleDayPress = (date?: DateData) => () => {
@@ -60,6 +65,109 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
     setSelectedDate(date.dateString);
   };
 
+  const getCalendarMarginBottom = () => {
+    // 주간 캘린더일 때
+    if (isWeekView) {
+      const startOfWeek = dayjs(currentDate).startOf('week');
+      const weekDates = Array.from({ length: 7 }, (_, i) => startOfWeek.add(i, 'day').format('YYYY-MM-DD'));
+
+      if (!taskList) {
+        return 0;
+      }
+
+      return weekDates.some(
+        dateString =>
+          taskList.dowithTasks.some(task => task.date === dateString) ||
+          taskList.todoTasks.some(task => task.date === dateString),
+      )
+        ? 24
+        : 0;
+    }
+
+    // TODO: 캘린더에 보이는 마지막주에 task가 있는지 확인 필요(실제 캘린더 마지막주 X)
+    // 월간 캘린더일 때
+    const date = dayjs(currentDate);
+    const lastDay = date.endOf('month');
+    const lastWeekStart = lastDay.startOf('week'); // 일요일 시작
+    const lastWeekDates = Array.from({ length: 7 }, (_, i) => lastWeekStart.add(i, 'day').format('YYYY-MM-DD'));
+
+    if (!taskList) {
+      return 0;
+    }
+
+    return lastWeekDates.some(
+      dateString =>
+        taskList.dowithTasks.some(task => task.date === dateString) ||
+        taskList.todoTasks.some(task => task.date === dateString),
+    )
+      ? 50
+      : 0;
+  };
+
+  const getTaskStatus = useCallback((taskList: fetchTaskListResponseSchemeDataType) => {
+    const { dowithTasks, todoTasks } = taskList;
+    const isDowithFailStatusExisted = dowithTasks.some(({ status }) => status === TASK_STATUS_ENUM.enum.FAIL);
+    const isDowithWaitStatusALL = dowithTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.WAIT);
+    const isTodoFailStatusExisted = todoTasks.some(({ status }) => status === TASK_STATUS_ENUM.enum.FAIL);
+    const isTodoWaitStatusALL = todoTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.WAIT);
+
+    // 모든 종류의 task가 등록된 경우
+    if (dowithTasks.length > 0 && todoTasks.length > 0) {
+      // 모든 종류의 task에 실패 상태가 존재할 경우
+      if (isDowithFailStatusExisted && isTodoFailStatusExisted) {
+        return TASK_STATUS.ALL_FAIL;
+      }
+
+      // task가 모두 대기 상태일 경우
+      if (isDowithWaitStatusALL && isTodoWaitStatusALL) {
+        return TASK_STATUS.ALL_WAIT;
+      }
+
+      // 투두 task만 실패 상태가 존재할 경우
+      if (isDowithFailStatusExisted && !isTodoFailStatusExisted) {
+        return TASK_STATUS.ONLY_DOWITH_SUCCESS;
+      }
+
+      // 두윗 task만 실패 상태가 존재할 경우
+      if (!isDowithFailStatusExisted && isTodoFailStatusExisted) {
+        return TASK_STATUS.ONLY_TODO_SUCCESS;
+      }
+
+      return TASK_STATUS.ALL_SUCCESS;
+    }
+
+    // 두윗 Task만 등록된 경우
+    if (dowithTasks.length > 0 && todoTasks.length === 0) {
+      if (isDowithFailStatusExisted) {
+        return TASK_STATUS.DOWITH_FAIL;
+      }
+
+      // 두윗 task가 모두 대기 상태일 경우
+      if (isDowithWaitStatusALL) {
+        return TASK_STATUS.DOWITH_WAIT;
+      }
+
+      return TASK_STATUS.DOWITH_SUCCESS;
+    }
+
+    // 투두 Task만 등록된 경우
+    if (dowithTasks.length === 0 && todoTasks.length > 0) {
+      if (isTodoFailStatusExisted) {
+        return TASK_STATUS.TODO_FAIL;
+      }
+
+      // 투두 task가 모두 대기 상태일 경우
+      if (isTodoWaitStatusALL) {
+        return TASK_STATUS.TODO_WAIT;
+      }
+
+      return TASK_STATUS.TODO_SUCCESS;
+    }
+
+    // Task가 등록되지 않았을 경우
+    return TASK_STATUS.NONE;
+  }, []);
+
   const renderDayComponent = ({
     date,
     state,
@@ -68,24 +176,36 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
     date?: DateData;
   }) => {
     // const isToday = date?.dateString === todayDateString;
+    const targetDayTaskList = {
+      dowithTasks: taskList?.dowithTasks.filter(task => task.date === date?.dateString) ?? [],
+      todoTasks: taskList?.todoTasks.filter(task => task.date === date?.dateString) ?? [],
+    };
+
+    const { dowithTasks, todoTasks } = targetDayTaskList;
+
+    // 등록한 Task가 있어야만 task 상태 마킹 노출
+    const isStatusMarkingVisible = todoTasks.length > 0 || dowithTasks.length > 0;
 
     return (
-      <TouchableOpacity
-        style={[{ padding: 6, overflow: 'hidden' }, date?.dateString === selectedDate && styles.selectedDay]}
-        onPress={handleDayPress(date)}
-      >
-        <View>
-          <Text
-            style={[
-              theme.TYPOGRAPHY.CAPTION_2,
-              date?.dateString === selectedDate && styles.selectedDayText,
-              state === 'disabled' && { color: theme.COLORS.GRAY_SCALE.GRAY_80 },
-            ]}
-          >
-            {date?.day}
-          </Text>
-        </View>
-      </TouchableOpacity>
+      <View style={styles.dayWrap}>
+        <TouchableOpacity
+          style={[styles.calendarDay, date?.dateString === selectedDate && styles.selectedDay]}
+          onPress={handleDayPress(date)}
+        >
+          <View>
+            <Text
+              style={[
+                theme.TYPOGRAPHY.CAPTION_2,
+                date?.dateString === selectedDate && styles.selectedDayText,
+                state === 'disabled' && { color: theme.COLORS.GRAY_SCALE.GRAY_80 },
+              ]}
+            >
+              {date?.day}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        {isStatusMarkingVisible && <TaskStatusMarking status={getTaskStatus(targetDayTaskList)} />}
+      </View>
     );
   };
 
@@ -96,6 +216,7 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
       isWeekView={isWeekView}
       setIsWeekView={setIsWeekView}
       setCurrentDate={setCurrentDate}
+      setSelectedDate={setSelectedDate}
     />
   );
 
@@ -164,17 +285,20 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
                   hideKnob
                   disablePan
                 />
+                <View style={{ marginBottom: getCalendarMarginBottom() }} />
                 <View style={{ flex: 1, marginHorizontal: 20 }}>
                   <Divider style={styles.divider} />
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text>{selectedDateKoreanString}</Text>
+                    <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{selectedDateKoreanString}</Text>
                     <TouchableOpacity onPress={handlePressPlusIcon}>
                       <PlusIcon />
                     </TouchableOpacity>
                   </View>
-                  <View style={{ flex: 1, marginTop: 16 }}>
-                    <ListContainerView selectedDate={selectedDate} />
-                  </View>
+                  {selectedDateTaskList ? (
+                    <View style={{ flex: 1, marginTop: 16 }}>
+                      <ListContainerView year={year} month={month} taskList={selectedDateTaskList} />
+                    </View>
+                  ) : null}
                 </View>
               </CalendarProvider>
             </View>
@@ -231,10 +355,20 @@ const styles = StyleSheet.create({
   calendarWrap: {
     marginHorizontal: -20,
   },
+  calendarDay: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dayWrap: {
+    gap: 4,
+    alignItems: 'center',
+  },
   selectedDay: {
     backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_40,
     padding: 8,
-    borderRadius: 10,
+    borderRadius: 14,
   },
   selectedDayText: {
     color: theme.COLORS.DEFAULT.WHITE,
@@ -242,7 +376,8 @@ const styles = StyleSheet.create({
   divider: {
     borderWidth: 0.5,
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
-    marginVertical: 24,
+    marginTop: 12,
+    marginBottom: 24,
   },
 });
 export { Home };
