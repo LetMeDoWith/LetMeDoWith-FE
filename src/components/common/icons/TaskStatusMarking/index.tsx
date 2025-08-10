@@ -1,89 +1,121 @@
 import React from 'react';
-import Svg, { Path, SvgProps } from 'react-native-svg';
+import Svg, { Defs, LinearGradient, Path, Rect, Stop, SvgProps } from 'react-native-svg';
 
 import { theme } from 'styles/theme';
 import { TASK_STATUS } from 'constants/Task';
 
 type TaskStatus = keyof typeof TASK_STATUS;
 
-const getMarkPathColor = (status: TaskStatus) => {
+const getMarkFillColor = (status: TaskStatus) => {
   switch (status) {
+    case 'TODO_WAIT':
+      return {
+        left: 'none',
+        right: 'none',
+        backgroundLeft: theme.COLORS.SECONDARY.BLUE_95,
+        backgroundRight: theme.COLORS.SECONDARY.BLUE_95,
+      };
+    case 'TODO_FAIL':
+    case 'TODO_SOME_SUCCESS':
+      return {
+        left: theme.COLORS.GRAY_SCALE.GRAY_80,
+        right: theme.COLORS.GRAY_SCALE.GRAY_80,
+        backgroundLeft: theme.COLORS.SECONDARY.BLUE_95,
+        backgroundRight: theme.COLORS.SECONDARY.BLUE_95,
+      };
     case 'TODO_SUCCESS':
       return {
         left: theme.COLORS.SECONDARY.BLUE_60,
         right: theme.COLORS.SECONDARY.BLUE_60,
-        center: theme.COLORS.SECONDARY.BLUE_60,
-        shadow: theme.COLORS.SECONDARY.BLUE_60,
+        backgroundLeft: theme.COLORS.SECONDARY.BLUE_95,
+        backgroundRight: theme.COLORS.SECONDARY.BLUE_95,
       };
-    case 'ONLY_TODO_SUCCESS':
+    case 'DOWITH_WAIT':
       return {
-        left: theme.COLORS.GRAY_SCALE.GRAY_92,
-        right: theme.COLORS.SECONDARY.BLUE_60,
-        center: theme.COLORS.SECONDARY.BLUE_60,
-        shadow: theme.COLORS.DEFAULT.BLACK,
+        left: 'none',
+        right: 'none',
+        backgroundLeft: theme.COLORS.PRIMARY.RED_98,
+        backgroundRight: theme.COLORS.PRIMARY.RED_98,
+      };
+    case 'DOWITH_FAIL':
+    case 'DOWITH_SOME_SUCCESS':
+      return {
+        left: theme.COLORS.GRAY_SCALE.GRAY_80,
+        right: theme.COLORS.GRAY_SCALE.GRAY_80,
+        backgroundLeft: theme.COLORS.PRIMARY.RED_98,
+        backgroundRight: theme.COLORS.PRIMARY.RED_98,
       };
     case 'DOWITH_SUCCESS':
       return {
         left: theme.COLORS.PRIMARY.RED_60,
         right: theme.COLORS.PRIMARY.RED_60,
-        center: theme.COLORS.PRIMARY.RED_60,
-        shadow: theme.COLORS.PRIMARY.RED_60,
+        backgroundLeft: theme.COLORS.PRIMARY.RED_98,
+        backgroundRight: theme.COLORS.PRIMARY.RED_98,
       };
-    case 'ONLY_DOWITH_SUCCESS':
+    case 'ALL_WAIT':
       return {
-        left: theme.COLORS.PRIMARY.RED_60,
-        right: theme.COLORS.GRAY_SCALE.GRAY_92,
-        center: theme.COLORS.PRIMARY.RED_60,
-        shadow: theme.COLORS.DEFAULT.BLACK,
+        left: 'none',
+        right: 'none',
+        backgroundLeft: theme.COLORS.PRIMARY.RED_98,
+        backgroundRight: theme.COLORS.SECONDARY.BLUE_95,
+      };
+    case 'ALL_FAIL':
+    case 'ALL_SOME_SUCCESS':
+      return {
+        left: theme.COLORS.GRAY_SCALE.GRAY_80,
+        right: theme.COLORS.GRAY_SCALE.GRAY_80,
+        backgroundLeft: theme.COLORS.PRIMARY.RED_98,
+        backgroundRight: theme.COLORS.SECONDARY.BLUE_95,
       };
     case 'ALL_SUCCESS':
       return {
         left: theme.COLORS.PRIMARY.RED_60,
         right: theme.COLORS.SECONDARY.BLUE_60,
-        center: theme.COLORS.PRIMARY.RED_60,
-        shadow: theme.COLORS.DEFAULT.BLACK,
+        backgroundLeft: theme.COLORS.PRIMARY.RED_98,
+        backgroundRight: theme.COLORS.SECONDARY.BLUE_95,
       };
     default:
       return {
-        left: theme.COLORS.GRAY_SCALE.GRAY_92,
-        right: theme.COLORS.GRAY_SCALE.GRAY_92,
-        center: theme.COLORS.GRAY_SCALE.GRAY_92,
-        shadow: theme.COLORS.GRAY_SCALE.GRAY_92,
+        left: 'none',
+        right: 'none',
+        backgroundLeft: 'none',
+        backgroundRight: 'none',
       };
   }
 };
 
 const TaskStatusMarking = ({
-  width = 18,
-  height = 18,
+  width = 20,
+  height = 21,
   status,
 }: Pick<SvgProps, 'width' | 'height'> & { status: TaskStatus }) => (
-  <Svg width={width} height={height} viewBox="0 0 18 18" fill="none">
+  <Svg width={width} height={height} viewBox="0 0 20 21" fill="none">
+    <Rect y="0.75" width="20" height="20" rx="8" fill="url(#paint0_linear_17417_94418)" />
     <Path
       fillRule="evenodd"
       clipRule="evenodd"
-      d="M15.3166 5.01545C14.4054 4.10423 12.928 4.10423 12.0168 5.01545L7.35008 9.68212C6.43886 10.5933 6.43886 12.0707 7.35008 12.9819C8.26131 13.8932 9.73869 13.8932 10.6499 12.9819L15.3166 8.31528C16.2278 7.40406 16.2278 5.92667 15.3166 5.01545Z"
-      fill={getMarkPathColor(status).right}
+      d="M15.0748 7.54917C14.3426 6.81694 13.1554 6.81694 12.4232 7.54917L8.6732 11.2992C7.94097 12.0314 7.94097 13.2186 8.6732 13.9508C9.40543 14.6831 10.5926 14.6831 11.3248 13.9508L15.0748 10.2008C15.8071 9.46859 15.8071 8.28141 15.0748 7.54917Z"
+      fill={getMarkFillColor(status).right}
     />
     <Path
       fillRule="evenodd"
       clipRule="evenodd"
-      d="M2.68342 5.01545C3.59464 4.10423 5.07203 4.10423 5.98325 5.01545L10.6499 9.68212C11.5611 10.5933 11.5611 12.0707 10.6499 12.9819C9.73869 13.8932 8.26131 13.8932 7.35008 12.9819L2.68342 8.31528C1.77219 7.40406 1.77219 5.92667 2.68342 5.01545Z"
-      fill={getMarkPathColor(status).left}
+      d="M4.92417 7.54917C5.65641 6.81694 6.84359 6.81694 7.57583 7.54917L11.3258 11.2992C12.0581 12.0314 12.0581 13.2186 11.3258 13.9508C10.5936 14.6831 9.40641 14.6831 8.67417 13.9508L4.92417 10.2008C4.19194 9.46859 4.19194 8.28141 4.92417 7.54917Z"
+      fill={getMarkFillColor(status).left}
     />
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M10.6495 9.68507L8.99959 8.03516L7.34968 9.68507C6.43845 10.5963 6.43845 12.0737 7.34968 12.9849C7.46358 13.0988 7.58633 13.1985 7.71571 13.2839C8.6214 13.8819 9.85219 13.7822 10.6495 12.9849C11.5607 12.0737 11.5607 10.5963 10.6495 9.68507Z"
-      fill={getMarkPathColor(status).center}
-    />
-    <Path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M10.6495 9.68507L8.99959 8.03516L7.34968 9.68507C6.43845 10.5963 6.43845 12.0737 7.34968 12.9849C7.46358 13.0988 7.58633 13.1985 7.71571 13.2839C8.6214 13.8819 9.85219 13.7822 10.6495 12.9849C11.5607 12.0737 11.5607 10.5963 10.6495 9.68507Z"
-      fill={getMarkPathColor(status).shadow}
-      fillOpacity="0.2"
-    />
+    <Defs>
+      <LinearGradient
+        id="paint0_linear_17417_94418"
+        x1="2.5"
+        y1="2.75"
+        x2="17.5"
+        y2="19.25"
+        gradientUnits="userSpaceOnUse"
+      >
+        <Stop stopColor={getMarkFillColor(status).backgroundLeft} />
+        <Stop offset="1" stopColor={getMarkFillColor(status).backgroundRight} />
+      </LinearGradient>
+    </Defs>
   </Svg>
 );
 

@@ -25,6 +25,9 @@ import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { TASK_STATUS } from 'constants/Task';
 import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
 
+// 요일 시작: 0=일, 1=월
+const FIRST_DAY = 0;
+
 const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   const { top } = useSafeAreaInsets();
   const todayDateString = dayjs().format('YYYY-MM-DD');
@@ -65,57 +68,78 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
     setSelectedDate(date.dateString);
   };
 
+  const startOfWeek = (targetDay: dayjs.Dayjs, firstDay: number) => {
+    const diff = (targetDay.day() - firstDay + 7) % 7;
+    return targetDay.subtract(diff, 'day');
+  };
+
+  // 월뷰에서 실제로 "보이는 마지막 주" 7일(압축 규칙 반영)
+  const getLastVisibleWeekDates = (current: string, firstDay: number) => {
+    // 달의 마지막 날
+    const end = dayjs(current).endOf('month');
+    // 압축되면 직전 주가 마지막 줄
+    const base = end.day() === firstDay ? end.subtract(1, 'day') : end;
+    const start = startOfWeek(base, firstDay);
+    return Array.from({ length: 7 }, (_, i) => start.add(i, 'day').format('YYYY-MM-DD'));
+  };
+
+  // 이번 달이 화면에 몇 줄로 보이는지 계산
+  const getWeeksCount = (current: string, firstDay: number) => {
+    const currentDate = dayjs(current);
+    const gridStart = startOfWeek(currentDate.startOf('month'), firstDay);
+    // 마지막 보이는 토/일까지
+    const gridEnd = startOfWeek(currentDate.endOf('month'), firstDay).add(6, 'day');
+    return Math.round(gridEnd.diff(gridStart, 'day') / 7) + 1;
+  };
+
+  const hasIconOnDates = (dates: string[], taskList?: fetchTaskListResponseSchemeDataType) =>
+    !!taskList &&
+    dates.some(
+      date =>
+        taskList.dowithTasks.some(task => task.date === date) || taskList.todoTasks.some(task => task.date === date),
+    );
+
   const getCalendarMarginBottom = () => {
-    // 주간 캘린더일 때
+    // 주간 보기
     if (isWeekView) {
-      const startOfWeek = dayjs(currentDate).startOf('week');
-      const weekDates = Array.from({ length: 7 }, (_, i) => startOfWeek.add(i, 'day').format('YYYY-MM-DD'));
-
-      if (!taskList) {
-        return 0;
-      }
-
-      return weekDates.some(
-        dateString =>
-          taskList.dowithTasks.some(task => task.date === dateString) ||
-          taskList.todoTasks.some(task => task.date === dateString),
-      )
-        ? 24
-        : 0;
+      const weekStart = startOfWeek(dayjs(currentDate), FIRST_DAY);
+      const weekDates = Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day').format('YYYY-MM-DD'));
+      return hasIconOnDates(weekDates, taskList) ? 30 : 0;
     }
 
-    // TODO: 캘린더에 보이는 마지막주에 task가 있는지 확인 필요(실제 캘린더 마지막주 X)
-    // 월간 캘린더일 때
-    const date = dayjs(currentDate);
-    const lastDay = date.endOf('month');
-    const lastWeekStart = lastDay.startOf('week'); // 일요일 시작
-    const lastWeekDates = Array.from({ length: 7 }, (_, i) => lastWeekStart.add(i, 'day').format('YYYY-MM-DD'));
+    // 월간 보기
+    const lastWeekDates = getLastVisibleWeekDates(currentDate, FIRST_DAY);
+    const weeks = getWeeksCount(currentDate, FIRST_DAY); // 5 또는 6
+    const lastRowHasIcon = hasIconOnDates(lastWeekDates, taskList);
 
-    if (!taskList) {
-      return 0;
+    if (weeks === 7) {
+      return lastRowHasIcon ? 10 : -10;
+    } else {
+      return lastRowHasIcon ? -40 : -60;
     }
-
-    return lastWeekDates.some(
-      dateString =>
-        taskList.dowithTasks.some(task => task.date === dateString) ||
-        taskList.todoTasks.some(task => task.date === dateString),
-    )
-      ? 50
-      : 0;
   };
 
   const getTaskStatus = useCallback((taskList: fetchTaskListResponseSchemeDataType) => {
     const { dowithTasks, todoTasks } = taskList;
-    const isDowithFailStatusExisted = dowithTasks.some(({ status }) => status === TASK_STATUS_ENUM.enum.FAIL);
+    const isDowithSuccessStatusExisted = dowithTasks.some(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
+    const isDowithFailStatusALL = dowithTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.FAIL);
+    const isDowithSuccessStatusALL = dowithTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
     const isDowithWaitStatusALL = dowithTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.WAIT);
-    const isTodoFailStatusExisted = todoTasks.some(({ status }) => status === TASK_STATUS_ENUM.enum.FAIL);
+    const isTodoSuccessStatusExisted = todoTasks.some(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
+    const isTodoFailStatusALL = todoTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.FAIL);
+    const isTodoSuccessStatusALL = todoTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
     const isTodoWaitStatusALL = todoTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.WAIT);
 
     // 모든 종류의 task가 등록된 경우
     if (dowithTasks.length > 0 && todoTasks.length > 0) {
-      // 모든 종류의 task에 실패 상태가 존재할 경우
-      if (isDowithFailStatusExisted && isTodoFailStatusExisted) {
+      // 모든 종류의 task가 실패 상태일 경우
+      if (isDowithFailStatusALL && isTodoFailStatusALL) {
         return TASK_STATUS.ALL_FAIL;
+      }
+
+      // 모든 종류의 task가 성공 상태일 경우
+      if (isDowithSuccessStatusALL && isTodoSuccessStatusALL) {
+        return TASK_STATUS.ALL_SUCCESS;
       }
 
       // task가 모두 대기 상태일 경우
@@ -123,23 +147,24 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
         return TASK_STATUS.ALL_WAIT;
       }
 
-      // 투두 task만 실패 상태가 존재할 경우
-      if (isDowithFailStatusExisted && !isTodoFailStatusExisted) {
-        return TASK_STATUS.ONLY_DOWITH_SUCCESS;
+      // 등록한 task 중 성공 상태가 존재할 경우
+      if (isDowithSuccessStatusExisted || isTodoSuccessStatusExisted) {
+        return TASK_STATUS.ALL_SOME_SUCCESS;
       }
 
-      // 두윗 task만 실패 상태가 존재할 경우
-      if (!isDowithFailStatusExisted && isTodoFailStatusExisted) {
-        return TASK_STATUS.ONLY_TODO_SUCCESS;
-      }
-
-      return TASK_STATUS.ALL_SUCCESS;
+      return TASK_STATUS.NONE;
     }
 
     // 두윗 Task만 등록된 경우
     if (dowithTasks.length > 0 && todoTasks.length === 0) {
-      if (isDowithFailStatusExisted) {
+      // 두윗 task가 모두 실패 상태일 경우
+      if (isDowithFailStatusALL) {
         return TASK_STATUS.DOWITH_FAIL;
+      }
+
+      // 두윗 task가 모두 성공 상태일 경우
+      if (isDowithSuccessStatusALL) {
+        return TASK_STATUS.DOWITH_SUCCESS;
       }
 
       // 두윗 task가 모두 대기 상태일 경우
@@ -147,13 +172,24 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
         return TASK_STATUS.DOWITH_WAIT;
       }
 
-      return TASK_STATUS.DOWITH_SUCCESS;
+      // 등록한 두윗 task 중 성공 상태가 존재할 경우
+      if (isDowithSuccessStatusExisted) {
+        return TASK_STATUS.DOWITH_SOME_SUCCESS;
+      }
+
+      return TASK_STATUS.NONE;
     }
 
     // 투두 Task만 등록된 경우
     if (dowithTasks.length === 0 && todoTasks.length > 0) {
-      if (isTodoFailStatusExisted) {
+      // 투두 task를 모두 실패했을 경우
+      if (isTodoFailStatusALL) {
         return TASK_STATUS.TODO_FAIL;
+      }
+
+      // 투두 task를 모두 성공했을 경우
+      if (isTodoSuccessStatusALL) {
+        return TASK_STATUS.TODO_SUCCESS;
       }
 
       // 투두 task가 모두 대기 상태일 경우
@@ -161,7 +197,12 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
         return TASK_STATUS.TODO_WAIT;
       }
 
-      return TASK_STATUS.TODO_SUCCESS;
+      // 등록한 투두 task 중 성공 상태가 존재할 경우
+      if (isTodoSuccessStatusExisted) {
+        return TASK_STATUS.TODO_SOME_SUCCESS;
+      }
+
+      return TASK_STATUS.NONE;
     }
 
     // Task가 등록되지 않았을 경우
@@ -272,11 +313,11 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
               <CalendarProvider style={styles.calendarWrap} date={currentDate}>
                 <ExpandableCalendar
                   key={isWeekView ? 'isWeekView' : 'monthView'}
-                  style={!isWeekView && { marginBottom: isAos ? -24 : -44 }}
                   initialPosition={isWeekView ? Positions.CLOSED : Positions.OPEN}
                   markedDates={{
                     [selectedDate]: { selected: true },
                   }}
+                  firstDay={FIRST_DAY}
                   dayComponent={renderDayComponent}
                   renderHeader={renderCustomHeader}
                   closeOnDayPress={false}
@@ -362,7 +403,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dayWrap: {
-    gap: 4,
     alignItems: 'center',
   },
   selectedDay: {
