@@ -285,6 +285,7 @@ const Form = () => {
         modal
         open={datePickerOpen}
         mode="time"
+        minuteInterval={5}
         locale="ko-KR"
         date={dayjs().toDate()}
         minimumDate={dayjs().toDate()}
