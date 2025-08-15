@@ -7,10 +7,14 @@ import { theme } from 'styles/theme';
 import type { SignUpStackParamList } from 'types/shared';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { BackButton } from 'components/common/Header/BackButton';
+import { useAuthStore } from 'stores/auth';
 
 const SignupStackNavigator = () => {
   const { Navigator, Screen } = createStackNavigator<SignUpStackParamList>();
   const { showDialog, hideDialog } = useDialog();
+  const { initAuthInfo } = useAuthStore(({ actions: { initAuthInfo } }) => ({
+    initAuthInfo,
+  }));
 
   return (
     <Navigator
@@ -35,6 +39,10 @@ const SignupStackNavigator = () => {
                   content: '지금까지 입력한 정보는 저장되지 않아요.\n그래도 나가시겠어요?',
                   leftButtonText: '네',
                   rightButtonText: '아니요',
+                  handleLeftButton: () => {
+                    hideDialog();
+                    initAuthInfo();
+                  },
                   handleRightButton: hideDialog,
                 })
               }

@@ -125,14 +125,12 @@ const useAuthStore = create<State & { actions: Action }>()(
               setIsLoggedIn(false);
             }
           }
-          setIsNeedSignUp(false);
 
           // 액세스 토큰, refresh 토큰이 존재하는 경우
           if (tokenInfo.access && tokenInfo.refresh) {
             // 액세스 토큰이 만료 된 경우
             if (dayjs().isAfter(tokenInfo.access.expireAt)) {
               setIsLoggedIn(false);
-              setIsNeedSignUp(false);
 
               // refresh 토큰이 만료되지 않았을 경우
               if (dayjs().isBefore(tokenInfo.refresh.expireAt)) {
@@ -141,6 +139,8 @@ const useAuthStore = create<State & { actions: Action }>()(
                 // refresh 토큰이 만료되었을 경우 인증 정보 상태 및 스토리지 초기화
                 initAuthInfo();
               }
+            } else {
+              setIsNeedSignUp(false);
             }
           }
 
