@@ -1,11 +1,11 @@
 buildscript {
     ext {
         buildToolsVersion = "34.0.0"
-        minSdkVersion = 23
+        minSdkVersion = 21
         compileSdkVersion = 34
         targetSdkVersion = 34
         ndkVersion = "25.1.8937393"
-        kotlinVersion = "1.9.24"
+        kotlinVersion = "1.8.0"
         googlePlayServicesAuthVersion = "20.7.0"
     }
     repositories {
@@ -13,46 +13,11 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.6.0")
+        classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
         classpath 'com.google.gms:google-services:4.4.1'
     }
 }
 
-// 모든 서브프로젝트에 적용
-subprojects { proj ->
-  // 일부 플러그인은 afterEvaluate 이후에 의존성 잡음 → 안전하게 afterEvaluate
-  afterEvaluate {
-    configurations.all {
-      resolutionStrategy {
-        // Kotlin stdlib을 1.9.24로 통일 (2.1.0 유입 차단의 핵심)
-        force "org.jetbrains.kotlin:kotlin-stdlib:1.9.24"
-        force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.24"
-        force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.24"
-
-        // measurement 23.x가 Kotlin 2.1 메타데이터임 → 22.x로 고정 (필요시)
-        force "com.google.android.gms:play-services-measurement-api:22.0.2"
-        force "com.google.android.gms:play-services-measurement-impl:22.0.2"
-
-        // 혹시 다른 경로로 올라오는 버전도 덮어쓰기
-        eachDependency { details ->
-          if (details.requested.group == "org.jetbrains.kotlin"
-              && details.requested.name.startsWith("kotlin-stdlib")
-              && details.requested.version != "1.9.24") {
-            details.useVersion "1.9.24"
-          }
-          if (details.requested.group == "com.google.android.gms"
-              && details.requested.name.startsWith("play-services-measurement")
-              && details.requested.version != "22.0.2") {
-            details.useVersion "22.0.2"
-          }
-        }
-      }
-    }
-  }
-}
-
 apply plugin: "com.facebook.react.rootproject"
-
-
