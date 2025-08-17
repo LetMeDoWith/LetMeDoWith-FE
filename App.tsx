@@ -118,16 +118,6 @@ function AppContent() {
       mutateRefreshToken(
         { refreshToken: tokenInfo.refresh.token },
         {
-          onSuccess: ({ data }) => {
-            if (!data.accessToken || !data.refreshToken) {
-              return;
-            }
-            // 토큰 재발급이 완료 되었을 경우
-            setTokenInfo({ access: data.accessToken, refresh: data.refreshToken });
-            setIsLoggedIn(true);
-            setIsNeedRefreshToken(false);
-            setIsNeedSignUp(false);
-          },
           onSettled: () => {
             isTokenRefreshingRef.current = false;
           },
