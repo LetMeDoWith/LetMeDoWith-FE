@@ -181,8 +181,6 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
                   <Text style={[styles.label, errors.dateOfBirth && styles.error]}>생년월일</Text>
                   <Pressable
                     onPress={() => {
-                      // 가상 키보드 숨김
-                      Keyboard.dismiss();
                       dateTimePickerRef.current?.present();
                     }}
                   >
