@@ -7,19 +7,16 @@ require Pod::Executable.execute_command('node', ['-p',
   __dir__
 ]).strip
 
-# iOS 최소 지원 버전을 React Native 스크립트가 자동으로 채워줌
-platform :ios, min_ios_version_supported
+
+# iOS 최소 지원 버전 지정
+platform :ios, '15.0'
 prepare_react_native_project!
 
-# Flipper 설정 (NO_FLIPPER=1 로 비활성화 가능)
-flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
+# Flipper Off
+flipper_config = FlipperConfiguration.disabled
 
-# -- 만약 USE_FRAMEWORKS 환경 변수를 넣어서 동적 프레임워크를 쓰고 싶다면 아래 주석을 해제 -- #
-# linkage = ENV['USE_FRAMEWORKS']
-# if linkage
-#   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-#   use_frameworks! :linkage => linkage.to_sym
-# end
+# 정적 프레임워크(Flipper-Boost와 충돌 안 남, 모듈맵 생성 용이)
+use_frameworks! :linkage => :static
 
 target 'LetMeDoWith' do
   # 자동으로 link할 네이티브 모듈 설정 정보 로드
@@ -27,11 +24,21 @@ target 'LetMeDoWith' do
 
   use_react_native!(
     :path => config[:reactNativePath],
-    :hermes_enabled => false,
+    :hermes_enabled => true,
     :flipper_configuration => flipper_config,
     # 실제 앱 경로 (Podfile 위치 기준 상위 폴더)
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+
+  # --- RNFB 18.9.0과 맞추기: Firebase 혼합 방지 (10.20.0 고정) ---
+  $FB = '10.20.0'
+  pod 'FirebaseCoreInternal',  $FB
+  pod 'FirebaseInstallations', $FB
+  # Swift + 정적 통합 시 모듈 문제 예방
+  pod 'GoogleUtilities',     :modular_headers => true
+  pod 'GoogleDataTransport', :modular_headers => true
+  pod 'PromisesObjC',        :modular_headers => true
+  # -------------------------------------------------------------
 
   # 테스트 대상
   target 'LetMeDoWithTests' do
@@ -45,6 +52,12 @@ target 'LetMeDoWith' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false      # Mac Catalyst 비활성화
     )
-    # (Xcode 12.5 M1 문제 대응이 필요하면 여기에 추가 스크립트 삽입)
+    
+    installer.pods_project.targets.each do |t|
+      # 배포 타깃 통일
+      t.build_configurations.each do |c|
+        c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+      end
+    end
   end
 end
