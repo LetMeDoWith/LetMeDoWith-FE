@@ -10,15 +10,25 @@ interface Props {
   type: 'NORMAL' | 'EXPANDABLE';
   date: Date;
   setCurrentDate: Dispatch<SetStateAction<string>>;
-  setSelectedDate: Dispatch<SetStateAction<string>>;
+  selectedDate?: string;
+  setSelectedDate?: Dispatch<SetStateAction<string>>;
   isWeekView?: boolean;
   setIsWeekView?: Dispatch<SetStateAction<boolean>>;
 }
 
-const CustomCalendarHeader = ({ type, date, setCurrentDate, setSelectedDate, isWeekView, setIsWeekView }: Props) => {
+const CustomCalendarHeader = ({
+  type,
+  date,
+  selectedDate,
+  setCurrentDate,
+  setSelectedDate,
+  isWeekView,
+  setIsWeekView,
+}: Props) => {
   const isExpandableType = type === 'EXPANDABLE';
+  const today = dayjs().format('YYYY-MM-DD');
 
-  const moveDate = (date: Date, amount: number, isWeekView?: boolean) => () => {
+  const moveDate = (_date: Date, amount: number, isWeekView?: boolean) => () => {
     setCurrentDate(prev =>
       dayjs(prev)
         .add(amount, isWeekView ? 'week' : 'month')
@@ -35,8 +45,9 @@ const CustomCalendarHeader = ({ type, date, setCurrentDate, setSelectedDate, isW
   };
 
   const handleTodayButton = () => {
-    const today = dayjs().format('YYYY-MM-DD');
-    setSelectedDate(today);
+    if (setSelectedDate) {
+      setSelectedDate(today);
+    }
     setCurrentDate(today);
   };
 
@@ -45,7 +56,7 @@ const CustomCalendarHeader = ({ type, date, setCurrentDate, setSelectedDate, isW
       <View style={styles.customHeaderLeft}>
         {isExpandableType && <Calendar />}
         <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{dayjs(date).format('YYYY년 MM월')}</Text>
-        {isExpandableType && (
+        {isExpandableType && selectedDate !== today && (
           <TouchableOpacity style={styles.todayButton} onPress={handleTodayButton}>
             <Text style={theme.TYPOGRAPHY.CAPTION_2}>오늘</Text>
           </TouchableOpacity>

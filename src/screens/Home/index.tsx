@@ -254,6 +254,7 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
     <CustomCalendarHeader
       type="EXPANDABLE"
       date={date}
+      selectedDate={selectedDate}
       isWeekView={isWeekView}
       setIsWeekView={setIsWeekView}
       setCurrentDate={setCurrentDate}
