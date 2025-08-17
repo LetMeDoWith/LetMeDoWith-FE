@@ -6,41 +6,57 @@ import type { refreshTokenRequestSchemeType, refreshTokenResponseSchemeType } fr
 import { refreshToken } from 'services/rest/auth';
 import { AUTH_QUERY_KEY } from 'constants/queries';
 import { useAuthStore } from 'stores/auth';
+import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
+import type { BaseResponseSchemeType } from 'types/shared/scheme/api';
 
 /**
  * 토큰 재발급 Mutation Query Hook
  */
 const useRefreshTokenQuery = () => {
-  const { setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId } = useAuthStore(
-    ({ actions: { setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId } }) => ({
-      setTokenInfo,
-      setIsNeedSignUp,
-      setIsLoggedIn,
-      setIsNeedRefreshToken,
-      setMemberId,
-    }),
+  const { initAuthInfo, setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId } =
+    useAuthStore(
+      ({
+        actions: { initAuthInfo, setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId },
+      }) => ({
+        initAuthInfo,
+        setTokenInfo,
+        setIsNeedSignUp,
+        setIsLoggedIn,
+        setIsNeedRefreshToken,
+        setMemberId,
+      }),
+    );
+
+  return useMutation<refreshTokenResponseSchemeType, AxiosError<BaseResponseSchemeType>, refreshTokenRequestSchemeType>(
+    {
+      mutationKey: AUTH_QUERY_KEY.REFRESH_TOKEN,
+      mutationFn: payload => refreshToken(payload),
+      onSuccess: ({ data }) => {
+        if (!data.accessToken || !data.refreshToken || !data.memberId) {
+          return;
+        }
+
+        // 토큰 재발급이 완료 되었을 경우
+        setTokenInfo({ access: data.accessToken, refresh: data.refreshToken });
+        setIsLoggedIn(true);
+        setIsNeedRefreshToken(false);
+        setIsNeedSignUp(false);
+        setMemberId(data.memberId);
+      },
+      onError: e => {
+        const errorCode = e.response?.data.statusCode;
+        // 재발급 토큰이 유효하지 않은 에러 발생시, 상태 초기화
+        if (
+          errorCode === ErrorStatusCodeEnum.enum.E306 ||
+          errorCode === ErrorStatusCodeEnum.enum.E307 ||
+          errorCode === ErrorStatusCodeEnum.enum.E308
+        ) {
+          Alert.alert('세션이 만료되었습니다. 로그인 화면으로 이동합니다');
+          initAuthInfo();
+        }
+      },
+    },
   );
-
-  return useMutation<refreshTokenResponseSchemeType, AxiosError, refreshTokenRequestSchemeType>({
-    mutationKey: AUTH_QUERY_KEY.REFRESH_TOKEN,
-    mutationFn: payload => refreshToken(payload),
-    onSuccess: ({ data }) => {
-      if (!data.accessToken || !data.refreshToken || !data.memberId) {
-        return;
-      }
-
-      // 토큰 재발급이 완료 되었을 경우
-      setTokenInfo({ access: data.accessToken, refresh: data.refreshToken });
-      setIsLoggedIn(true);
-      setIsNeedRefreshToken(false);
-      setIsNeedSignUp(false);
-      setMemberId(data.memberId);
-    },
-    onError: e => {
-      console.error('토큰 재발급 실패 ', e.response?.data);
-      Alert.alert('토큰 재발급에 실패했습니다.');
-    },
-  });
 };
 
 export { useRefreshTokenQuery };

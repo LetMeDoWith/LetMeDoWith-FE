@@ -254,6 +254,7 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
     <CustomCalendarHeader
       type="EXPANDABLE"
       date={date}
+      selectedDate={selectedDate}
       isWeekView={isWeekView}
       setIsWeekView={setIsWeekView}
       setCurrentDate={setCurrentDate}
@@ -329,9 +330,9 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
                 <View style={{ marginBottom: getCalendarMarginBottom() }} />
                 <View style={{ flex: 1, marginHorizontal: 20 }}>
                   <Divider style={styles.divider} />
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{selectedDateKoreanString}</Text>
-                    <TouchableOpacity onPress={handlePressPlusIcon}>
+                    <TouchableOpacity style={{ paddingLeft: 8, paddingBottom: 8 }} onPress={handlePressPlusIcon}>
                       <PlusIcon />
                     </TouchableOpacity>
                   </View>

@@ -1,5 +1,5 @@
 import React, { forwardRef, PropsWithChildren, useCallback, useImperativeHandle, useRef } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 
 import { theme } from 'styles/theme';
@@ -39,7 +39,22 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     [],
   );
 
-  useImperativeHandle(ref, () => innerRef.current!);
+  useImperativeHandle(ref, () => {
+    return new Proxy({} as BottomSheetModalMethods, {
+      get(_target, prop: keyof BottomSheetModalMethods) {
+        if (prop === 'present') {
+          return () => {
+            // 바텀 시트 노출 시 가상 키보드 숨김 처리
+            Keyboard.dismiss();
+            innerRef.current?.present();
+          };
+        }
+        const api = innerRef.current;
+        const value = api?.[prop];
+        return typeof value === 'function' ? value.bind(api) : value;
+      },
+    });
+  });
 
   return (
     <BottomSheetModal
