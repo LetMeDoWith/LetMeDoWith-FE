@@ -14,6 +14,7 @@ import { DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT, LOGOUT_CONFIRM_MODAL_CONTENT } fr
 import type { SettingStackScreenProps } from 'types/shared';
 import { useDeleteAccount } from 'hooks/queries/member/useDeleteAccount';
 import { useAuthStore } from 'stores/auth';
+import { disposeNotificationLayer } from 'utils/notification';
 
 type FormData = {
   nickname: string;
@@ -62,6 +63,7 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
 
     if (modalType === 'LOGOUT') {
       initAuthInfo();
+      disposeNotificationLayer();
     }
   }, [modalType, toggleModalOpen]);
 

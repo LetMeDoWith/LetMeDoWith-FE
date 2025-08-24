@@ -7,20 +7,17 @@ import { useAuthStore } from 'stores/auth';
 import type { signUpRequestSchemeType, signUpResponseSchemeType } from 'types/member/scheme/api';
 
 const useSignUp = () => {
-  const { setTokenInfo, setIsNeedSignUp, setMemberId } = useAuthStore(
-    ({ actions: { setTokenInfo, setIsNeedSignUp, setMemberId } }) => ({
-      setTokenInfo,
-      setIsNeedSignUp,
-      setMemberId,
-    }),
-  );
+  const { setTokenInfo, setMemberId } = useAuthStore(({ actions: { setTokenInfo, setIsNeedSignUp, setMemberId } }) => ({
+    setTokenInfo,
+    setIsNeedSignUp,
+    setMemberId,
+  }));
 
   return useMutation<signUpResponseSchemeType, AxiosError, signUpRequestSchemeType>({
     mutationKey: MEMBER_QUERY_KEY.SIGN_UP,
     mutationFn: payload => signUp(payload),
     onSuccess: ({ data }) => {
       console.log('signup success data: ', data);
-      setIsNeedSignUp(false);
       setTokenInfo({ access: data.accessToken, refresh: data.refreshToken, signup: null });
       setMemberId(data.memberId);
     },

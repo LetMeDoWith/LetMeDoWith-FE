@@ -25,6 +25,7 @@ import { useAuthStore } from 'stores/auth';
 import { DialogProvider } from 'components/common/Dialog/Provider';
 import { LoadingOverlay } from 'components/common/LoadingOverlay';
 import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
+import { initNotificationLayer } from 'utils/notification';
 
 const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEvent) => {
   if ('action' in event && event.action && event.action.type === 'error') {
@@ -125,6 +126,31 @@ function AppContent() {
       );
     }
 
+    // 회원가입이 완료되었을 경우
+    if (!isNeedSignUp) {
+      initNotificationLayer({
+        // 포그라운드 메시지 처리 (원하면 notifee 로컬 알림 등)
+        onForegroundMessage: async message => {
+          console.log('[FCM][FG] 메세지 수신: ', message);
+        },
+        // 토큰 변경 시 서버 동기화
+        onTokenChanged: async newToken => {
+          console.log('onTokenChanged: ', newToken);
+          // 로그인 완료 & 회원가입 완료 상태에서만 토큰 갱신 요청
+          if (!isLoggedIn || isNeedSignUp) {
+            return;
+          }
+
+          try {
+            // TODO: FCM 토큰 등록 API 호출
+          } catch (e) {
+            // 서버 동기화 실패 시 로깅
+            console.log('[FCM] update token failed', e);
+          }
+        },
+      });
+    }
+
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') {
         // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우 토큰 재발급 상태로 수정
@@ -144,11 +170,12 @@ function AppContent() {
     tokenInfo,
     isNeedRefreshToken,
     isHydrated,
+    isLoggedIn,
+    isNeedSignUp,
     setIsLoggedIn,
     setIsNeedRefreshToken,
     setIsNeedSignUp,
     setTokenInfo,
-    mutateRefreshToken,
   ]);
 
   // useEffect(() => {
