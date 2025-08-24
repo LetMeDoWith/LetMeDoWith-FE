@@ -18,4 +18,8 @@ const TASK_API = {
   WAIT_TODO: 'v1/tasks/todo/:id/wait',
 } as const;
 
-export { AUTH_API, MEMBER_API, TASK_API };
+const NOTIFICATION_API = {
+  ADD_TOKEN: 'v1/notifications/tokens',
+};
+
+export { AUTH_API, MEMBER_API, TASK_API, NOTIFICATION_API };

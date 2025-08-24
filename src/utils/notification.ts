@@ -5,6 +5,7 @@ import notifee, { AndroidImportance, AuthorizationStatus } from '@notifee/react-
 
 import { isAos } from 'utils/device';
 import { useAuthStore } from 'stores/auth';
+import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotificationToken';
 
 let initialized = false;
 let unsubOnMessage: (() => void) | null = null;
@@ -22,10 +23,12 @@ let appSubscribeState: ReturnType<typeof AppState.addEventListener> | null = nul
  * - 이후 FCM 토큰을 getToken()으로 확보하여 서버에 동기화 콜백을 호출한다.
  *
  * @param options 콜백 핸들러 모음
+ *  - mutateNotificationToken: 알림(FCM) 토큰 등록 mutation
  *  - onForegroundMessage: Foreground에서 메시지를 받았을 때 실행되는 콜백
  *  - onTokenChanged: FCM 토큰이 최초 발급되거나 갱신될 때 실행되는 콜백
  */
 const initNotificationLayer = async (options?: {
+  mutateNotificationToken?: ReturnType<typeof useAddNotificationToken>['mutate'];
   onForegroundMessage?: (m: FirebaseMessagingTypes.RemoteMessage) => Promise<void> | void;
   onTokenChanged?: (token: string) => Promise<void> | void; // 서버 동기화 콜백
 }) => {
@@ -80,7 +83,9 @@ const initNotificationLayer = async (options?: {
   try {
     const token = await messaging().getToken();
     await onTokenChanged(token);
-    // TODO: FCM 토큰 등록 API 호출
+    if (options?.mutateNotificationToken) {
+      options.mutateNotificationToken({ notificationToken: token });
+    }
   } catch (e) {
     console.log('FCM 토큰을 가져오는 데 실패했습니다.');
   }
