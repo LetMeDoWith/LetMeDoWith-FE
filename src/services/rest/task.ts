@@ -64,4 +64,4 @@ const updateStatusTodoTask = async ({
   }
 };
 
-export { fetchTaskCategoryList, fetchTaskList, addTodoTask, updateStatusTodoTask };
+export { fetchTaskCategoryList, fetchTaskList, addTodoTask, addDowithTask, updateStatusTodoTask };
