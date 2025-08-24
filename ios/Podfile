@@ -9,7 +9,7 @@ require Pod::Executable.execute_command('node', ['-p',
 
 
 # iOS 최소 지원 버전 지정
-platform :ios, '15.0'
+platform :ios, '16.0'
 prepare_react_native_project!
 
 # Flipper Off
@@ -52,11 +52,23 @@ target 'LetMeDoWith' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false      # Mac Catalyst 비활성화
     )
-    
+
     installer.pods_project.targets.each do |t|
-      # 배포 타깃 통일
       t.build_configurations.each do |c|
-        c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+        # iOS 타깃 통일
+        c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+        c.build_settings['SWIFT_VERSION'] = '5.8'
+        c.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+        c.build_settings['DEFINES_MODULE'] = 'YES'
+      end
+
+      # ObjC++(.mm) 사용하는 타겟에만 C++17 고정 (안전장치)
+      if t.name == 'react-native-keyboard-controller'
+        t.build_configurations.each do |c|
+          c.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'gnu++17'
+          c.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
+          c.build_settings['OTHER_CPLUSPLUSFLAGS'] = ['$(inherited)', '-std=gnu++17']
+        end
       end
     end
   end
