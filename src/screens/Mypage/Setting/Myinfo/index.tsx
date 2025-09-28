@@ -22,8 +22,7 @@ type FormData = {
 };
 
 const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>) => {
-  const { memberId, initAuthInfo } = useAuthStore(({ memberId, actions: { initAuthInfo } }) => ({
-    memberId,
+  const { initAuthInfo } = useAuthStore(({ actions: { initAuthInfo } }) => ({
     initAuthInfo,
   }));
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -70,11 +69,11 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
   const onPressCancelButton = useCallback(() => {
     toggleModalOpen();
 
-    if (modalType === 'DELETE_ACCOUNT' && memberId) {
-      mutateDeleteAccount({ memberId });
+    if (modalType === 'DELETE_ACCOUNT') {
+      mutateDeleteAccount();
       return;
     }
-  }, [memberId, modalType, mutateDeleteAccount, toggleModalOpen]);
+  }, [modalType, mutateDeleteAccount, toggleModalOpen]);
 
   const onSubmit = useCallback((values: FormData) => {
     console.log(values);

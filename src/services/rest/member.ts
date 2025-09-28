@@ -26,9 +26,9 @@ const signUp = async (payload: signUpRequestSchemeType): Promise<signUpResponseS
   }
 };
 
-const deleteAccount = async ({ memberId }: { memberId: string }): Promise<deleteAccountResponseSchemeType> => {
+const deleteAccount = async (): Promise<deleteAccountResponseSchemeType> => {
   try {
-    const result = await apiClient.delete<deleteAccountResponseSchemeType>(`${MEMBER_API.DELETE_ACCOUNT}/${memberId}`);
+    const result = await apiClient.delete<deleteAccountResponseSchemeType>(MEMBER_API.DELETE_ACCOUNT);
     return result.data;
   } catch (e) {
     throw e;

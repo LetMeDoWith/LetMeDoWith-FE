@@ -12,9 +12,9 @@ const useDeleteAccount = () => {
     initAuthInfo,
   }));
 
-  return useMutation<deleteAccountResponseSchemeType, AxiosError, { memberId: string }>({
+  return useMutation<deleteAccountResponseSchemeType, AxiosError>({
     mutationKey: MEMBER_QUERY_KEY.DELETE_ACCOUNT,
-    mutationFn: payload => deleteAccount(payload),
+    mutationFn: deleteAccount,
     onSuccess: async ({ data }) => {
       console.log('delete success data: ', data);
       initAuthInfo();
