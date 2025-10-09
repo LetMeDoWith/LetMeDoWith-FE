@@ -14,7 +14,7 @@ const TASK_API = {
   LIST: 'v1/tasks',
   ADD_TODO: 'v1/tasks/todo',
   ADD_DOWITH: 'v1/tasks/dowith',
-  SUCCESS_TODO: 'v1/tasks/todo/:id/complete',
+  SUCCESS_TODO: 'v1/tasks/todo/:id/success',
   WAIT_TODO: 'v1/tasks/todo/:id/wait',
 } as const;
 
