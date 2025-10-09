@@ -1,12 +1,14 @@
 import React, { useRef } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
 import { theme } from 'styles/theme';
-import type { TaskModeType } from 'types/shared';
+import type { RootStackParamList, TaskModeType } from 'types/shared';
 import { BottomSheet } from 'components/common/BottomSheet';
 import { TaskEdit } from 'components/common/icons/TaskEdit';
 import { RoutineEdit } from 'components/common/icons/RoutineEdit';
@@ -20,6 +22,7 @@ import { TaskFail } from 'components/common/icons/TaskFail';
 import { UploadImage } from 'components/common/icons/UploadImage';
 import { isNil } from 'utils/index';
 import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
+import { isAos } from 'utils/device';
 
 dayjs.extend(customParseFormat);
 
@@ -48,6 +51,7 @@ const Item = ({
   confirmedImageUrl,
   feedBackCount,
 }: Props) => {
+  const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
@@ -150,12 +154,19 @@ const Item = ({
           </View>
         </View>
       </View>
-      <BottomSheet ref={taskManagementBottomSheetModalRef} title="투두 관리하기" snapPoints={['29%']}>
+      <BottomSheet ref={taskManagementBottomSheetModalRef} title="투두 관리하기" snapPoints={[isAos ? '31%' : '29%']}>
         <View style={styles.modalContainer}>
-          <View style={styles.modalContentRow}>
+          <Pressable
+            style={styles.modalContentRow}
+            onPress={() => {
+              // TODO: date params를 선택한 날짜로 변경 필요
+              navigate('TASK_FORM', { date: dayjs().toString() });
+              taskManagementBottomSheetModalRef.current?.dismiss();
+            }}
+          >
             <TaskEdit />
             <Text style={styles.modalContentText}>할 일 수정하기</Text>
-          </View>
+          </Pressable>
           <View style={styles.modalContentRow}>
             <RoutineEdit />
             <Text style={styles.modalContentText}>루틴 수정하기</Text>
