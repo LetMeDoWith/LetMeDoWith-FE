@@ -7,6 +7,8 @@ import type {
   fetchTaskCategoryListResponseSchemeType,
   fetchTaskListRequestSchemeType,
   fetchTaskListResponseSchemeType,
+  fetchTodoTaskRequestSchemeType,
+  fetchTodoTaskResponseSchemeType,
   updateTodoTaskResponseSchemeType,
 } from 'types/task/scheme/api';
 import type { TaskStatusEnumType } from 'types/task/scheme/enum';
@@ -41,11 +43,22 @@ const addTodoTask = async (payload: addTaskRequestSchemeType): Promise<undefined
   }
 };
 
-const fetchDowithTask = async (
-  params: fetchDowithTaskRequestSchemeType,
-): Promise<fetchDowithTaskResponseSchemeType> => {
+const fetchTodoTask = async ({
+  todoTaskId,
+}: fetchTodoTaskRequestSchemeType): Promise<fetchTodoTaskResponseSchemeType> => {
   try {
-    const result = await apiClient.get<fetchDowithTaskResponseSchemeType>(TASK_API.LIST, { params });
+    const result = await apiClient.get<fetchTodoTaskResponseSchemeType>(`${TASK_API.ADD_TODO}/${todoTaskId}`);
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+const fetchDowithTask = async ({
+  dowithTaskId,
+}: fetchDowithTaskRequestSchemeType): Promise<fetchDowithTaskResponseSchemeType> => {
+  try {
+    const result = await apiClient.get<fetchDowithTaskResponseSchemeType>(`${TASK_API.ADD_DOWITH}/${dowithTaskId}`);
     return result.data;
   } catch (e) {
     throw e;
@@ -77,4 +90,12 @@ const updateStatusTodoTask = async ({
   }
 };
 
-export { fetchTaskCategoryList, fetchTaskList, addTodoTask, fetchDowithTask, addDowithTask, updateStatusTodoTask };
+export {
+  fetchTaskCategoryList,
+  fetchTaskList,
+  addTodoTask,
+  fetchTodoTask,
+  fetchDowithTask,
+  addDowithTask,
+  updateStatusTodoTask,
+};
