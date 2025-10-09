@@ -131,7 +131,6 @@ function AppContent() {
     // 회원가입이 완료되었을 경우
     if (!isNeedSignUp) {
       initNotificationLayer({
-        mutateNotificationToken,
         // 포그라운드 메시지 처리 (원하면 notifee 로컬 알림 등)
         onForegroundMessage: async message => {
           console.log('[FCM][FG] 메세지 수신: ', message);
