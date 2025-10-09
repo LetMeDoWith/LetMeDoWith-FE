@@ -48,11 +48,7 @@ const fetchTaskListResponseScheme = BaseResponseScheme.extend({
   }),
 });
 
-const addTaskRequestScheme = z.object({
-  title: z.string().describe('테스크 제목'),
-  taskCategoryId: z.number().nullable().describe('테스크 카테고리 id'),
-  date: z.string().describe('테스크 수행일자'),
-  startTime: z.string().nullable().describe('테스크 시작시간'),
+const addTaskRequestScheme = todoTaskScheme.omit({ id: true, status: true, taskCategoryName: true }).extend({
   routineCondition: z
     .object({
       startDate: z.string().describe('루틴 시작일자'),
@@ -68,6 +64,12 @@ const updateTodoTaskResponseScheme = BaseResponseScheme.extend({
   data: z.number().describe('완료된 task id'),
 });
 
+const fetchDowithTaskRequestScheme = z.object({
+  dowithTaskId: z.number().describe('두윗 task id'),
+});
+
+const fetchDowithTaskResponseScheme = BaseResponseScheme.extend({ data: addTaskRequestScheme });
+
 export {
   taskCategoryScheme,
   fetchTaskCategoryListResponseScheme,
@@ -78,4 +80,6 @@ export {
   fetchTaskListResponseScheme,
   addTaskRequestScheme,
   updateTodoTaskResponseScheme,
+  fetchDowithTaskRequestScheme,
+  fetchDowithTaskResponseScheme,
 };
