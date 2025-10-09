@@ -2,6 +2,8 @@ import { apiClient } from 'services/apiClient';
 import { TASK_API } from 'services/urls';
 import type {
   addTaskRequestSchemeType,
+  fetchDowithTaskRequestSchemeType,
+  fetchDowithTaskResponseSchemeType,
   fetchTaskCategoryListResponseSchemeType,
   fetchTaskListRequestSchemeType,
   fetchTaskListResponseSchemeType,
@@ -39,6 +41,17 @@ const addTodoTask = async (payload: addTaskRequestSchemeType): Promise<undefined
   }
 };
 
+const fetchDowithTask = async (
+  params: fetchDowithTaskRequestSchemeType,
+): Promise<fetchDowithTaskResponseSchemeType> => {
+  try {
+    const result = await apiClient.get<fetchDowithTaskResponseSchemeType>(TASK_API.LIST, { params });
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 const addDowithTask = async (payload: addTaskRequestSchemeType): Promise<undefined> => {
   try {
     const result = await apiClient.post<undefined>(TASK_API.ADD_DOWITH, payload);
@@ -64,4 +77,4 @@ const updateStatusTodoTask = async ({
   }
 };
 
-export { fetchTaskCategoryList, fetchTaskList, addTodoTask, addDowithTask, updateStatusTodoTask };
+export { fetchTaskCategoryList, fetchTaskList, addTodoTask, fetchDowithTask, addDowithTask, updateStatusTodoTask };
