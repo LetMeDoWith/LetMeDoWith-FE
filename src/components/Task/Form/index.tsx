@@ -11,7 +11,7 @@ import { isAos } from 'utils/device';
 import { TodoMode } from 'components/common/icons/TodoMode';
 import { DowithMode } from 'components/common/icons/DowithMode';
 import { QuestionCircle } from 'components/common/icons/QuestionCircle';
-import type { TaskModeType } from 'types/shared';
+import type { TaskFormStackParamList, TaskModeType } from 'types/shared';
 import { CategoryBottomSheet } from 'components/Task/BottomSheet/CategoryBottomSheet';
 import { RoutineBottomSheet } from 'components/Task/BottomSheet/RoutineBottomSheet';
 import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategoryList';
@@ -20,17 +20,26 @@ import { useAddTodoTask } from 'hooks/queries/task/useAddTodoTask';
 import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
 import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
 import { isNil } from 'utils/index';
+import { StackScreenProps } from '@react-navigation/stack';
 
-const Form = () => {
-  const { control, watch, setValue, handleSubmit } = useFormContext<addTaskRequestSchemeType>();
+const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
+  const { params } = route;
+  const {
+    control,
+    watch,
+    setValue,
+    handleSubmit,
+    formState: { dirtyFields },
+  } = useFormContext<addTaskRequestSchemeType>();
   const categoryBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
   const routineBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
 
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
-  const [taskMode, setTaskMode] = useState<TaskModeType | null>(null);
+  const [taskMode, setTaskMode] = useState<TaskModeType | null>(params.mode ?? null);
   const { data: taskCategoryList } = useFetchTaskCategoryList();
   const { mutate: addTodoTaskMutate, isPending: isAddTodoTaskMutateLoading } = useAddTodoTask();
   const { mutate: addDowithTaskMutate, isPending: isAddDowithTaskMutateLoading } = useAddDowithTask();
+  const isFieldChanged = Object.keys(dirtyFields).length > 0;
 
   const title = watch('title');
   const startTime = watch('startTime');
@@ -40,9 +49,103 @@ const Form = () => {
   const isTodoMode = taskMode === 'TODO';
   const isFormDisabled = taskMode === null;
   const isButtonDisabled = isTodoMode
-    ? !title || isAddTodoTaskMutateLoading
-    : !title || !startTime || isAddDowithTaskMutateLoading;
+    ? !isFieldChanged || !title || isAddTodoTaskMutateLoading
+    : !isFieldChanged || !title || !startTime || isAddDowithTaskMutateLoading;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
+
+  const renderTaskModeButtonView = () => {
+    if (!params.mode) {
+      return (
+        <>
+          <View style={styles.modeLabel}>
+            <Text style={theme.TYPOGRAPHY.SUB_TITLE}>모드 선택</Text>
+            <View style={styles.modeLabelAlertWrap}>
+              <Text style={styles.modeLabelAlert}>사용 가능한 두윗 모드: 3개</Text>
+              <QuestionCircle />
+            </View>
+          </View>
+          <View style={styles.modeButtonWrap}>
+            <Pressable
+              style={[
+                styles.modeButton,
+                taskMode === 'TODO' && {
+                  backgroundColor: theme.COLORS.SECONDARY.BLUE_95,
+                  borderColor: theme.COLORS.SECONDARY.BLUE_95,
+                },
+              ]}
+              onPress={handleTaskMode('TODO')}
+            >
+              <TodoMode />
+              <Text style={[styles.modeButtonText, taskMode === 'TODO' && { color: theme.COLORS.SECONDARY.BLUE_60 }]}>
+                혼자 하는 TO DO
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.modeButton,
+                taskMode === 'DOWITH' && {
+                  backgroundColor: theme.COLORS.PRIMARY.RED_98,
+                  borderColor: theme.COLORS.PRIMARY.RED_98,
+                },
+              ]}
+              onPress={handleTaskMode('DOWITH')}
+            >
+              <DowithMode />
+              <Text style={[styles.modeButtonText, taskMode === 'DOWITH' && { color: theme.COLORS.PRIMARY.RED_60 }]}>
+                함께 하는 DO WITH
+              </Text>
+            </Pressable>
+          </View>
+        </>
+      );
+    }
+
+    if (params.mode === 'TODO') {
+      return (
+        <View style={[styles.modeButtonWrap]}>
+          <Pressable
+            style={[
+              styles.modeButton,
+              {
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: 4,
+                paddingVertical: 10,
+                backgroundColor: theme.COLORS.SECONDARY.BLUE_95,
+                borderColor: theme.COLORS.SECONDARY.BLUE_95,
+                borderRadius: 8,
+              },
+            ]}
+          >
+            <TodoMode width={20} height={20} />
+            <Text style={[theme.TYPOGRAPHY.SUB_TITLE, { color: theme.COLORS.SECONDARY.BLUE_60 }]}>TO DO</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
+    return (
+      <View style={[styles.modeButtonWrap]}>
+        <Pressable
+          style={[
+            styles.modeButton,
+            {
+              flexDirection: 'row',
+              justifyContent: 'center',
+              gap: 4,
+              paddingVertical: 10,
+              backgroundColor: theme.COLORS.PRIMARY.RED_98,
+              borderColor: theme.COLORS.PRIMARY.RED_98,
+              borderRadius: 8,
+            },
+          ]}
+        >
+          <DowithMode width={24} height={20} />
+          <Text style={[theme.TYPOGRAPHY.SUB_TITLE, { color: theme.COLORS.PRIMARY.RED_60 }]}>DO WITH</Text>
+        </Pressable>
+      </View>
+    );
+  };
 
   const toggleDatePicker = useCallback(
     (isOpen: boolean) => () => {
@@ -108,48 +211,7 @@ const Form = () => {
     <>
       <View style={styles.container}>
         <View>
-          <View style={styles.modeWrap}>
-            <View style={styles.modeLabel}>
-              <Text style={theme.TYPOGRAPHY.SUB_TITLE}>모드 선택</Text>
-              <View style={styles.modeLabelAlertWrap}>
-                <Text style={styles.modeLabelAlert}>사용 가능한 두윗 모드: 3개</Text>
-                <QuestionCircle />
-              </View>
-            </View>
-            {/* TODO: 모드 변경 불가능하게 해야 함*/}
-            <View style={styles.modeButtonWrap}>
-              <Pressable
-                style={[
-                  styles.modeButton,
-                  taskMode === 'TODO' && {
-                    backgroundColor: theme.COLORS.SECONDARY.BLUE_95,
-                    borderColor: theme.COLORS.SECONDARY.BLUE_95,
-                  },
-                ]}
-                onPress={handleTaskMode('TODO')}
-              >
-                <TodoMode />
-                <Text style={[styles.modeButtonText, taskMode === 'TODO' && { color: theme.COLORS.SECONDARY.BLUE_60 }]}>
-                  혼자 하는 TO DO
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  styles.modeButton,
-                  taskMode === 'DOWITH' && {
-                    backgroundColor: theme.COLORS.PRIMARY.RED_98,
-                    borderColor: theme.COLORS.PRIMARY.RED_98,
-                  },
-                ]}
-                onPress={handleTaskMode('DOWITH')}
-              >
-                <DowithMode />
-                <Text style={[styles.modeButtonText, taskMode === 'DOWITH' && { color: theme.COLORS.PRIMARY.RED_60 }]}>
-                  함께 하는 DO WITH
-                </Text>
-              </Pressable>
-            </View>
-          </View>
+          <View style={styles.modeWrap}>{renderTaskModeButtonView()}</View>
           <View style={{ gap: 16, marginTop: 32 }}>
             <View style={{ gap: 12 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -224,44 +286,49 @@ const Form = () => {
                 </Pressable>
               )}
             />
-            <Pressable
-              style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
-              onPress={handleTaskRoutine}
-            >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <View style={{ gap: 8 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Text
-                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
-                    >
-                      루틴 설정
-                    </Text>
-                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
-                      (선택)
-                    </Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <ExclamationMarkCircle />
-                    <Text
-                      style={[
-                        theme.TYPOGRAPHY.CAPTION1_BASIC,
-                        { color: isFormDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_50 },
-                      ]}
-                    >
-                      모드를 변경하면 루틴이 초기화 돼요.
-                    </Text>
+            {!params.mode ? (
+              <Pressable
+                style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
+                onPress={handleTaskRoutine}
+              >
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <View style={{ gap: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Text
+                        style={[
+                          theme.TYPOGRAPHY.SUB_TITLE,
+                          isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 },
+                        ]}
+                      >
+                        루틴 설정
+                      </Text>
+                      <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                        (선택)
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <ExclamationMarkCircle />
+                      <Text
+                        style={[
+                          theme.TYPOGRAPHY.CAPTION1_BASIC,
+                          { color: isFormDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_50 },
+                        ]}
+                      >
+                        모드를 변경하면 루틴이 초기화 돼요.
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-              <Text
-                style={[
-                  theme.TYPOGRAPHY.BODY_2,
-                  { color: routineConditionCycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
-                ]}
-              >
-                {routineConditionCycle ? '사용자 지정' : '미등록'}
-              </Text>
-            </Pressable>
+                <Text
+                  style={[
+                    theme.TYPOGRAPHY.BODY_2,
+                    { color: routineConditionCycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
+                  ]}
+                >
+                  {routineConditionCycle ? '사용자 지정' : '미등록'}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         </View>
         <Pressable
@@ -305,7 +372,8 @@ const Form = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: isAos ? 24 : getBottomSpace() + 24,
+    paddingTop: 24,
+    paddingBottom: isAos ? 24 : getBottomSpace() + 24,
     paddingHorizontal: 20,
     justifyContent: 'space-between',
   },

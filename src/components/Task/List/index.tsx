@@ -10,9 +10,10 @@ interface Props {
   items: dowithTaskSchemeType[] | todoTaskSchemeType[];
   year: number;
   month: number;
+  selectedDate: string;
 }
 
-const List = ({ type, items, year, month }: Props) => {
+const List = ({ type, items, year, month, selectedDate }: Props) => {
   const isDoWithMode = type === 'DOWITH';
 
   return (
@@ -33,7 +34,15 @@ const List = ({ type, items, year, month }: Props) => {
         </Text>
       </View>
       {items.map(({ id, ...rest }) => (
-        <Item key={id} id={id} mode={isDoWithMode ? 'DOWITH' : 'TODO'} year={year} month={month} {...rest} />
+        <Item
+          key={id}
+          id={id}
+          mode={isDoWithMode ? 'DOWITH' : 'TODO'}
+          year={year}
+          month={month}
+          selectedDate={selectedDate}
+          {...rest}
+        />
       ))}
     </View>
   );
