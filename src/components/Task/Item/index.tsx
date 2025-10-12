@@ -35,6 +35,7 @@ interface Props {
   startTime: string | null;
   year: number;
   month: number;
+  selectedDate: string;
   confirmedImageUrl?: string | null;
   feedBackCount?: number | null;
 }
@@ -48,6 +49,7 @@ const Item = ({
   startTime,
   year,
   month,
+  selectedDate,
   confirmedImageUrl,
   feedBackCount,
 }: Props) => {
@@ -88,6 +90,11 @@ const Item = ({
     }
 
     completeTodoTaskMutate({ id, status });
+  };
+
+  const handleEditTask = () => {
+    navigate('TASK_FORM', { date: selectedDate, id, mode });
+    taskManagementBottomSheetModalRef.current?.dismiss();
   };
 
   return (
@@ -156,14 +163,7 @@ const Item = ({
       </View>
       <BottomSheet ref={taskManagementBottomSheetModalRef} title="투두 관리하기" snapPoints={[isAos ? '31%' : '29%']}>
         <View style={styles.modalContainer}>
-          <Pressable
-            style={styles.modalContentRow}
-            onPress={() => {
-              // TODO: date params를 선택한 날짜로 변경 필요
-              navigate('TASK_FORM', { date: dayjs().toString() });
-              taskManagementBottomSheetModalRef.current?.dismiss();
-            }}
-          >
+          <Pressable style={styles.modalContentRow} onPress={handleEditTask}>
             <TaskEdit />
             <Text style={styles.modalContentText}>할 일 수정하기</Text>
           </Pressable>
