@@ -15,6 +15,14 @@ const fetchTaskCategoryListResponseScheme = BaseResponseScheme.extend({
   data: z.array(taskCategoryScheme),
 });
 
+const taskRoutineConditionScheme = z.object({
+  startDate: z.string().describe('루틴 시작일자'),
+  endDate: z.string().describe('루틴 종료일자'),
+  cycle: TASK_ROUTINE_CYCLE_ENUM.describe('루틴 주기'),
+  pattern: z.array(z.number()).describe('루틴 패턴 (요일 등)'),
+  isExcludeHolidays: z.boolean().describe('휴일 제외 여부'),
+});
+
 const todoTaskScheme = z.object({
   id: z.number().describe('테스크 id'),
   taskCategoryId: z.number().nullable().describe('테스크 카테고리 id'),
@@ -49,18 +57,10 @@ const fetchTaskListResponseScheme = BaseResponseScheme.extend({
 });
 
 const addTaskRequestScheme = todoTaskScheme.omit({ id: true, status: true, taskCategoryName: true }).extend({
-  routineCondition: z
-    .object({
-      startDate: z.string().describe('루틴 시작일자'),
-      endDate: z.string().describe('루틴 종료일자'),
-      cycle: TASK_ROUTINE_CYCLE_ENUM.describe('루틴 주기'),
-      pattern: z.array(z.number()).describe('루틴 패턴 (요일 등)'),
-      isExcludeHolidays: z.boolean().describe('휴일 제외 여부'),
-    })
-    .nullable(),
+  routineCondition: taskRoutineConditionScheme.nullable(),
 });
 
-const updateTodoTaskResponseScheme = BaseResponseScheme.extend({
+const updateTodoTaskStatusResponseScheme = BaseResponseScheme.extend({
   data: z.number().describe('완료된 task id'),
 });
 
@@ -69,15 +69,7 @@ const fetchTodoTaskRequestScheme = z.object({
 });
 
 const fetchTodoTaskResponseDataScheme = todoTaskScheme.extend({
-  routineCondition: z
-    .object({
-      startDate: z.string().describe('루틴 시작일자'),
-      endDate: z.string().describe('루틴 종료일자'),
-      cycle: TASK_ROUTINE_CYCLE_ENUM.describe('루틴 주기'),
-      pattern: z.array(z.number()).describe('루틴 패턴 (요일 등)'),
-      isExcludeHolidays: z.boolean().describe('휴일 제외 여부'),
-    })
-    .nullable(),
+  routineCondition: taskRoutineConditionScheme.nullable(),
 });
 
 const fetchTodoTaskResponseScheme = BaseResponseScheme.extend({ data: fetchTodoTaskResponseDataScheme });
@@ -87,6 +79,10 @@ const fetchDowithTaskRequestScheme = z.object({
 });
 
 const fetchDowithTaskResponseScheme = BaseResponseScheme.extend({ data: addTaskRequestScheme });
+
+const updateTaskRequestScheme = todoTaskScheme
+  .pick({ title: true, startTime: true, taskCategoryId: true })
+  .extend({ routineCondition: taskRoutineConditionScheme.nullable() });
 
 export {
   taskCategoryScheme,
@@ -100,7 +96,8 @@ export {
   fetchTaskListResponseDataScheme,
   fetchTaskListResponseScheme,
   addTaskRequestScheme,
-  updateTodoTaskResponseScheme,
+  updateTodoTaskStatusResponseScheme,
   fetchDowithTaskRequestScheme,
   fetchDowithTaskResponseScheme,
+  updateTaskRequestScheme,
 };
