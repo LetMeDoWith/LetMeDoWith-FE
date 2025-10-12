@@ -21,7 +21,7 @@ import { FeedBackIcon } from 'components/common/icons/FeedBackIcon';
 import { TaskFail } from 'components/common/icons/TaskFail';
 import { UploadImage } from 'components/common/icons/UploadImage';
 import { isNil } from 'utils/index';
-import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
+import { useUpdateTodoTaskStatus } from 'hooks/queries/task/useUpdateTodoTaskStatus';
 import { isAos } from 'utils/device';
 import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
@@ -59,7 +59,7 @@ const Item = ({
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
-  const { mutate: completeTodoTaskMutate } = useUpdateTodoTask({ year, month });
+  const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
   const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
   const { data: dowithTaskData } = useFetchDowithTask(
     { dowithTaskId: id },
@@ -107,7 +107,7 @@ const Item = ({
       return;
     }
 
-    completeTodoTaskMutate({ id, status });
+    completeTodoTaskStatusMutate({ id, status });
   };
 
   const handleEditTask = () => {
