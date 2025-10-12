@@ -5,10 +5,11 @@ import { theme } from 'styles/theme';
 import type { TaskFormStackParamList, TaskModeType } from 'types/shared';
 
 interface Props {
+  id: number;
   mode?: TaskModeType;
 }
 
-const TaskFormStackNavigator = ({ mode }: Props) => {
+const TaskFormStackNavigator = ({ id, mode }: Props) => {
   const { Navigator, Screen } = createStackNavigator<TaskFormStackParamList>();
   return (
     <Navigator
@@ -21,7 +22,7 @@ const TaskFormStackNavigator = ({ mode }: Props) => {
         cardStyle: { backgroundColor: theme.COLORS.DEFAULT.WHITE },
       }}
     >
-      <Screen name="FORM" component={Form} initialParams={{ mode }} />
+      <Screen name="FORM" component={Form} initialParams={{ id, mode }} />
     </Navigator>
   );
 };

@@ -38,7 +38,7 @@ const TaskForm = ({
 
   return (
     <FormProvider {...methods}>
-      <TaskFormStackNavigator mode={mode} />
+      <TaskFormStackNavigator id={id} mode={mode} />
     </FormProvider>
   );
 };

@@ -12,8 +12,8 @@ const MEMBER_API = {
 const TASK_API = {
   CATEGORY_LIST: 'v1/tasks/category',
   LIST: 'v1/tasks',
-  ADD_TODO: 'v1/tasks/todo',
-  ADD_DOWITH: 'v1/tasks/dowith',
+  TODO: 'v1/tasks/todo',
+  DOWITH: 'v1/tasks/dowith',
   SUCCESS_TODO: 'v1/tasks/todo/:id/success',
   WAIT_TODO: 'v1/tasks/todo/:id/wait',
 } as const;
