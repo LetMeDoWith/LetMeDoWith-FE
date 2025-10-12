@@ -23,6 +23,8 @@ import { UploadImage } from 'components/common/icons/UploadImage';
 import { isNil } from 'utils/index';
 import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
 import { isAos } from 'utils/device';
+import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
+import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 
 dayjs.extend(customParseFormat);
 
@@ -58,6 +60,22 @@ const Item = ({
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
   const { mutate: completeTodoTaskMutate } = useUpdateTodoTask({ year, month });
+  const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
+  const { data: dowithTaskData } = useFetchDowithTask(
+    { dowithTaskId: id },
+    { enabled: mode === 'DOWITH' && id !== -1 },
+  );
+
+  const data = id && mode ? todoTaskData ?? dowithTaskData : null;
+  const isRoutineTask = !isNil(data?.routineCondition);
+
+  const getSnapPoints = () => {
+    if (!isRoutineTask) {
+      return [isAos ? '25%' : '23%'];
+    }
+
+    return [isAos ? '31%' : '29%'];
+  };
 
   const handleBottomSheet = () => {
     taskManagementBottomSheetModalRef.current?.present();
@@ -84,7 +102,7 @@ const Item = ({
   };
 
   const handleTodoTaskStatus = (mode: TaskModeType, id: number, status: TaskStatusEnumType) => () => {
-    // TODO task가 아니거나 상태가 실패면 무시
+    // task가 아니거나 상태가 실패면 무시
     if (mode === 'DOWITH' || status === 'FAIL') {
       return;
     }
@@ -161,16 +179,18 @@ const Item = ({
           </View>
         </View>
       </View>
-      <BottomSheet ref={taskManagementBottomSheetModalRef} title="투두 관리하기" snapPoints={[isAos ? '31%' : '29%']}>
+      <BottomSheet ref={taskManagementBottomSheetModalRef} title="투두 관리하기" snapPoints={getSnapPoints()}>
         <View style={styles.modalContainer}>
           <Pressable style={styles.modalContentRow} onPress={handleEditTask}>
             <TaskEdit />
             <Text style={styles.modalContentText}>할 일 수정하기</Text>
           </Pressable>
-          <View style={styles.modalContentRow}>
-            <RoutineEdit />
-            <Text style={styles.modalContentText}>루틴 수정하기</Text>
-          </View>
+          {isRoutineTask ? (
+            <View style={styles.modalContentRow}>
+              <RoutineEdit />
+              <Text style={styles.modalContentText}>루틴 수정하기</Text>
+            </View>
+          ) : null}
           <View style={styles.modalContentRow}>
             <TaskDelete />
             <Text style={styles.modalContentText}>삭제하기</Text>
