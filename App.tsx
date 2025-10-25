@@ -25,6 +25,8 @@ import { useAuthStore } from 'stores/auth';
 import { DialogProvider } from 'components/common/Dialog/Provider';
 import { LoadingOverlay } from 'components/common/LoadingOverlay';
 import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
+import { initNotificationLayer } from 'utils/notification';
+import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotificationToken';
 
 const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEvent) => {
   if ('action' in event && event.action && event.action.type === 'error') {
@@ -106,6 +108,7 @@ function AppContent() {
   const isLoading = isFetching + isMutating > 0;
 
   const { mutate: mutateRefreshToken } = useRefreshTokenQuery();
+  const { mutate: mutateNotificationToken } = useAddNotificationToken();
 
   // 초기 앱 진입 및 Foreground 복귀시마다 토큰 재발급 로직 수행여부 체크
   useEffect(() => {
@@ -123,6 +126,31 @@ function AppContent() {
           },
         },
       );
+    }
+
+    // 회원가입이 완료되었을 경우
+    if (!isNeedSignUp) {
+      initNotificationLayer({
+        // 포그라운드 메시지 처리 (원하면 notifee 로컬 알림 등)
+        onForegroundMessage: async message => {
+          console.log('[FCM][FG] 메세지 수신: ', message);
+        },
+        // 토큰 변경 시 서버 동기화
+        onTokenChanged: async newToken => {
+          console.log('onTokenChanged: ', newToken);
+          // 로그인 완료 & 회원가입 완료 상태에서만 토큰 갱신 요청
+          if (!isLoggedIn || isNeedSignUp) {
+            return;
+          }
+
+          try {
+            mutateNotificationToken({ notificationToken: newToken });
+          } catch (e) {
+            // 서버 동기화 실패 시 로깅
+            console.log('[FCM] update token failed', e);
+          }
+        },
+      });
     }
 
     const subscription = AppState.addEventListener('change', state => {
@@ -144,11 +172,12 @@ function AppContent() {
     tokenInfo,
     isNeedRefreshToken,
     isHydrated,
+    isLoggedIn,
+    isNeedSignUp,
     setIsLoggedIn,
     setIsNeedRefreshToken,
     setIsNeedSignUp,
     setTokenInfo,
-    mutateRefreshToken,
   ]);
 
   // useEffect(() => {

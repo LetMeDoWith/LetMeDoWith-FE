@@ -20,9 +20,9 @@ const useSignUp = () => {
     mutationFn: payload => signUp(payload),
     onSuccess: ({ data }) => {
       console.log('signup success data: ', data);
-      setIsNeedSignUp(false);
       setTokenInfo({ access: data.accessToken, refresh: data.refreshToken, signup: null });
       setMemberId(data.memberId);
+      setIsNeedSignUp(false);
     },
     onError: e => {
       console.error(e.response?.data);
