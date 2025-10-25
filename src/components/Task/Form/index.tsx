@@ -218,7 +218,7 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
       // TODO: 두윗 모드 수정 API 연동
       addDowithTaskMutate(payload);
     },
-    [isTodoMode],
+    [isTodoMode, isEditMode],
   );
 
   return (
