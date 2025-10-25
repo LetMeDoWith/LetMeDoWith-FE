@@ -25,6 +25,8 @@ import { useUpdateTodoTaskStatus } from 'hooks/queries/task/useUpdateTodoTaskSta
 import { isAos } from 'utils/device';
 import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
+import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
+import { useDialog } from 'components/common/Dialog/Provider';
 
 dayjs.extend(customParseFormat);
 
@@ -56,10 +58,17 @@ const Item = ({
   feedBackCount,
 }: Props) => {
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { showDialog, hideDialog } = useDialog();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
   const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
+  const { mutate: deleteTodoTaskMutate } = useUpdateTodoTask({
+    type: 'DELETE',
+    id,
+    year,
+    month,
+  });
   const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
   const { data: dowithTaskData } = useFetchDowithTask(
     { dowithTaskId: id },
@@ -110,8 +119,23 @@ const Item = ({
     completeTodoTaskStatusMutate({ id, status });
   };
 
-  const handleEditTask = () => {
-    navigate('TASK_FORM', { date: selectedDate, id, mode });
+  const handleEditTask = (type: 'EDIT' | 'DELETE') => () => {
+    const isEditType = type === 'EDIT';
+    if (isEditType) {
+      navigate('TASK_FORM', { date: selectedDate, id, mode });
+    } else {
+      showDialog({
+        title: '투두 삭제하기',
+        content: '등록한 투두를 삭제하시겠어요?',
+        leftButtonText: '취소',
+        rightButtonText: '삭제',
+        handleLeftButton: hideDialog,
+        handleRightButton: () => {
+          deleteTodoTaskMutate(undefined);
+          hideDialog();
+        },
+      });
+    }
     taskManagementBottomSheetModalRef.current?.dismiss();
   };
 
@@ -181,7 +205,7 @@ const Item = ({
       </View>
       <BottomSheet ref={taskManagementBottomSheetModalRef} title="투두 관리하기" snapPoints={getSnapPoints()}>
         <View style={styles.modalContainer}>
-          <Pressable style={styles.modalContentRow} onPress={handleEditTask}>
+          <Pressable style={styles.modalContentRow} onPress={handleEditTask('EDIT')}>
             <TaskEdit />
             <Text style={styles.modalContentText}>할 일 수정하기</Text>
           </Pressable>
@@ -191,10 +215,10 @@ const Item = ({
               <Text style={styles.modalContentText}>루틴 수정하기</Text>
             </View>
           ) : null}
-          <View style={styles.modalContentRow}>
+          <Pressable style={styles.modalContentRow} onPress={handleEditTask('DELETE')}>
             <TaskDelete />
             <Text style={styles.modalContentText}>삭제하기</Text>
-          </View>
+          </Pressable>
         </View>
       </BottomSheet>
     </>

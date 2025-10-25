@@ -21,9 +21,11 @@ import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
 import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
 import { isNil } from 'utils/index';
 import { StackScreenProps } from '@react-navigation/stack';
+import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
 
 const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
   const { params } = route;
+  const isEditMode = !!params.mode;
   const {
     control,
     watch,
@@ -38,6 +40,10 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
   const [taskMode, setTaskMode] = useState<TaskModeType | null>(params.mode ?? null);
   const { data: taskCategoryList } = useFetchTaskCategoryList();
   const { mutate: addTodoTaskMutate, isPending: isAddTodoTaskMutateLoading } = useAddTodoTask();
+  const { mutate: updateTodoTaskMutate, isPending: isUpdateTodoTaskMutateLoading } = useUpdateTodoTask({
+    type: 'EDIT',
+    id: params.id,
+  });
   const { mutate: addDowithTaskMutate, isPending: isAddDowithTaskMutateLoading } = useAddDowithTask();
   const isFieldChanged = Object.keys(dirtyFields).length > 0;
 
@@ -49,12 +55,12 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
   const isTodoMode = taskMode === 'TODO';
   const isFormDisabled = taskMode === null;
   const isButtonDisabled = isTodoMode
-    ? !isFieldChanged || !title || isAddTodoTaskMutateLoading
+    ? !isFieldChanged || !title || isAddTodoTaskMutateLoading || isUpdateTodoTaskMutateLoading
     : !isFieldChanged || !title || !startTime || isAddDowithTaskMutateLoading;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
 
   const renderTaskModeButtonView = () => {
-    if (!params.mode) {
+    if (!isEditMode) {
       return (
         <>
           <View style={styles.modeLabel}>
@@ -168,7 +174,10 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
 
   const handleDateChange = useCallback(
     (date: Date) => {
-      setValue('startTime', dayjs(date).format('HH:mm') + ':00');
+      setValue('startTime', dayjs(date).format('HH:mm') + ':00', {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
       setDatePickerOpen(false);
     },
     [setValue],
@@ -198,13 +207,18 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
 
       console.log(payload);
       if (isTodoMode) {
+        if (isEditMode) {
+          updateTodoTaskMutate(payload);
+          return;
+        }
         addTodoTaskMutate(payload);
         return;
       }
 
+      // TODO: 두윗 모드 수정 API 연동
       addDowithTaskMutate(payload);
     },
-    [isTodoMode],
+    [isTodoMode, isEditMode],
   );
 
   return (
@@ -286,7 +300,7 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
                 </Pressable>
               )}
             />
-            {!params.mode ? (
+            {!isEditMode ? (
               <Pressable
                 style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
                 onPress={handleTaskRoutine}
@@ -339,7 +353,7 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
           <Text
             style={[
               styles.buttonText,
-              (isAddTodoTaskMutateLoading || isAddDowithTaskMutateLoading) && {
+              (isAddTodoTaskMutateLoading || isUpdateTodoTaskMutateLoading || isAddDowithTaskMutateLoading) && {
                 backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
               },
             ]}
@@ -354,8 +368,7 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
         mode="time"
         minuteInterval={5}
         locale="ko-KR"
-        date={dayjs().toDate()}
-        minimumDate={dayjs().toDate()}
+        date={startTime ? dayjs(startTime, 'HH:mm:ss').toDate() : dayjs().toDate()}
         onConfirm={handleDateChange}
         onCancel={toggleDatePicker(false)}
       />
