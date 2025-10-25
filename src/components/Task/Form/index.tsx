@@ -174,7 +174,10 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
 
   const handleDateChange = useCallback(
     (date: Date) => {
-      setValue('startTime', dayjs(date).format('HH:mm') + ':00');
+      setValue('startTime', dayjs(date).format('HH:mm') + ':00', {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
       setDatePickerOpen(false);
     },
     [setValue],
@@ -365,8 +368,7 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
         mode="time"
         minuteInterval={5}
         locale="ko-KR"
-        date={dayjs().toDate()}
-        minimumDate={dayjs().toDate()}
+        date={startTime ? dayjs(startTime, 'HH:mm:ss').toDate() : dayjs().toDate()}
         onConfirm={handleDateChange}
         onCancel={toggleDatePicker(false)}
       />

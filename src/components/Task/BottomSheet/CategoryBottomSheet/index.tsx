@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFormContext } from 'react-hook-form';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
@@ -43,9 +43,25 @@ const CategoryBottomSheet = forwardRef<BottomSheetModalMethods, Props>(
     );
 
     const handleCategoryBottomSheetButton = useCallback(() => {
-      setValue('taskCategoryId', selectedCategory?.id);
+      setValue('taskCategoryId', selectedCategory?.id, {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
       innerRef.current?.dismiss();
     }, [selectedCategory?.id, setValue]);
+
+    useEffect(() => {
+      const initialCategory = taskCategoryList?.find(({ id }) => id === taskCategoryId);
+      if (!initialCategory) {
+        return;
+      }
+
+      const initialState = {
+        id: initialCategory.id,
+        title: initialCategory.title,
+      };
+      setSelectedCategory(initialState);
+    }, [taskCategoryList]);
 
     useImperativeHandle(ref, () => innerRef.current!);
 
