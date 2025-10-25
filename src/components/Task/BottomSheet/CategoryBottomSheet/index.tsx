@@ -61,7 +61,7 @@ const CategoryBottomSheet = forwardRef<BottomSheetModalMethods, Props>(
         title: initialCategory.title,
       };
       setSelectedCategory(initialState);
-    }, [taskCategoryList]);
+    }, [taskCategoryList, taskCategoryId]);
 
     useImperativeHandle(ref, () => innerRef.current!);
 
