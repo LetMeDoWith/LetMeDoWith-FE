@@ -338,7 +338,12 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
                   </View>
                   {selectedDateTaskList ? (
                     <View style={{ flex: 1, marginTop: 16 }}>
-                      <ListContainerView year={year} month={month} taskList={selectedDateTaskList} />
+                      <ListContainerView
+                        year={year}
+                        month={month}
+                        taskList={selectedDateTaskList}
+                        selectedDate={selectedDate}
+                      />
                     </View>
                   ) : null}
                 </View>

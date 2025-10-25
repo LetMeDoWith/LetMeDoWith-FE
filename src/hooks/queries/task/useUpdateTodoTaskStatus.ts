@@ -11,7 +11,7 @@ interface Props {
   month: number;
 }
 
-const useUpdateTodoTask = ({ year, month }: Props) => {
+const useUpdateTodoTaskStatus = ({ year, month }: Props) => {
   const queryClient = useQueryClient();
 
   return useMutation<updateTodoTaskResponseSchemeType, AxiosError, { id: number; status: TaskStatusEnumType }>({
@@ -23,4 +23,4 @@ const useUpdateTodoTask = ({ year, month }: Props) => {
   });
 };
 
-export { useUpdateTodoTask };
+export { useUpdateTodoTaskStatus };

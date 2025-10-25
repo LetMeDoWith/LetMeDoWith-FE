@@ -14,6 +14,8 @@ type RootStackParamList = {
   SETTING: undefined;
   TASK_FORM: {
     date: string;
+    id?: number;
+    mode?: TaskModeType;
   };
   FEEDBACK: undefined;
 };
@@ -34,7 +36,9 @@ type HomeTabScreenProps<T extends keyof HomeTabParamList> = CompositeScreenProps
 type TaskModeType = 'TODO' | 'DOWITH';
 
 type TaskFormStackParamList = {
-  FORM: undefined;
+  FORM: {
+    mode?: TaskModeType;
+  };
 };
 
 type TaskFormStackScreenProps<T extends keyof TaskFormStackParamList> = StackScreenProps<TaskFormStackParamList, T>;
