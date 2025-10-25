@@ -40,7 +40,10 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
   const [taskMode, setTaskMode] = useState<TaskModeType | null>(params.mode ?? null);
   const { data: taskCategoryList } = useFetchTaskCategoryList();
   const { mutate: addTodoTaskMutate, isPending: isAddTodoTaskMutateLoading } = useAddTodoTask();
-  const { mutate: updateTodoTaskMutate, isPending: isUpdateTodoTaskMutateLoading } = useUpdateTodoTask(params.id);
+  const { mutate: updateTodoTaskMutate, isPending: isUpdateTodoTaskMutateLoading } = useUpdateTodoTask({
+    type: 'EDIT',
+    id: params.id,
+  });
   const { mutate: addDowithTaskMutate, isPending: isAddDowithTaskMutateLoading } = useAddDowithTask();
   const isFieldChanged = Object.keys(dirtyFields).length > 0;
 
