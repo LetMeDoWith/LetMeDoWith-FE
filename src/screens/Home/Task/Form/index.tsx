@@ -1,7 +1,7 @@
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { TaskFormStackNavigator } from 'components/navigators/Stack/Task';
-import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
+import type { taskFormSchemeType } from 'types/task/scheme/api';
 import type { RootStackScreenProps } from 'types/shared';
 import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
@@ -18,21 +18,19 @@ const TaskForm = ({
   );
 
   const data = id && mode ? todoTaskData ?? dowithTaskData : null;
-  const methods = useForm<addTaskRequestSchemeType>({
+  const methods = useForm<taskFormSchemeType>({
     defaultValues: {
-      title: data ? data.title : '',
-      taskCategoryId: data ? data.taskCategoryId : null,
-      date: data ? data.date : date,
-      startTime: data ? data.startTime : null,
-      routineCondition: data
-        ? data.routineCondition
-        : {
-            startDate: undefined,
-            endDate: undefined,
-            cycle: undefined,
-            pattern: [],
-            isExcludeHolidays: false,
-          },
+      title: data?.title || '',
+      taskCategoryId: data?.taskCategoryId || null,
+      date: data?.date || date,
+      startTime: data?.startTime || null,
+      routineCondition: data?.routineCondition || {
+        startDate: null,
+        endDate: null,
+        cycle: null,
+        pattern: [],
+        isExcludeHolidays: false,
+      },
     },
   });
 
