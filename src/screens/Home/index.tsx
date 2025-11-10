@@ -57,7 +57,7 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   };
 
   const handlePressPlusIcon = () => {
-    navigate('TASK_FORM', { date: selectedDate });
+    navigate('TASK_FORM', { date: selectedDate, screen: 'COMMON' });
   };
 
   const handleDayPress = (date?: DateData) => () => {
