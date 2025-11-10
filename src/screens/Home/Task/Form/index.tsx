@@ -8,7 +8,7 @@ import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 
 const TaskForm = ({
   route: {
-    params: { date, id = -1, mode },
+    params: { date, id = -1, mode, screen },
   },
 }: RootStackScreenProps<'TASK_FORM'>) => {
   const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
@@ -36,7 +36,7 @@ const TaskForm = ({
 
   return (
     <FormProvider {...methods}>
-      <TaskFormStackNavigator id={id} mode={mode} />
+      <TaskFormStackNavigator id={id} mode={mode} initialScreen={screen} />
     </FormProvider>
   );
 };

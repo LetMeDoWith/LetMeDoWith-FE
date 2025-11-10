@@ -32,8 +32,8 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
       title="루틴 등록하기"
       buttonConfig={{ title: '등록하기', isDisabled: !isSubmitValid }}
       snapPoints={['90%']}
-      handleCloseButton={formRef.current?.handleCloseButton}
-      handleButtonSubmit={formRef.current?.handleSubmit}
+      handleCloseButton={() => formRef.current?.handleCloseButton()}
+      handleButtonSubmit={() => formRef.current?.handleSubmit()}
     >
       <RoutineForm
         ref={formRef}

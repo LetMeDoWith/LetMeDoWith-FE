@@ -10,12 +10,10 @@ import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
 import { TodoMode } from 'components/common/icons/TodoMode';
 import { DowithMode } from 'components/common/icons/DowithMode';
-import { QuestionCircle } from 'components/common/icons/QuestionCircle';
 import type { TaskFormStackParamList, TaskModeType } from 'types/shared';
 import { CategoryBottomSheet } from 'components/Task/BottomSheet/CategoryBottomSheet';
 import { RoutineBottomSheet } from 'components/Task/BottomSheet/RoutineBottomSheet';
 import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategoryList';
-import { ExclamationMarkCircle } from 'components/common/icons/ExclamationMarkCircle';
 import { useAddTodoTask } from 'hooks/queries/task/useAddTodoTask';
 import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
 import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
@@ -23,7 +21,7 @@ import { isNil } from 'utils/index';
 import { StackScreenProps } from '@react-navigation/stack';
 import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
 
-const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
+const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
   const { params } = route;
   const isEditMode = !!params.mode;
   const {
@@ -50,7 +48,7 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
   const title = watch('title');
   const startTime = watch('startTime');
   const taskCategoryId = watch('taskCategoryId');
-  const routineConditionCycle = watch('routineCondition.cycle');
+  const routineCondition = watch('routineCondition');
 
   const isTodoMode = taskMode === 'TODO';
   const isFormDisabled = taskMode === null;
@@ -63,13 +61,7 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
     if (!isEditMode) {
       return (
         <>
-          <View style={styles.modeLabel}>
-            <Text style={theme.TYPOGRAPHY.SUB_TITLE}>모드 선택</Text>
-            <View style={styles.modeLabelAlertWrap}>
-              <Text style={styles.modeLabelAlert}>사용 가능한 두윗 모드: 3개</Text>
-              <QuestionCircle />
-            </View>
-          </View>
+          <Text style={theme.TYPOGRAPHY.SUB_TITLE}>모드 선택</Text>
           <View style={styles.modeButtonWrap}>
             <Pressable
               style={[
@@ -305,41 +297,31 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
                 style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
                 onPress={handleTaskRoutine}
               >
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <View style={{ gap: 8 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <Text
-                        style={[
-                          theme.TYPOGRAPHY.SUB_TITLE,
-                          isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 },
-                        ]}
-                      >
-                        루틴 설정
-                      </Text>
-                      <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
-                        (선택)
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <ExclamationMarkCircle />
-                      <Text
-                        style={[
-                          theme.TYPOGRAPHY.CAPTION1_BASIC,
-                          { color: isFormDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_50 },
-                        ]}
-                      >
-                        모드를 변경하면 루틴이 초기화 돼요.
-                      </Text>
-                    </View>
+                <View
+                  style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text
+                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                    >
+                      루틴 설정
+                    </Text>
+                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                      (선택)
+                    </Text>
                   </View>
                 </View>
                 <Text
                   style={[
                     theme.TYPOGRAPHY.BODY_2,
-                    { color: routineConditionCycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
+                    { color: routineCondition?.cycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
                   ]}
                 >
-                  {routineConditionCycle ? '사용자 지정' : '미등록'}
+                  {routineCondition?.cycle
+                    ? `${dayjs(routineCondition?.startDate).format('YYYY. MM. DD')} ~ ${dayjs(
+                        routineCondition?.endDate,
+                      ).format('YYYY. MM. DD')}`
+                    : '미등록'}
                 </Text>
               </Pressable>
             ) : null}
@@ -352,7 +334,8 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'FORM'>) => {
         >
           <Text
             style={[
-              styles.buttonText,
+              theme.TYPOGRAPHY.TITLE_2,
+              { color: theme.COLORS.DEFAULT.WHITE },
               (isAddTodoTaskMutateLoading || isUpdateTodoTaskMutateLoading || isAddDowithTaskMutateLoading) && {
                 backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
               },
@@ -391,19 +374,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   modeWrap: { gap: 16 },
-  modeLabel: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  modeLabelAlertWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  modeLabelAlert: {
-    fontSize: 13,
-    color: theme.COLORS.GRAY_SCALE.GRAY_60,
-  },
   modeButtonWrap: {
     flexDirection: 'row',
     gap: 8,
@@ -439,10 +409,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 64,
     backgroundColor: theme.COLORS.PRIMARY.RED_95,
-  },
-  buttonText: {
-    fontSize: 18,
-    color: theme.COLORS.DEFAULT.WHITE,
   },
 });
 

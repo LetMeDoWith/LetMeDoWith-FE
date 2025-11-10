@@ -13,6 +13,7 @@ type RootStackParamList = {
   HOME: undefined;
   SETTING: undefined;
   TASK_FORM: {
+    screen: 'COMMON' | 'ROUTINE';
     date: string;
     id?: number;
     mode?: TaskModeType;
@@ -36,9 +37,13 @@ type HomeTabScreenProps<T extends keyof HomeTabParamList> = CompositeScreenProps
 type TaskModeType = 'TODO' | 'DOWITH';
 
 type TaskFormStackParamList = {
-  FORM: {
+  COMMON: {
     id: number;
     mode?: TaskModeType;
+  };
+  ROUTINE: {
+    id: number;
+    mode: TaskModeType;
   };
 };
 

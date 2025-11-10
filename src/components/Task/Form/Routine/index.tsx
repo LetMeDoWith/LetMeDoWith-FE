@@ -1,17 +1,28 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Divider, Switch } from 'react-native-paper';
 import { Calendar } from 'react-native-calendars';
 import type { DateData, MarkedDates } from 'react-native-calendars/src/types';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import type { UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { useFormContext, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { getBottomSpace } from 'react-native-iphone-screen-helper';
+import { StackScreenProps } from '@react-navigation/stack';
+import { z } from 'zod';
 
 import { theme } from 'styles/theme';
 import { DropArrow } from 'components/common/icons/DropArrow';
-import type { TaskModeType } from 'types/shared';
+import type { TaskFormStackParamList, TaskModeType } from 'types/shared';
 import { CustomCalendarHeader } from 'components/Task';
-import type { taskFormSchemeType } from 'types/task/scheme/api';
+import type {
+  addTaskRequestSchemeType,
+  fetchTodoTaskResponseDataSchemeType,
+  taskFormSchemeType,
+} from 'types/task/scheme/api';
+import { isAos } from 'utils/device';
+import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
+import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
+import { TASK_ROUTINE_CYCLE_ENUM } from 'schemes/task/enum';
 
 dayjs.extend(isSameOrBefore);
 
@@ -25,12 +36,12 @@ const WEEKLY_DAY_INFO = [
   { code: 'SUNDAY', value: 7, name: '일' },
 ] as const;
 
-interface Props {
-  taskMode: TaskModeType | null;
-  closeBottomSheet: () => void;
-  setValue: UseFormSetValue<taskFormSchemeType>;
-  watch: UseFormWatch<taskFormSchemeType>;
-  handleValidationChange: (isValid: boolean) => void;
+interface Props extends Partial<StackScreenProps<TaskFormStackParamList, 'ROUTINE'>> {
+  taskMode?: TaskModeType | null;
+  closeBottomSheet?: () => void;
+  handleValidationChange?: (isValid: boolean) => void;
+  setValue?: UseFormSetValue<taskFormSchemeType>;
+  watch?: UseFormWatch<taskFormSchemeType>;
 }
 
 type RoutineFormRefMethod = {
@@ -40,7 +51,47 @@ type RoutineFormRefMethod = {
 };
 
 const RoutineForm = forwardRef<unknown, Props>(
-  ({ taskMode, closeBottomSheet, setValue, watch, handleValidationChange }, ref) => {
+  (
+    {
+      route,
+      taskMode = null,
+      closeBottomSheet = () => {},
+      setValue: propSetValue,
+      watch: propWatch,
+      handleValidationChange,
+    },
+    ref,
+  ) => {
+    const id = route?.params?.id || -1;
+    const mode = route?.params?.mode;
+
+    let formContext;
+    try {
+      formContext = useFormContext<taskFormSchemeType>();
+    } catch (error) {
+      // FormProvider 밖에서 사용될 경우 무시
+      formContext = null;
+    }
+
+    const setValue = propSetValue || formContext?.setValue;
+    const watch = propWatch || formContext?.watch;
+    const formContextHandleSubmit = formContext?.handleSubmit;
+
+    if (!setValue || !watch) {
+      throw new Error('Form 메서드(setValue, watch)를 참조할 수 없습니다.');
+    }
+
+    const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
+    const { data: dowithTaskData } = useFetchDowithTask(
+      { dowithTaskId: id },
+      { enabled: mode === 'DOWITH' && id !== -1 },
+    );
+
+    const data = id && mode ? todoTaskData ?? dowithTaskData : null;
+
+    // TODO: 버튼 비활성화 조건 구체화
+    const isButtonDisabled = false;
+
     const todayDateString = dayjs().format('YYYY-MM-DD');
     const [currentDate, setCurrentDate] = useState(todayDateString);
     // 투두 모드에서 사용하는 선택 기간 상태
@@ -54,6 +105,11 @@ const RoutineForm = forwardRef<unknown, Props>(
 
     const isValidDatePeriod = selectedStartDate !== null && selectedEndDate !== null;
     const routineCondition = watch('routineCondition');
+
+    // TODO: value 타입 구체화 필요
+    const onSubmit = (value: unknown) => {
+      console.log('value: ', value);
+    };
 
     // 등록한 루틴이 유효한지 검사하는 함수 (루틴 기간, 반복 패턴을 종류에 맞게 설정했는지)
     const isValidRoutineCondition = () => {
@@ -134,23 +190,38 @@ const RoutineForm = forwardRef<unknown, Props>(
       return marked;
     };
 
-    const handleExcludeHolidays = () => setIsExcludeHolidays(!isExcludeHolidays);
+    const handleExcludeHolidays = (value: boolean) => setIsExcludeHolidays(value);
 
-    const initRoutineCondition = () => {
-      setSelectedStartDate(null);
-      setSelectedEndDate(null);
-      setIsExcludeHolidays(false);
-      setSelectedPrimaryCategory(null);
-      setSelectedWeeklyDaySet(new Set());
-      setSelectedMonthlyDaySet(new Set());
+    const initRoutineCondition = (data?: fetchTodoTaskResponseDataSchemeType | addTaskRequestSchemeType | null) => {
+      const getSelectedDaySet = (type: Omit<z.infer<typeof TASK_ROUTINE_CYCLE_ENUM>, 'DAILY'>) => {
+        const cycle = data?.routineCondition?.cycle;
+        if (!data || cycle === TASK_ROUTINE_CYCLE_ENUM.enum.DAILY) {
+          return new Set<number>();
+        }
+
+        if (type === cycle) {
+          return new Set<number>(routineCondition.pattern);
+        }
+
+        return new Set<number>();
+      };
+
+      // TODO: 투두 생성 시, 루틴을 이미 설정해서 저장해놓았다면 해당 상태로 초기화 필요
+
+      setSelectedStartDate(data?.routineCondition?.startDate ?? null);
+      setSelectedEndDate(data?.routineCondition?.endDate ?? null);
+      setIsExcludeHolidays(data?.routineCondition?.isExcludeHolidays ?? false);
+      setSelectedPrimaryCategory(data?.routineCondition?.cycle ?? null);
+      setSelectedWeeklyDaySet(getSelectedDaySet(TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY));
+      setSelectedMonthlyDaySet(getSelectedDaySet(TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY));
       setExpanded(true);
 
       setValue('routineCondition', {
-        startDate: null,
-        endDate: null,
-        cycle: null,
-        pattern: [],
-        isExcludeHolidays: false,
+        startDate: data?.routineCondition?.startDate ?? null,
+        endDate: data?.routineCondition?.endDate ?? null,
+        cycle: data?.routineCondition?.cycle ?? null,
+        pattern: data?.routineCondition?.pattern ?? [],
+        isExcludeHolidays: data?.routineCondition?.isExcludeHolidays ?? false,
       });
     };
 
@@ -184,13 +255,13 @@ const RoutineForm = forwardRef<unknown, Props>(
         }
 
         if (routineCondition.cycle === 'WEEKLY') {
-          setSelectedWeeklyDaySet(new Set(routineCondition.pattern as number[]));
+          setSelectedWeeklyDaySet(new Set<number>(routineCondition.pattern));
           setSelectedMonthlyDaySet(new Set());
           isNeedInit = false;
         }
 
         if (routineCondition.cycle === 'MONTHLY') {
-          setSelectedMonthlyDaySet(new Set(routineCondition.pattern as number[]));
+          setSelectedMonthlyDaySet(new Set<number>(routineCondition.pattern));
           setSelectedWeeklyDaySet(new Set());
           isNeedInit = false;
         }
@@ -202,12 +273,12 @@ const RoutineForm = forwardRef<unknown, Props>(
         }
 
         if (routineCondition.cycle === 'WEEKLY' && routineCondition.pattern !== Array.from(selectedWeeklyDaySet)) {
-          setSelectedWeeklyDaySet(new Set(routineCondition.pattern as number[]));
+          setSelectedWeeklyDaySet(new Set<number>(routineCondition.pattern));
           isNeedInit = false;
         }
 
         if (routineCondition.cycle === 'MONTHLY' && routineCondition.pattern !== Array.from(selectedMonthlyDaySet)) {
-          setSelectedMonthlyDaySet(new Set(routineCondition.pattern as number[]));
+          setSelectedMonthlyDaySet(new Set<number>(routineCondition.pattern));
           isNeedInit = false;
         }
       }
@@ -226,6 +297,7 @@ const RoutineForm = forwardRef<unknown, Props>(
       setValue('routineCondition.startDate', selectedStartDate);
       setValue('routineCondition.endDate', selectedEndDate);
       setValue('routineCondition.cycle', selectedPrimaryCategory);
+      setValue('routineCondition.isExcludeHolidays', isExcludeHolidays);
 
       if (selectedPrimaryCategory === 'DAILY') {
         setValue('routineCondition.pattern', []);
@@ -282,8 +354,8 @@ const RoutineForm = forwardRef<unknown, Props>(
     );
 
     useEffect(() => {
-      initRoutineCondition();
-    }, [taskMode]);
+      initRoutineCondition(data);
+    }, [taskMode, data]);
 
     useEffect(() => {
       const isValid = isValidRoutineCondition();
@@ -296,168 +368,202 @@ const RoutineForm = forwardRef<unknown, Props>(
     }));
 
     return (
-      <View style={styles.container}>
-        <View style={styles.dateSection}>
-          <View style={styles.dateLeftSection}>
-            <Text style={theme.TYPOGRAPHY.SUB_TITLE}>반복 기간</Text>
-            {!isValidDatePeriod && (
-              <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_60 }]}>
-                루틴을 반복할 시작일과 종료일을 선택해주세요.
-              </Text>
+      <>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={ref === null && { paddingHorizontal: 20, paddingBottom: 134 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.dateSection}>
+            <View style={styles.dateLeftSection}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={theme.TYPOGRAPHY.SUB_TITLE}>시작 날짜</Text>
+                <Text
+                  style={[theme.TYPOGRAPHY.BODY_2, !selectedStartDate && { color: theme.COLORS.GRAY_SCALE.GRAY_60 }]}
+                >
+                  {selectedStartDate ? dayjs(selectedStartDate).format('YYYY. MM. DD (ddd)') : '날짜를 선택해주세요'}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={theme.TYPOGRAPHY.SUB_TITLE}>종료 날짜</Text>
+                <Text style={[theme.TYPOGRAPHY.BODY_2, !selectedEndDate && { color: theme.COLORS.GRAY_SCALE.GRAY_60 }]}>
+                  {selectedEndDate ? dayjs(selectedEndDate).format('YYYY. MM. DD (ddd)') : '날짜를 선택해주세요'}
+                </Text>
+              </View>
+            </View>
+            <Pressable style={styles.dateRightSection} onPress={handleExpanded}>
+              <DropArrow direction={expanded ? 'UP' : 'DOWN'} />
+            </Pressable>
+          </View>
+          <Divider style={{ marginVertical: 20 }} />
+          {expanded && (
+            <Calendar
+              initialDate={currentDate}
+              style={{ marginBottom: 32 }}
+              markingType={'period'}
+              markedDates={getMarkedPeriodDates(selectedStartDate, selectedEndDate)}
+              minDate={todayDateString}
+              renderHeader={renderCustomHeader}
+              onDayPress={handleDayPress}
+              hideArrows
+            />
+          )}
+          <View style={styles.routineSection}>
+            <Text style={styles.routineSectionTitle}>반복 패턴</Text>
+            <View style={styles.routinePrimaryCategoryButtonSection}>
+              <Pressable
+                style={[
+                  styles.routinePrimaryCategoryButton,
+                  selectedPrimaryCategory === 'DAILY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+                ]}
+                onPress={handlePrimaryCategory('DAILY')}
+              >
+                <Text style={styles.routinePrimaryCategoryButtonText}>매일</Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.routinePrimaryCategoryButton,
+                  selectedPrimaryCategory === 'WEEKLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+                ]}
+                onPress={handlePrimaryCategory('WEEKLY')}
+              >
+                <Text style={styles.routinePrimaryCategoryButtonText}>매 주</Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.routinePrimaryCategoryButton,
+                  selectedPrimaryCategory === 'MONTHLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+                ]}
+                onPress={handlePrimaryCategory('MONTHLY')}
+              >
+                <Text style={styles.routinePrimaryCategoryButtonText}>매 월</Text>
+              </Pressable>
+            </View>
+            {selectedPrimaryCategory === 'WEEKLY' && (
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {WEEKLY_DAY_INFO.map(({ code, value, name }) => (
+                  <Pressable
+                    key={code}
+                    style={{
+                      flex: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: 38,
+                      borderRadius: 8,
+                      backgroundColor: selectedWeeklyDaySet.has(value)
+                        ? theme.COLORS.GRAY_SCALE.GRAY_30
+                        : theme.COLORS.GRAY_SCALE.GRAY_96,
+                    }}
+                    onPress={() => {
+                      setSelectedWeeklyDaySet(prev => {
+                        const newSet = new Set(prev);
+                        if (newSet.has(value)) {
+                          newSet.delete(value);
+                        } else {
+                          newSet.add(value);
+                        }
+                        return newSet;
+                      });
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: selectedWeeklyDaySet.has(value)
+                          ? theme.COLORS.DEFAULT.WHITE
+                          : theme.COLORS.DEFAULT.BLACK,
+                      }}
+                    >
+                      {name}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+            {selectedPrimaryCategory === 'MONTHLY' && (
+              <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                {Array.from({ length: 32 }, (_, index) => (
+                  <Pressable
+                    key={index + 1}
+                    style={{
+                      // TODO: % 단위 말고 다른 방법으로 구현 필요
+                      width: index !== 31 ? '12.2857%' : '54.1429%',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: 38,
+                      borderRadius: 8,
+                      backgroundColor: selectedMonthlyDaySet.has(index + 1)
+                        ? theme.COLORS.GRAY_SCALE.GRAY_30
+                        : theme.COLORS.GRAY_SCALE.GRAY_96,
+                    }}
+                    onPress={() => {
+                      setSelectedMonthlyDaySet(prev => {
+                        const newSet = new Set(prev);
+                        if (newSet.has(index + 1)) {
+                          newSet.delete(index + 1);
+                        } else {
+                          newSet.add(index + 1);
+                        }
+                        return newSet;
+                      });
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: selectedMonthlyDaySet.has(index + 1)
+                          ? theme.COLORS.DEFAULT.WHITE
+                          : theme.COLORS.DEFAULT.BLACK,
+                      }}
+                    >
+                      {index < 31 ? index + 1 : '마지막 날'}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             )}
           </View>
-          <Pressable style={styles.dateRightSection} onPress={handleExpanded}>
+          <View style={styles.selectHolidaySection}>
+            <View style={styles.selectHolidayTitleWrap}>
+              <Text style={theme.TYPOGRAPHY.SUB_TITLE}>공휴일 제외하기</Text>
+              <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>(선택)</Text>
+            </View>
+            <Switch
+              value={isExcludeHolidays}
+              color={theme.COLORS.PRIMARY.RED_60}
+              onValueChange={handleExcludeHolidays}
+            />
+          </View>
+        </ScrollView>
+        {ref === null && (
+          <Pressable
+            style={[
+              styles.button,
+              { bottom: isAos ? 20 : getBottomSpace() },
+              !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_60 },
+            ]}
+            disabled={isButtonDisabled}
+            onPress={formContextHandleSubmit?.(onSubmit)}
+          >
             <Text
               style={[
-                theme.TYPOGRAPHY.BODY_2,
-                {
-                  color: isValidDatePeriod ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_70,
-                },
+                theme.TYPOGRAPHY.TITLE_2,
+                { color: theme.COLORS.DEFAULT.WHITE },
+                // (isAddTodoTaskMutateLoading || isUpdateTodoTaskMutateLoading || isAddDowithTaskMutateLoading) && {
+                //   backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
+                // },
               ]}
             >
-              {isValidDatePeriod ? `${selectedStartDate} ~ ${selectedEndDate}` : '미선택'}
+              저장하기
             </Text>
-            <DropArrow direction={expanded ? 'UP' : 'DOWN'} />
           </Pressable>
-        </View>
-        <Divider style={{ marginVertical: 20 }} />
-        {expanded && (
-          <Calendar
-            initialDate={currentDate}
-            style={{ marginBottom: 32 }}
-            markingType={'period'}
-            markedDates={getMarkedPeriodDates(selectedStartDate, selectedEndDate)}
-            minDate={todayDateString}
-            renderHeader={renderCustomHeader}
-            onDayPress={handleDayPress}
-            hideArrows
-          />
         )}
-        <View style={styles.routineSection}>
-          <Text style={styles.routineSectionTitle}>반복 패턴</Text>
-          <View style={styles.routinePrimaryCategoryButtonSection}>
-            <Pressable
-              style={[
-                styles.routinePrimaryCategoryButton,
-                selectedPrimaryCategory === 'DAILY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
-              ]}
-              onPress={handlePrimaryCategory('DAILY')}
-            >
-              <Text style={styles.routinePrimaryCategoryButtonText}>매일</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.routinePrimaryCategoryButton,
-                selectedPrimaryCategory === 'WEEKLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
-              ]}
-              onPress={handlePrimaryCategory('WEEKLY')}
-            >
-              <Text style={styles.routinePrimaryCategoryButtonText}>매 주</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.routinePrimaryCategoryButton,
-                selectedPrimaryCategory === 'MONTHLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
-              ]}
-              onPress={handlePrimaryCategory('MONTHLY')}
-            >
-              <Text style={styles.routinePrimaryCategoryButtonText}>매 월</Text>
-            </Pressable>
-          </View>
-          {selectedPrimaryCategory === 'WEEKLY' && (
-            <View style={{ flexDirection: 'row', gap: 6 }}>
-              {WEEKLY_DAY_INFO.map(({ code, value, name }) => (
-                <Pressable
-                  key={code}
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: 38,
-                    borderRadius: 8,
-                    backgroundColor: selectedWeeklyDaySet.has(value)
-                      ? theme.COLORS.GRAY_SCALE.GRAY_30
-                      : theme.COLORS.GRAY_SCALE.GRAY_96,
-                  }}
-                  onPress={() => {
-                    setSelectedWeeklyDaySet(prev => {
-                      const newSet = new Set(prev);
-                      if (newSet.has(value)) {
-                        newSet.delete(value);
-                      } else {
-                        newSet.add(value);
-                      }
-                      return newSet;
-                    });
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: selectedWeeklyDaySet.has(value) ? theme.COLORS.DEFAULT.WHITE : theme.COLORS.DEFAULT.BLACK,
-                    }}
-                  >
-                    {name}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
-          {selectedPrimaryCategory === 'MONTHLY' && (
-            <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-              {Array.from({ length: 32 }, (_, index) => (
-                <Pressable
-                  key={index + 1}
-                  style={{
-                    // TODO: % 단위 말고 다른 방법으로 구현 필요
-                    width: index !== 31 ? '12.2857%' : '54.1429%',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: 38,
-                    borderRadius: 8,
-                    backgroundColor: selectedMonthlyDaySet.has(index + 1)
-                      ? theme.COLORS.GRAY_SCALE.GRAY_30
-                      : theme.COLORS.GRAY_SCALE.GRAY_96,
-                  }}
-                  onPress={() => {
-                    setSelectedMonthlyDaySet(prev => {
-                      const newSet = new Set(prev);
-                      if (newSet.has(index + 1)) {
-                        newSet.delete(index + 1);
-                      } else {
-                        newSet.add(index + 1);
-                      }
-                      return newSet;
-                    });
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: selectedMonthlyDaySet.has(index + 1)
-                        ? theme.COLORS.DEFAULT.WHITE
-                        : theme.COLORS.DEFAULT.BLACK,
-                    }}
-                  >
-                    {index < 31 ? index + 1 : '마지막 날'}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
-        </View>
-        <View style={styles.selectHolidaySection}>
-          <View style={styles.selectHolidayTitleWrap}>
-            <Text style={theme.TYPOGRAPHY.SUB_TITLE}>공휴일 제외하기</Text>
-            <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>(선택)</Text>
-          </View>
-          <Switch value={isExcludeHolidays} color={theme.COLORS.PRIMARY.RED_60} onValueChange={handleExcludeHolidays} />
-        </View>
-      </View>
+      </>
     );
   },
 );
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     paddingVertical: 24,
   },
   dateSection: {
@@ -467,6 +573,7 @@ const styles = StyleSheet.create({
   },
   dateLeftSection: {
     gap: 8,
+    flex: 8,
   },
   dateRightSection: {
     flex: 1,
@@ -498,6 +605,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 4,
     alignItems: 'center',
+  },
+  button: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 64,
+    backgroundColor: theme.COLORS.PRIMARY.RED_95,
+  },
+  buttonText: {
+    fontSize: 18,
+    color: theme.COLORS.DEFAULT.WHITE,
   },
 });
 
