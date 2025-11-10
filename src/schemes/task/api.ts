@@ -92,6 +92,8 @@ const updateTaskRequestScheme = todoTaskScheme
   .pick({ title: true, startTime: true, taskCategoryId: true })
   .extend({ routineCondition: taskRoutineConditionScheme.nullable() });
 
+const updateTaskRoutineRequestScheme = taskRoutineConditionScheme.optional();
+
 export {
   taskCategoryScheme,
   fetchTaskCategoryListResponseScheme,
@@ -109,4 +111,5 @@ export {
   fetchDowithTaskRequestScheme,
   fetchDowithTaskResponseScheme,
   updateTaskRequestScheme,
+  updateTaskRoutineRequestScheme,
 };

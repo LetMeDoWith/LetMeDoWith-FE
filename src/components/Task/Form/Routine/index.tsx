@@ -5,9 +5,10 @@ import { Calendar } from 'react-native-calendars';
 import type { DateData, MarkedDates } from 'react-native-calendars/src/types';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import { useFormContext, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { FormState, useFormContext, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
-import { StackScreenProps } from '@react-navigation/stack';
+import type { StackScreenProps } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
 import { z } from 'zod';
 
 import { theme } from 'styles/theme';
@@ -23,6 +24,8 @@ import { isAos } from 'utils/device';
 import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { TASK_ROUTINE_CYCLE_ENUM } from 'schemes/task/enum';
+import { useUpdateTaskRoutine } from 'hooks/queries/task/useUpdateTaskRoutine';
+import { useDialog } from 'components/common/Dialog/Provider';
 
 dayjs.extend(isSameOrBefore);
 
@@ -38,44 +41,56 @@ const WEEKLY_DAY_INFO = [
 
 interface Props extends Partial<StackScreenProps<TaskFormStackParamList, 'ROUTINE'>> {
   taskMode?: TaskModeType | null;
+  navigation?: any;
   closeBottomSheet?: () => void;
   handleValidationChange?: (isValid: boolean) => void;
   setValue?: UseFormSetValue<taskFormSchemeType>;
   watch?: UseFormWatch<taskFormSchemeType>;
+  formState?: FormState<taskFormSchemeType>;
 }
 
 type RoutineFormRefMethod = {
-  isValidRoutineCondition: () => void;
   handleCloseButton: () => void;
   handleSubmit: () => void;
 };
 
-const RoutineForm = forwardRef<unknown, Props>(
+const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
   (
     {
+      navigation: propNavigation,
       route,
       taskMode = null,
       closeBottomSheet = () => {},
       setValue: propSetValue,
       watch: propWatch,
+      formState: propFormState,
       handleValidationChange,
     },
     ref,
   ) => {
     const id = route?.params?.id || -1;
-    const mode = route?.params?.mode;
+    const mode = route?.params?.mode || 'TODO';
+    const isTodoMode = mode === 'TODO';
+    const { showDialog, hideDialog } = useDialog();
 
+    let navigationContext;
     let formContext;
     try {
+      navigationContext = useNavigation();
       formContext = useFormContext<taskFormSchemeType>();
     } catch (error) {
-      // FormProvider 밖에서 사용될 경우 무시
+      // Provider 밖에서 사용될 경우 무시
+      navigationContext = null;
       formContext = null;
     }
 
+    const navigation = propNavigation || navigationContext;
     const setValue = propSetValue || formContext?.setValue;
     const watch = propWatch || formContext?.watch;
     const formContextHandleSubmit = formContext?.handleSubmit;
+    const formState = propFormState || formContext?.formState;
+    const dirtyFields = formState?.dirtyFields || {};
+    const isFieldChanged = Object.keys(dirtyFields).length > 0;
 
     if (!setValue || !watch) {
       throw new Error('Form 메서드(setValue, watch)를 참조할 수 없습니다.');
@@ -86,11 +101,14 @@ const RoutineForm = forwardRef<unknown, Props>(
       { dowithTaskId: id },
       { enabled: mode === 'DOWITH' && id !== -1 },
     );
+    const { mutate: updateTaskRoutine, isPending: isUpdateTaskRoutineLoading } = useUpdateTaskRoutine({
+      navigation,
+      mode,
+      id,
+    });
 
-    const data = id && mode ? todoTaskData ?? dowithTaskData : null;
-
-    // TODO: 버튼 비활성화 조건 구체화
-    const isButtonDisabled = false;
+    const data = id !== -1 ? todoTaskData ?? dowithTaskData : null;
+    const isButtonDisabled = !isFieldChanged || isUpdateTaskRoutineLoading;
 
     const todayDateString = dayjs().format('YYYY-MM-DD');
     const [currentDate, setCurrentDate] = useState(todayDateString);
@@ -107,8 +125,21 @@ const RoutineForm = forwardRef<unknown, Props>(
     const routineCondition = watch('routineCondition');
 
     // TODO: value 타입 구체화 필요
-    const onSubmit = (value: unknown) => {
-      console.log('value: ', value);
+    const onSubmit = (value: any) => {
+      showDialog({
+        title: `루틴 ${isTodoMode ? '투두' : '두윗'} 수정하기`,
+        content: `루틴으로 수정한 앞으로의 ${isTodoMode ? '투두를' : '두윗을'}\n모두 수정하시겠어요?`,
+        leftButtonText: '모두 수정하기',
+        rightButtonText: '이번만 수정하기',
+        handleLeftButton: () => {
+          // TODO: 관련된 Task의 모든 루틴 수정 API 연동 필요
+          hideDialog();
+        },
+        handleRightButton: () => {
+          updateTaskRoutine({ ...value.routineCondition });
+          hideDialog();
+        },
+      });
     };
 
     // 등록한 루틴이 유효한지 검사하는 함수 (루틴 기간, 반복 패턴을 종류에 맞게 설정했는지)
@@ -362,6 +393,41 @@ const RoutineForm = forwardRef<unknown, Props>(
       handleValidationChange?.(isValid);
     }, [selectedStartDate, selectedEndDate, selectedPrimaryCategory, selectedWeeklyDaySet, selectedMonthlyDaySet]);
 
+    // TODO: 임시 조치, 성능 문제 생기면 수정 필요
+    useEffect(() => {
+      setValue('routineCondition.startDate', selectedStartDate, {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      setValue('routineCondition.endDate', selectedEndDate, {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      setValue('routineCondition.cycle', selectedPrimaryCategory, {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      setValue('routineCondition.pattern', Array.from(selectedWeeklyDaySet), {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      setValue('routineCondition.pattern', Array.from(selectedMonthlyDaySet), {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      setValue('routineCondition.isExcludeHolidays', isExcludeHolidays, {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+    }, [
+      selectedStartDate,
+      selectedEndDate,
+      selectedPrimaryCategory,
+      selectedWeeklyDaySet,
+      selectedMonthlyDaySet,
+      isExcludeHolidays,
+    ]);
+
     useImperativeHandle(ref, () => ({
       handleSubmit,
       handleCloseButton,
@@ -547,9 +613,9 @@ const RoutineForm = forwardRef<unknown, Props>(
               style={[
                 theme.TYPOGRAPHY.TITLE_2,
                 { color: theme.COLORS.DEFAULT.WHITE },
-                // (isAddTodoTaskMutateLoading || isUpdateTodoTaskMutateLoading || isAddDowithTaskMutateLoading) && {
-                //   backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
-                // },
+                isUpdateTaskRoutineLoading && {
+                  backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
+                },
               ]}
             >
               저장하기

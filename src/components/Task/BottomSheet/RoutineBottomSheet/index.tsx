@@ -9,10 +9,11 @@ import type { taskFormSchemeType } from 'types/task/scheme/api';
 
 interface Props {
   taskMode: TaskModeType | null;
+  navigation: any;
 }
 
-const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMode }, ref) => {
-  const { setValue, watch } = useFormContext<taskFormSchemeType>();
+const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ navigation, taskMode }, ref) => {
+  const { setValue, watch, formState } = useFormContext<taskFormSchemeType>();
   const innerRef = useRef<BottomSheetModalMethods>(null);
   const formRef = useRef<RoutineFormRefMethod>(null);
 
@@ -37,10 +38,12 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ taskMod
     >
       <RoutineForm
         ref={formRef}
+        navigation={navigation}
         taskMode={taskMode}
         closeBottomSheet={closeBottomSheet}
         setValue={setValue}
         watch={watch}
+        formState={formState}
         handleValidationChange={handleValidationChange}
       />
     </BottomSheet>

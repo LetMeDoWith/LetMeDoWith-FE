@@ -10,9 +10,11 @@ import type {
   fetchTodoTaskRequestSchemeType,
   fetchTodoTaskResponseSchemeType,
   updateTaskRequestSchemeType,
+  updateTaskRoutineRequestSchemeType,
   updateTodoTaskStatusResponseSchemeType,
 } from 'types/task/scheme/api';
 import type { TaskStatusEnumType } from 'types/task/scheme/enum';
+import type { TaskModeType } from 'types/shared';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 
 const fetchTaskCategoryList = async (): Promise<fetchTaskCategoryListResponseSchemeType> => {
@@ -111,6 +113,27 @@ const updateTodoTask = async ({
   }
 };
 
+const updateTaskRoutine = async ({
+  mode,
+  id,
+  payload,
+}: {
+  mode: TaskModeType;
+  id: number;
+  payload?: updateTaskRoutineRequestSchemeType;
+}): Promise<string> => {
+  try {
+    const isTodoMode = mode === 'TODO';
+    const result = await apiClient.put<string>(
+      `${isTodoMode ? TASK_API.TODO : TASK_API.DOWITH}/${id}/routine`,
+      payload,
+    );
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 export {
   fetchTaskCategoryList,
   fetchTaskList,
@@ -120,4 +143,5 @@ export {
   addDowithTask,
   updateStatusTodoTask,
   updateTodoTask,
+  updateTaskRoutine,
 };

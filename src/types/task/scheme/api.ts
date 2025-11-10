@@ -17,6 +17,7 @@ import {
   fetchTodoTaskResponseDataScheme,
   updateTaskRequestScheme,
   taskFormScheme,
+  updateTaskRoutineRequestScheme,
 } from 'schemes/task/api';
 
 type taskCategorySchemeType = z.infer<typeof taskCategoryScheme>;
@@ -35,6 +36,7 @@ type addTaskRequestSchemeType = z.infer<typeof addTaskRequestScheme>;
 type taskFormSchemeType = z.infer<typeof taskFormScheme>;
 type updateTodoTaskStatusResponseSchemeType = z.infer<typeof updateTodoTaskStatusResponseScheme>;
 type updateTaskRequestSchemeType = z.infer<typeof updateTaskRequestScheme>;
+type updateTaskRoutineRequestSchemeType = z.infer<typeof updateTaskRoutineRequestScheme>;
 
 export type {
   taskCategorySchemeType,
@@ -53,4 +55,5 @@ export type {
   taskFormSchemeType,
   updateTodoTaskStatusResponseSchemeType,
   updateTaskRequestSchemeType,
+  updateTaskRoutineRequestSchemeType,
 };

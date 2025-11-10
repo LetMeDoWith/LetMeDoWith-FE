@@ -21,7 +21,7 @@ import { isNil } from 'utils/index';
 import { StackScreenProps } from '@react-navigation/stack';
 import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
 
-const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
+const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
   const { params } = route;
   const isEditMode = !!params.mode;
   const {
@@ -360,7 +360,7 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => 
         taskCategoryId={taskCategoryId}
         prevSelectedCategory={prevSelectedCategory}
       />
-      <RoutineBottomSheet ref={routineBottomSheetMethodsRef} taskMode={taskMode} />
+      <RoutineBottomSheet ref={routineBottomSheetMethodsRef} taskMode={taskMode} navigation={navigation} />
     </>
   );
 };

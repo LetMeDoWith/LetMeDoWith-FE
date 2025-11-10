@@ -16,6 +16,7 @@ const TASK_QUERY_KEY = {
   ADD_DOWITH: ['task', 'add', 'dowith'],
   UPDATE_TODO_STATUS: ['task', 'update', 'todo', 'status'],
   UPDATE_TODO: ['task', 'update', 'todo'],
+  UPDATE_ROUTINE: ['task', 'update', 'routine'],
 } as const;
 
 const NOTIFICATION_QUERY_KEY = {
