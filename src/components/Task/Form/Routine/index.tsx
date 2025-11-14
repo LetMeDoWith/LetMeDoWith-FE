@@ -9,13 +9,12 @@ import { FormState, useFormContext, UseFormSetValue, UseFormWatch } from 'react-
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
-import { z } from 'zod';
 
 import { theme } from 'styles/theme';
 import { DropArrow } from 'components/common/icons/DropArrow';
 import type { TaskFormStackParamList, TaskModeType } from 'types/shared';
 import { CustomCalendarHeader } from 'components/Task';
-import type {
+import {
   addTaskRequestSchemeType,
   fetchTodoTaskResponseDataSchemeType,
   taskFormSchemeType,
@@ -25,7 +24,7 @@ import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { TASK_ROUTINE_CYCLE_ENUM } from 'schemes/task/enum';
 import { useUpdateTaskRoutine } from 'hooks/queries/task/useUpdateTaskRoutine';
-import { useDialog } from 'components/common/Dialog/Provider';
+import type { TaskRoutineCycleEnumType } from 'types/task/scheme/enum';
 
 dayjs.extend(isSameOrBefore);
 
@@ -70,12 +69,11 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
   ) => {
     const id = route?.params?.id || -1;
     const mode = route?.params?.mode || 'TODO';
-    const isTodoMode = mode === 'TODO';
-    const { showDialog, hideDialog } = useDialog();
 
     let navigationContext;
     let formContext;
     try {
+      // TODO: ESLint 에러 수정 필요(hooks called conditionally) - form 컴포넌트 분리
       navigationContext = useNavigation();
       formContext = useFormContext<taskFormSchemeType>();
     } catch (error) {
@@ -115,7 +113,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     // 투두 모드에서 사용하는 선택 기간 상태
     const [selectedStartDate, setSelectedStartDate] = useState<string | null>(null);
     const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null);
-    const [selectedPrimaryCategory, setSelectedPrimaryCategory] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | null>(null);
+    const [selectedPrimaryCategory, setSelectedPrimaryCategory] = useState<TaskRoutineCycleEnumType | null>(null);
     const [selectedWeeklyDaySet, setSelectedWeeklyDaySet] = useState<Set<number>>(new Set());
     const [selectedMonthlyDaySet, setSelectedMonthlyDaySet] = useState<Set<number>>(new Set());
     const [expanded, setExpanded] = useState(true);
@@ -124,35 +122,34 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     const isValidDatePeriod = selectedStartDate !== null && selectedEndDate !== null;
     const routineCondition = watch('routineCondition');
 
-    // TODO: value 타입 구체화 필요
-    const onSubmit = (value: any) => {
-      showDialog({
-        title: `루틴 ${isTodoMode ? '투두' : '두윗'} 수정하기`,
-        content: `루틴으로 수정한 앞으로의 ${isTodoMode ? '투두를' : '두윗을'}\n모두 수정하시겠어요?`,
-        leftButtonText: '모두 수정하기',
-        rightButtonText: '이번만 수정하기',
-        handleLeftButton: () => {
-          // TODO: 관련된 Task의 모든 루틴 수정 API 연동 필요
-          hideDialog();
-        },
-        handleRightButton: () => {
-          updateTaskRoutine({ ...value.routineCondition });
-          hideDialog();
-        },
+    const onSubmit = (value: taskFormSchemeType) => {
+      const { routineCondition } = value;
+
+      if (!routineCondition.startDate || !routineCondition.endDate || !routineCondition.cycle) {
+        console.error('일부 루틴 정보가 유효하지 않습니다.');
+        return;
+      }
+
+      updateTaskRoutine({
+        startDate: routineCondition.startDate,
+        endDate: routineCondition.endDate,
+        cycle: routineCondition.cycle,
+        pattern: routineCondition.pattern,
+        isExcludeHolidays: routineCondition.isExcludeHolidays,
       });
     };
 
     // 등록한 루틴이 유효한지 검사하는 함수 (루틴 기간, 반복 패턴을 종류에 맞게 설정했는지)
-    const isValidRoutineCondition = () => {
+    const getIsValidRoutineCondition = () => {
       if (!isValidDatePeriod) {
         return false;
       }
 
-      if (selectedPrimaryCategory === 'DAILY') {
+      if (selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.DAILY) {
         return true;
       }
 
-      if (selectedPrimaryCategory === 'WEEKLY') {
+      if (selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY) {
         return selectedWeeklyDaySet.size > 0;
       }
 
@@ -224,7 +221,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     const handleExcludeHolidays = (value: boolean) => setIsExcludeHolidays(value);
 
     const initRoutineCondition = (data?: fetchTodoTaskResponseDataSchemeType | addTaskRequestSchemeType | null) => {
-      const getSelectedDaySet = (type: Omit<z.infer<typeof TASK_ROUTINE_CYCLE_ENUM>, 'DAILY'>) => {
+      const getSelectedDaySet = (type: Exclude<TaskRoutineCycleEnumType, 'DAILY'>) => {
         const cycle = data?.routineCondition?.cycle;
         if (!data || cycle === TASK_ROUTINE_CYCLE_ENUM.enum.DAILY) {
           return new Set<number>();
@@ -281,17 +278,17 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       }
 
       if (routineCondition.cycle !== selectedPrimaryCategory) {
-        if (routineCondition.cycle === 'DAILY') {
+        if (routineCondition.cycle === TASK_ROUTINE_CYCLE_ENUM.enum.DAILY) {
           isNeedInit = false;
         }
 
-        if (routineCondition.cycle === 'WEEKLY') {
+        if (routineCondition.cycle === TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY) {
           setSelectedWeeklyDaySet(new Set<number>(routineCondition.pattern));
           setSelectedMonthlyDaySet(new Set());
           isNeedInit = false;
         }
 
-        if (routineCondition.cycle === 'MONTHLY') {
+        if (routineCondition.cycle === TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY) {
           setSelectedMonthlyDaySet(new Set<number>(routineCondition.pattern));
           setSelectedWeeklyDaySet(new Set());
           isNeedInit = false;
@@ -299,16 +296,22 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
 
         setSelectedPrimaryCategory(routineCondition.cycle);
       } else {
-        if (routineCondition.cycle === 'DAILY') {
+        if (routineCondition.cycle === TASK_ROUTINE_CYCLE_ENUM.enum.DAILY) {
           isNeedInit = false;
         }
 
-        if (routineCondition.cycle === 'WEEKLY' && routineCondition.pattern !== Array.from(selectedWeeklyDaySet)) {
+        if (
+          routineCondition.cycle === TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY &&
+          routineCondition.pattern !== Array.from(selectedWeeklyDaySet)
+        ) {
           setSelectedWeeklyDaySet(new Set<number>(routineCondition.pattern));
           isNeedInit = false;
         }
 
-        if (routineCondition.cycle === 'MONTHLY' && routineCondition.pattern !== Array.from(selectedMonthlyDaySet)) {
+        if (
+          routineCondition.cycle === TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY &&
+          routineCondition.pattern !== Array.from(selectedMonthlyDaySet)
+        ) {
           setSelectedMonthlyDaySet(new Set<number>(routineCondition.pattern));
           isNeedInit = false;
         }
@@ -324,20 +327,26 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       }
     };
 
-    const handleSubmit = () => {
-      setValue('routineCondition.startDate', selectedStartDate);
-      setValue('routineCondition.endDate', selectedEndDate);
-      setValue('routineCondition.cycle', selectedPrimaryCategory);
-      setValue('routineCondition.isExcludeHolidays', isExcludeHolidays);
-
-      if (selectedPrimaryCategory === 'DAILY') {
-        setValue('routineCondition.pattern', []);
-      } else if (selectedPrimaryCategory === 'WEEKLY') {
-        setValue('routineCondition.pattern', Array.from(selectedWeeklyDaySet));
-      } else {
-        setValue('routineCondition.pattern', Array.from(selectedMonthlyDaySet));
+    const getPattern = () => {
+      if (selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY) {
+        return Array.from(selectedWeeklyDaySet);
       }
+      if (selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY) {
+        return Array.from(selectedMonthlyDaySet);
+      }
+      return [];
+    };
 
+    const buildRoutineCondition = () => ({
+      startDate: selectedStartDate,
+      endDate: selectedEndDate,
+      cycle: selectedPrimaryCategory,
+      pattern: getPattern(),
+      isExcludeHolidays,
+    });
+
+    const handleSubmit = () => {
+      setValue('routineCondition', buildRoutineCondition());
       closeBottomSheet();
     };
 
@@ -349,14 +358,14 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       setExpanded(!expanded);
     };
 
-    const handlePrimaryCategory = (value: 'DAILY' | 'WEEKLY' | 'MONTHLY') => () => {
+    const handlePrimaryCategory = (value: TaskRoutineCycleEnumType) => () => {
       // 선택한 반복 패턴이 매 주가 아닐 경우 선택한 요일 Set 초기화
-      if (value !== 'WEEKLY') {
+      if (value !== TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY) {
         setSelectedWeeklyDaySet(new Set());
       }
 
       // 선택한 반복 패턴이 매 월이 아닐 경우 선택한 일수 Set 초기화
-      if (value !== 'MONTHLY') {
+      if (value !== TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY) {
         setSelectedMonthlyDaySet(new Set());
       }
 
@@ -389,37 +398,17 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     }, [taskMode, data]);
 
     useEffect(() => {
-      const isValid = isValidRoutineCondition();
+      const isValid = getIsValidRoutineCondition();
       handleValidationChange?.(isValid);
     }, [selectedStartDate, selectedEndDate, selectedPrimaryCategory, selectedWeeklyDaySet, selectedMonthlyDaySet]);
 
-    // TODO: 임시 조치, 성능 문제 생기면 수정 필요
     useEffect(() => {
-      setValue('routineCondition.startDate', selectedStartDate, {
-        shouldDirty: true,
-        shouldTouch: true,
-      });
-      setValue('routineCondition.endDate', selectedEndDate, {
-        shouldDirty: true,
-        shouldTouch: true,
-      });
-      setValue('routineCondition.cycle', selectedPrimaryCategory, {
-        shouldDirty: true,
-        shouldTouch: true,
-      });
-      setValue('routineCondition.pattern', Array.from(selectedWeeklyDaySet), {
-        shouldDirty: true,
-        shouldTouch: true,
-      });
-      setValue('routineCondition.pattern', Array.from(selectedMonthlyDaySet), {
-        shouldDirty: true,
-        shouldTouch: true,
-      });
-      setValue('routineCondition.isExcludeHolidays', isExcludeHolidays, {
+      setValue('routineCondition', buildRoutineCondition(), {
         shouldDirty: true,
         shouldTouch: true,
       });
     }, [
+      setValue,
       selectedStartDate,
       selectedEndDate,
       selectedPrimaryCategory,
@@ -480,32 +469,38 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
               <Pressable
                 style={[
                   styles.routinePrimaryCategoryButton,
-                  selectedPrimaryCategory === 'DAILY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+                  selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.DAILY && {
+                    borderColor: theme.COLORS.DEFAULT.BLACK,
+                  },
                 ]}
-                onPress={handlePrimaryCategory('DAILY')}
+                onPress={handlePrimaryCategory(TASK_ROUTINE_CYCLE_ENUM.enum.DAILY)}
               >
                 <Text style={styles.routinePrimaryCategoryButtonText}>매일</Text>
               </Pressable>
               <Pressable
                 style={[
                   styles.routinePrimaryCategoryButton,
-                  selectedPrimaryCategory === 'WEEKLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+                  selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY && {
+                    borderColor: theme.COLORS.DEFAULT.BLACK,
+                  },
                 ]}
-                onPress={handlePrimaryCategory('WEEKLY')}
+                onPress={handlePrimaryCategory(TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY)}
               >
                 <Text style={styles.routinePrimaryCategoryButtonText}>매 주</Text>
               </Pressable>
               <Pressable
                 style={[
                   styles.routinePrimaryCategoryButton,
-                  selectedPrimaryCategory === 'MONTHLY' && { borderColor: theme.COLORS.DEFAULT.BLACK },
+                  selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY && {
+                    borderColor: theme.COLORS.DEFAULT.BLACK,
+                  },
                 ]}
-                onPress={handlePrimaryCategory('MONTHLY')}
+                onPress={handlePrimaryCategory(TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY)}
               >
                 <Text style={styles.routinePrimaryCategoryButtonText}>매 월</Text>
               </Pressable>
             </View>
-            {selectedPrimaryCategory === 'WEEKLY' && (
+            {selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY && (
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 {WEEKLY_DAY_INFO.map(({ code, value, name }) => (
                   <Pressable
@@ -545,7 +540,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
                 ))}
               </View>
             )}
-            {selectedPrimaryCategory === 'MONTHLY' && (
+            {selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY && (
               <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 {Array.from({ length: 32 }, (_, index) => (
                   <Pressable
