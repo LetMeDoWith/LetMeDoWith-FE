@@ -60,23 +60,23 @@ const Item = ({
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { showDialog, hideDialog } = useDialog();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const isTodoMode = mode === 'TODO';
+
+  const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
+  const { data: dowithTaskData } = useFetchDowithTask({ dowithTaskId: id }, { enabled: !isTodoMode && id !== -1 });
+
+  const data = id && mode ? todoTaskData ?? dowithTaskData : null;
+  const isRoutineTask = !isNil(data?.routineCondition);
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
   const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
   const { mutate: deleteTodoTaskMutate } = useUpdateTodoTask({
     type: 'DELETE',
     id,
+    isRoutineTask,
     year,
     month,
   });
-  const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
-  const { data: dowithTaskData } = useFetchDowithTask(
-    { dowithTaskId: id },
-    { enabled: mode === 'DOWITH' && id !== -1 },
-  );
-
-  const data = id && mode ? todoTaskData ?? dowithTaskData : null;
-  const isRoutineTask = !isNil(data?.routineCondition);
 
   const getSnapPoints = () => {
     if (!isRoutineTask) {
@@ -93,7 +93,7 @@ const Item = ({
   const renderTaskStatusIcon = (mode: TaskModeType, status: TaskStatusEnumType) => {
     switch (status) {
       case TASK_STATUS_ENUM.enum.WAIT:
-        if (mode === 'DOWITH') {
+        if (!isTodoMode) {
           return <UploadImage />;
         }
 
@@ -112,32 +112,49 @@ const Item = ({
 
   const handleTodoTaskStatus = (mode: TaskModeType, id: number, status: TaskStatusEnumType) => () => {
     // task가 아니거나 상태가 실패면 무시
-    if (mode === 'DOWITH' || status === 'FAIL') {
+    if (!isTodoMode || status === 'FAIL') {
       return;
     }
 
     completeTodoTaskStatusMutate({ id, status });
   };
 
-  const handleEditTask =
-    ({ type, isRoutine = false }: { type: 'EDIT' | 'DELETE'; isRoutine?: boolean }) =>
+  const handleTask =
+    ({ type, isRoutineTask }: { type: 'EDIT' | 'EDIT_ROUTINE' | 'DELETE'; isRoutineTask: boolean }) =>
     () => {
-      // 루틴 수정하기 버튼을 눌렀을 때,
-      if (isRoutine) {
-        navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'ROUTINE' });
-      } else {
-        const isEditType = type === 'EDIT';
-        if (isEditType) {
-          navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'COMMON' });
+      // 할일 수정하기 버튼을 눌렀을 때
+      if (type === 'EDIT') {
+        navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'COMMON', isRoutineTask });
+      }
+
+      // 루틴 수정하기 버튼을 눌렀을 때
+      if (type === 'EDIT_ROUTINE') {
+        navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'ROUTINE', isRoutineTask });
+      }
+
+      // 삭제하기 버튼을 눌렀을 때
+      if (type === 'DELETE') {
+        // 현재 시간이 삭제하려는 두윗 등록 시간보다 같거나 이후일 경우 삭제 불가 팝업 노출
+        const isInvalidDeleteTask = dayjs(`${data?.date} ${data?.startTime}`).isSameOrBefore(dayjs());
+        if (!isTodoMode && isInvalidDeleteTask) {
+          showDialog({
+            type: 'ALERT',
+            title: '두윗모드 삭제 불가',
+            content: '시작 시간이 지난 두윗모드는\n삭제할 수 없어요.',
+            handleAlertButton: hideDialog,
+          });
         } else {
           showDialog({
-            title: '투두 삭제하기',
-            content: '등록한 투두를 삭제하시겠어요?',
+            title: `${isTodoMode ? '투두' : '두윗'} 삭제하기`,
+            content: `등록한 ${isTodoMode ? '투두를' : '두윗을'} 삭제하시겠어요?`,
             leftButtonText: '취소',
             rightButtonText: '삭제',
             handleLeftButton: hideDialog,
             handleRightButton: () => {
-              deleteTodoTaskMutate(undefined);
+              if (isTodoMode) {
+                deleteTodoTaskMutate(undefined);
+              }
+              // TODO: 두윗 삭제하기 API 연동 필요
               hideDialog();
             },
           });
@@ -210,19 +227,23 @@ const Item = ({
           </View>
         </View>
       </View>
-      <BottomSheet ref={taskManagementBottomSheetModalRef} title="투두 관리하기" snapPoints={getSnapPoints()}>
+      <BottomSheet
+        ref={taskManagementBottomSheetModalRef}
+        title={`${isTodoMode ? 'TO DO' : 'DO WITH'} 관리하기`}
+        snapPoints={getSnapPoints()}
+      >
         <View style={styles.modalContainer}>
-          <Pressable style={styles.modalContentRow} onPress={handleEditTask({ type: 'EDIT' })}>
+          <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT', isRoutineTask })}>
             <TaskEdit />
             <Text style={styles.modalContentText}>할 일 수정하기</Text>
           </Pressable>
           {isRoutineTask ? (
-            <Pressable style={styles.modalContentRow} onPress={handleEditTask({ type: 'EDIT', isRoutine: true })}>
+            <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT_ROUTINE', isRoutineTask })}>
               <RoutineEdit />
               <Text style={styles.modalContentText}>루틴 수정하기</Text>
             </Pressable>
           ) : null}
-          <Pressable style={styles.modalContentRow} onPress={handleEditTask({ type: 'DELETE' })}>
+          <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'DELETE', isRoutineTask })}>
             <TaskDelete />
             <Text style={styles.modalContentText}>삭제하기</Text>
           </Pressable>
