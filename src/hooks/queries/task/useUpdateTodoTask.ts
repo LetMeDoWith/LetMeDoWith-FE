@@ -11,11 +11,13 @@ import type { fetchTaskListResponseSchemeDataType, updateTaskRequestSchemeType }
 const useUpdateTodoTask = ({
   id,
   type,
+  isRoutineTask,
   year,
   month,
 }: {
   id: number;
   type: 'EDIT' | 'DELETE';
+  isRoutineTask: boolean;
   year?: number;
   month?: number;
 }) => {
@@ -25,7 +27,7 @@ const useUpdateTodoTask = ({
 
   return useMutation<string, AxiosError, updateTaskRequestSchemeType | undefined>({
     mutationKey: TASK_QUERY_KEY.UPDATE_TODO,
-    mutationFn: payload => updateTodoTask({ type, id, payload }),
+    mutationFn: payload => updateTodoTask({ type, id, isRoutineTask, payload }),
     onMutate: async () => {
       if (type === 'DELETE') {
         await queryClient.cancelQueries({ queryKey: [...TASK_QUERY_KEY.LIST, year, month] });

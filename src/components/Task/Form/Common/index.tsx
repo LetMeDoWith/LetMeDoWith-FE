@@ -20,10 +20,13 @@ import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
 import { isNil } from 'utils/index';
 import { StackScreenProps } from '@react-navigation/stack';
 import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
+import { useDialog } from 'components/common/Dialog/Provider';
 
 const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
   const { params } = route;
   const isEditMode = !!params.mode;
+  const isRoutineTask = params.isRoutineTask;
+  const { showDialog, hideDialog } = useDialog();
   const {
     control,
     watch,
@@ -41,6 +44,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
   const { mutate: updateTodoTaskMutate, isPending: isUpdateTodoTaskMutateLoading } = useUpdateTodoTask({
     type: 'EDIT',
     id: params.id,
+    isRoutineTask,
   });
   const { mutate: addDowithTaskMutate, isPending: isAddDowithTaskMutateLoading } = useAddDowithTask();
   const isFieldChanged = Object.keys(dirtyFields).length > 0;
@@ -197,9 +201,25 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
         ...(isNil(values.routineCondition?.startDate) && { routineCondition: null }),
       };
 
+      const handleButton = () => {
+        updateTodoTaskMutate(payload);
+        hideDialog();
+      };
+
       console.log(payload);
       if (isTodoMode) {
         if (isEditMode) {
+          // 루틴이 설정되어 있는 투두 Task 일 때
+          if (isRoutineTask) {
+            showDialog({
+              title: `루틴 ${isTodoMode ? '투두' : '두윗'} 수정하기`,
+              content: `루틴으로 수정한 앞으로의 ${isTodoMode ? '투두를' : '두윗을'}\n모두 수정하시겠어요?`,
+              leftButtonText: '모두 수정하기',
+              rightButtonText: '이번만 수정하기',
+              handleLeftButton: handleButton,
+              handleRightButton: handleButton,
+            });
+          }
           updateTodoTaskMutate(payload);
           return;
         }
@@ -210,7 +230,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
       // TODO: 두윗 모드 수정 API 연동
       addDowithTaskMutate(payload);
     },
-    [isTodoMode, isEditMode],
+    [isTodoMode, isEditMode, isRoutineTask],
   );
 
   return (
@@ -226,7 +246,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
                 >
                   제목
                 </Text>
-                <Text style={isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }}>{title.length}/40</Text>
+                <Text style={isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }}>{title.length}/20</Text>
               </View>
               <Controller
                 name="title"
@@ -242,7 +262,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
                       onChange(value);
                     }}
                     value={value}
-                    maxLength={40}
+                    maxLength={20}
                     editable={!isFormDisabled}
                   />
                 )}
@@ -349,6 +369,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
         modal
         open={datePickerOpen}
         mode="time"
+        minimumDate={!isTodoMode ? new Date() : undefined}
         minuteInterval={5}
         locale="ko-KR"
         date={startTime ? dayjs(startTime, 'HH:mm:ss').toDate() : dayjs().toDate()}

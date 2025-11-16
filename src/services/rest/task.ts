@@ -96,17 +96,18 @@ const updateStatusTodoTask = async ({
 const updateTodoTask = async ({
   type,
   id,
+  isRoutineTask,
   payload,
 }: {
   type: 'EDIT' | 'DELETE';
   id: number;
+  isRoutineTask: boolean;
   payload?: updateTaskRequestSchemeType;
 }): Promise<string> => {
   try {
     const isEditType = type === 'EDIT';
-    const result = isEditType
-      ? await apiClient.put<string>(`${TASK_API.TODO}/${id}`, payload)
-      : await apiClient.delete<string>(`${TASK_API.TODO}/${id}`);
+    const url = `${TASK_API.TODO}/${id}${isRoutineTask ? '/with-routine' : ''}`;
+    const result = isEditType ? await apiClient.put<string>(url, payload) : await apiClient.delete<string>(url);
     return result.data;
   } catch (e) {
     throw e;
