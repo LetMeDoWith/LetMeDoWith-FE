@@ -25,7 +25,7 @@ import { useUpdateTodoTaskStatus } from 'hooks/queries/task/useUpdateTodoTaskSta
 import { isAos } from 'utils/device';
 import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
-import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
+import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
 
 dayjs.extend(customParseFormat);
@@ -70,9 +70,10 @@ const Item = ({
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
   const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
-  const { mutate: deleteTodoTaskMutate } = useUpdateTodoTask({
+  const { mutate: deleteTaskMutate } = useUpdateTask({
     type: 'DELETE',
     id,
+    mode: isTodoMode ? 'TODO' : 'DOWITH',
     isRoutineTask,
     year,
     month,
@@ -151,10 +152,7 @@ const Item = ({
             rightButtonText: '삭제',
             handleLeftButton: hideDialog,
             handleRightButton: () => {
-              if (isTodoMode) {
-                deleteTodoTaskMutate(undefined);
-              }
-              // TODO: 두윗 삭제하기 API 연동 필요
+              deleteTaskMutate(undefined);
               hideDialog();
             },
           });

@@ -19,7 +19,7 @@ import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
 import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
 import { isNil } from 'utils/index';
 import { StackScreenProps } from '@react-navigation/stack';
-import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
+import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
 
 const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
@@ -39,11 +39,14 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
 
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
   const [taskMode, setTaskMode] = useState<TaskModeType | null>(params.mode ?? null);
+  const isTodoMode = taskMode === 'TODO';
+
   const { data: taskCategoryList } = useFetchTaskCategoryList();
   const { mutate: addTodoTaskMutate, isPending: isAddTodoTaskMutateLoading } = useAddTodoTask();
-  const { mutate: updateTodoTaskMutate, isPending: isUpdateTodoTaskMutateLoading } = useUpdateTodoTask({
+  const { mutate: updateTaskMutate, isPending: isUpdateTaskMutateLoading } = useUpdateTask({
     type: 'EDIT',
     id: params.id,
+    mode: isTodoMode ? 'TODO' : 'DOWITH',
     isRoutineTask,
   });
   const { mutate: addDowithTaskMutate, isPending: isAddDowithTaskMutateLoading } = useAddDowithTask();
@@ -54,10 +57,9 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
   const taskCategoryId = watch('taskCategoryId');
   const routineCondition = watch('routineCondition');
 
-  const isTodoMode = taskMode === 'TODO';
   const isFormDisabled = taskMode === null;
   const isButtonDisabled = isTodoMode
-    ? !isFieldChanged || !title || isAddTodoTaskMutateLoading || isUpdateTodoTaskMutateLoading
+    ? !isFieldChanged || !title || isAddTodoTaskMutateLoading || isUpdateTaskMutateLoading
     : !isFieldChanged || !title || !startTime || isAddDowithTaskMutateLoading;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
 
@@ -202,32 +204,32 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
       };
 
       const handleButton = () => {
-        updateTodoTaskMutate(payload);
+        updateTaskMutate(payload);
         hideDialog();
       };
 
       console.log(payload);
-      if (isTodoMode) {
-        if (isEditMode) {
-          // 루틴이 설정되어 있는 투두 Task 일 때
-          if (isRoutineTask) {
-            showDialog({
-              title: `루틴 ${isTodoMode ? '투두' : '두윗'} 수정하기`,
-              content: `루틴으로 수정한 앞으로의 ${isTodoMode ? '투두를' : '두윗을'}\n모두 수정하시겠어요?`,
-              leftButtonText: '모두 수정하기',
-              rightButtonText: '이번만 수정하기',
-              handleLeftButton: handleButton,
-              handleRightButton: handleButton,
-            });
-          }
-          updateTodoTaskMutate(payload);
-          return;
+      if (isEditMode) {
+        // 루틴이 설정되어 있는 투두 Task 일 때
+        if (isRoutineTask) {
+          showDialog({
+            title: `루틴 ${isTodoMode ? '투두' : '두윗'} 수정하기`,
+            content: `루틴으로 수정한 앞으로의 ${isTodoMode ? '투두를' : '두윗을'}\n모두 수정하시겠어요?`,
+            leftButtonText: '모두 수정하기',
+            rightButtonText: '이번만 수정하기',
+            handleLeftButton: handleButton,
+            handleRightButton: handleButton,
+          });
         }
+        updateTaskMutate(payload);
+        return;
+      }
+
+      if (isTodoMode) {
         addTodoTaskMutate(payload);
         return;
       }
 
-      // TODO: 두윗 모드 수정 API 연동
       addDowithTaskMutate(payload);
     },
     [isTodoMode, isEditMode, isRoutineTask],
@@ -356,7 +358,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
             style={[
               theme.TYPOGRAPHY.TITLE_2,
               { color: theme.COLORS.DEFAULT.WHITE },
-              (isAddTodoTaskMutateLoading || isUpdateTodoTaskMutateLoading || isAddDowithTaskMutateLoading) && {
+              (isAddTodoTaskMutateLoading || isUpdateTaskMutateLoading || isAddDowithTaskMutateLoading) && {
                 backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
               },
             ]}

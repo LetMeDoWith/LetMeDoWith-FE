@@ -3,7 +3,7 @@ import { AxiosError } from 'axios';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
 import { updateStatusTodoTask } from 'services/rest/task';
-import type { updateTodoTaskResponseSchemeType } from 'types/task/scheme/api';
+import type { updateTodoTaskStatusResponseSchemeType } from 'types/task/scheme/api';
 import type { TaskStatusEnumType } from 'types/task/scheme/enum';
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
 const useUpdateTodoTaskStatus = ({ year, month }: Props) => {
   const queryClient = useQueryClient();
 
-  return useMutation<updateTodoTaskResponseSchemeType, AxiosError, { id: number; status: TaskStatusEnumType }>({
+  return useMutation<updateTodoTaskStatusResponseSchemeType, AxiosError, { id: number; status: TaskStatusEnumType }>({
     mutationKey: TASK_QUERY_KEY.UPDATE_TODO_STATUS,
     mutationFn: payload => updateStatusTodoTask(payload),
     onSuccess: () => {
