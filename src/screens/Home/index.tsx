@@ -12,7 +12,6 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import { theme } from 'styles/theme';
 import { TrafficGreenLight } from 'components/common/icons/TrafficGreenLight';
-import { isAos } from 'utils/device';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { ListContainerView } from 'components/Task/ListContainerView';
