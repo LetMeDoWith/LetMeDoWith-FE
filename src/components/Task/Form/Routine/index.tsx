@@ -69,6 +69,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
   ) => {
     const id = route?.params?.id || -1;
     const mode = route?.params?.mode || 'TODO';
+    const isEditScreen = ref === null;
 
     let navigationContext;
     let formContext;
@@ -108,10 +109,11 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     const data = id !== -1 ? todoTaskData ?? dowithTaskData : null;
     const isButtonDisabled = !isFieldChanged || isUpdateTaskRoutineLoading;
 
-    const todayDateString = dayjs().format('YYYY-MM-DD');
-    const [currentDate, setCurrentDate] = useState(todayDateString);
+    const date = watch('date');
+    const targetDateString = date;
+
+    const [currentDate, setCurrentDate] = useState(targetDateString);
     // 투두 모드에서 사용하는 선택 기간 상태
-    const [selectedStartDate, setSelectedStartDate] = useState<string | null>(null);
     const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null);
     const [selectedPrimaryCategory, setSelectedPrimaryCategory] = useState<TaskRoutineCycleEnumType | null>(null);
     const [selectedWeeklyDaySet, setSelectedWeeklyDaySet] = useState<Set<number>>(new Set());
@@ -119,7 +121,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     const [expanded, setExpanded] = useState(true);
     const [isExcludeHolidays, setIsExcludeHolidays] = useState(false);
 
-    const isValidDatePeriod = selectedStartDate !== null && selectedEndDate !== null;
+    const isValidDatePeriod = selectedEndDate !== null;
     const routineCondition = watch('routineCondition');
 
     const onSubmit = (value: taskFormSchemeType) => {
@@ -157,16 +159,12 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     };
 
     // 선택한 기간 마킹하는 함수
-    const getMarkedPeriodDates = (start: string | null, end: string | null): MarkedDates => {
-      if (!start) {
-        return {};
-      }
-
-      const startDate = dayjs(start);
+    const getMarkedPeriodDates = (end: string | null): MarkedDates => {
+      const startDate = dayjs(targetDateString).startOf('day');
 
       // 종료일 없으면 단일 선택 마킹
       if (!end) {
-        const single = startDate.format('YYYY-MM-DD');
+        const single = targetDateString;
         return {
           [single]: {
             startingDay: true,
@@ -177,19 +175,16 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
           },
         };
       }
-      const endDate = dayjs(end);
 
-      // 날짜 순서 보정
-      const from = startDate.isBefore(endDate) ? startDate : endDate;
-      const to = startDate.isBefore(endDate) ? endDate : startDate;
+      const endDate = dayjs(end);
 
       const marked: MarkedDates = {};
 
-      let current = from;
+      let current = startDate;
       let index = 0;
-      const totalDays = to.diff(from, 'day') + 1;
+      const totalDays = endDate.diff(startDate, 'day') + 1;
 
-      while (current.isSameOrBefore(to, 'day')) {
+      while (current.isSameOrBefore(endDate, 'day')) {
         const dateStr = current.format('YYYY-MM-DD');
 
         if (index === 0) {
@@ -234,7 +229,6 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
         return new Set<number>();
       };
 
-      setSelectedStartDate(data?.routineCondition?.startDate ?? routineCondition?.startDate ?? null);
       setSelectedEndDate(data?.routineCondition?.endDate ?? routineCondition?.endDate ?? null);
       setIsExcludeHolidays(data?.routineCondition?.isExcludeHolidays ?? routineCondition?.isExcludeHolidays ?? false);
       setSelectedPrimaryCategory(data?.routineCondition?.cycle ?? routineCondition?.cycle ?? null);
@@ -243,7 +237,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       setExpanded(true);
 
       setValue('routineCondition', {
-        startDate: data?.routineCondition?.startDate ?? routineCondition?.startDate ?? null,
+        startDate: data?.routineCondition?.startDate ?? routineCondition?.startDate ?? targetDateString,
         endDate: data?.routineCondition?.endDate ?? routineCondition?.endDate ?? null,
         cycle: data?.routineCondition?.cycle ?? routineCondition?.cycle ?? null,
         pattern: data?.routineCondition?.pattern ?? routineCondition?.pattern ?? [],
@@ -262,14 +256,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       // 상태 초기화가 필요한지 여부
       let isNeedInit = true;
 
-      /*
-      값은 설정했지만 등록하기 버튼을 누르지 않았을 경우 이전 값으로 모두 롤백
-     */
-      if (routineCondition.startDate !== selectedStartDate) {
-        setSelectedStartDate(routineCondition.startDate);
-        isNeedInit = false;
-      }
-
+      // 값은 설정했지만 등록하기 버튼을 누르지 않았을 경우 이전 값으로 모두 롤백
       if (routineCondition.endDate !== selectedEndDate) {
         setSelectedEndDate(routineCondition.endDate);
         isNeedInit = false;
@@ -336,7 +323,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     };
 
     const buildRoutineCondition = () => ({
-      startDate: selectedStartDate,
+      startDate: targetDateString,
       endDate: selectedEndDate,
       cycle: selectedPrimaryCategory,
       pattern: getPattern(),
@@ -365,20 +352,19 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     };
 
     const handleDayPress = (date: DateData) => {
-      // 선택한 날짜가 없을 경우 시작날짜로 지정
-      if (!selectedStartDate) {
-        setSelectedStartDate(date.dateString);
+      // 선택한 날짜가 오늘인 경우 무시
+      if (dayjs(date.dateString).isSame(targetDateString)) {
         return;
       }
 
-      // 선택한 날짜(date.dateString)가 selectedStartDate보다 빠른 경우 시작날짜 재지정 및 종료날짜 초기화
-      if (dayjs(date.dateString).isBefore(dayjs(selectedStartDate))) {
-        setSelectedStartDate(date.dateString);
-        setSelectedEndDate(null);
-        return;
-      }
+      setSelectedEndDate(prev => {
+        // 선택한 종료일 재선택 시 미선택으로 초기화
+        if (prev === date.dateString) {
+          return null;
+        }
 
-      setSelectedEndDate(date.dateString);
+        return date.dateString;
+      });
     };
 
     const renderCustomHeader = (date: Date) => (
@@ -392,16 +378,19 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     useEffect(() => {
       const isValid = getIsValidRoutineCondition();
       handleValidationChange?.(isValid);
-    }, [selectedStartDate, selectedEndDate, selectedPrimaryCategory, selectedWeeklyDaySet, selectedMonthlyDaySet]);
+    }, [selectedEndDate, selectedPrimaryCategory, selectedWeeklyDaySet, selectedMonthlyDaySet]);
 
     useEffect(() => {
+      if (!isEditScreen) {
+        return;
+      }
+
       setValue('routineCondition', buildRoutineCondition(), {
         shouldDirty: true,
         shouldTouch: true,
       });
     }, [
       setValue,
-      selectedStartDate,
       selectedEndDate,
       selectedPrimaryCategory,
       selectedWeeklyDaySet,
@@ -418,18 +407,14 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       <>
         <ScrollView
           style={styles.container}
-          contentContainerStyle={ref === null && { paddingHorizontal: 20, paddingBottom: 134 }}
+          contentContainerStyle={isEditScreen && { paddingHorizontal: 20, paddingBottom: 134 }}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.dateSection}>
             <View style={styles.dateLeftSection}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={theme.TYPOGRAPHY.SUB_TITLE}>시작 날짜</Text>
-                <Text
-                  style={[theme.TYPOGRAPHY.BODY_2, !selectedStartDate && { color: theme.COLORS.GRAY_SCALE.GRAY_60 }]}
-                >
-                  {selectedStartDate ? dayjs(selectedStartDate).format('YYYY. MM. DD (ddd)') : '날짜를 선택해주세요'}
-                </Text>
+                <Text style={[theme.TYPOGRAPHY.BODY_2]}>{dayjs(targetDateString).format('YYYY. MM. DD (ddd)')}</Text>
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={theme.TYPOGRAPHY.SUB_TITLE}>종료 날짜</Text>
@@ -448,8 +433,8 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
               initialDate={currentDate}
               style={{ marginBottom: 32 }}
               markingType={'period'}
-              markedDates={getMarkedPeriodDates(selectedStartDate, selectedEndDate)}
-              minDate={todayDateString}
+              markedDates={getMarkedPeriodDates(selectedEndDate)}
+              minDate={targetDateString}
               renderHeader={renderCustomHeader}
               onDayPress={handleDayPress}
               hideArrows
@@ -586,7 +571,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
             />
           </View>
         </ScrollView>
-        {ref === null && (
+        {isEditScreen && (
           <Pressable
             style={[
               styles.button,
