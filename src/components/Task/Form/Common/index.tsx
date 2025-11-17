@@ -223,7 +223,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
   const handleTaskMode = useCallback(
     (mode: TaskModeType) => () => {
       // 지난 날짜에는 두윗 등록 불가
-      const isInvalidAddDowithTask = !isTodoMode && dayjs(date).isBefore(dayjs(), 'day');
+      const isInvalidAddDowithTask = mode === 'DOWITH' && dayjs(date).isBefore(dayjs(), 'day');
       if (isInvalidAddDowithTask) {
         showDialog({
           type: 'ALERT',
@@ -236,7 +236,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
       }
       setTaskMode(mode);
     },
-    [isTodoMode, date],
+    [date],
   );
 
   const handleTaskRoutine = useCallback(() => {
