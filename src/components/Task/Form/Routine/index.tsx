@@ -222,8 +222,8 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
 
     const initRoutineCondition = (data?: fetchTodoTaskResponseDataSchemeType | addTaskRequestSchemeType | null) => {
       const getSelectedDaySet = (type: Exclude<TaskRoutineCycleEnumType, 'DAILY'>) => {
-        const cycle = data?.routineCondition?.cycle;
-        if (!data || cycle === TASK_ROUTINE_CYCLE_ENUM.enum.DAILY) {
+        const cycle = data?.routineCondition?.cycle ?? routineCondition?.cycle;
+        if (!cycle || cycle === TASK_ROUTINE_CYCLE_ENUM.enum.DAILY) {
           return new Set<number>();
         }
 
@@ -234,22 +234,20 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
         return new Set<number>();
       };
 
-      // TODO: 투두 생성 시, 루틴을 이미 설정해서 저장해놓았다면 해당 상태로 초기화 필요
-
-      setSelectedStartDate(data?.routineCondition?.startDate ?? null);
-      setSelectedEndDate(data?.routineCondition?.endDate ?? null);
-      setIsExcludeHolidays(data?.routineCondition?.isExcludeHolidays ?? false);
-      setSelectedPrimaryCategory(data?.routineCondition?.cycle ?? null);
+      setSelectedStartDate(data?.routineCondition?.startDate ?? routineCondition?.startDate ?? null);
+      setSelectedEndDate(data?.routineCondition?.endDate ?? routineCondition?.endDate ?? null);
+      setIsExcludeHolidays(data?.routineCondition?.isExcludeHolidays ?? routineCondition?.isExcludeHolidays ?? false);
+      setSelectedPrimaryCategory(data?.routineCondition?.cycle ?? routineCondition?.cycle ?? null);
       setSelectedWeeklyDaySet(getSelectedDaySet(TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY));
       setSelectedMonthlyDaySet(getSelectedDaySet(TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY));
       setExpanded(true);
 
       setValue('routineCondition', {
-        startDate: data?.routineCondition?.startDate ?? null,
-        endDate: data?.routineCondition?.endDate ?? null,
-        cycle: data?.routineCondition?.cycle ?? null,
-        pattern: data?.routineCondition?.pattern ?? [],
-        isExcludeHolidays: data?.routineCondition?.isExcludeHolidays ?? false,
+        startDate: data?.routineCondition?.startDate ?? routineCondition?.startDate ?? null,
+        endDate: data?.routineCondition?.endDate ?? routineCondition?.endDate ?? null,
+        cycle: data?.routineCondition?.cycle ?? routineCondition?.cycle ?? null,
+        pattern: data?.routineCondition?.pattern ?? routineCondition?.pattern ?? [],
+        isExcludeHolidays: data?.routineCondition?.isExcludeHolidays ?? routineCondition?.isExcludeHolidays ?? false,
       });
     };
 
@@ -350,13 +348,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       closeBottomSheet();
     };
 
-    const handleExpanded = () => {
-      if (expanded) {
-        setSelectedStartDate(null);
-        setSelectedEndDate(null);
-      }
-      setExpanded(!expanded);
-    };
+    const handleExpanded = () => setExpanded(!expanded);
 
     const handlePrimaryCategory = (value: TaskRoutineCycleEnumType) => () => {
       // 선택한 반복 패턴이 매 주가 아닐 경우 선택한 요일 Set 초기화

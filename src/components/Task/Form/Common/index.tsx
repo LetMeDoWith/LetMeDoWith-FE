@@ -290,63 +290,51 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
                 {startTime ? dayjs(startTime, 'HH:mm:ss').format('HH:mm') : '미등록'}
               </Text>
             </Pressable>
-            <Controller
-              name="taskCategoryId"
-              control={control}
-              render={() => (
-                <Pressable
-                  style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
-                  onPress={handlePresentModalPress}
-                >
-                  <View style={styles.optionalLabelWrap}>
-                    <Text
-                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
-                    >
-                      카테고리
-                    </Text>
-                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
-                      (선택)
-                    </Text>
-                  </View>
-                  <Text style={[styles.emptyValue, taskCategoryId !== null && styles.value]}>
-                    {prevSelectedCategory ? prevSelectedCategory.title : '미등록'}
-                  </Text>
-                </Pressable>
-              )}
-            />
-            {!isEditMode ? (
-              <Pressable
-                style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
-                onPress={handleTaskRoutine}
-              >
-                <View
-                  style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Text
-                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
-                    >
-                      루틴 설정
-                    </Text>
-                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
-                      (선택)
-                    </Text>
-                  </View>
-                </View>
+            <Pressable
+              style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
+              onPress={handlePresentModalPress}
+            >
+              <View style={styles.optionalLabelWrap}>
                 <Text
-                  style={[
-                    theme.TYPOGRAPHY.BODY_2,
-                    { color: routineCondition?.cycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
-                  ]}
+                  style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
                 >
-                  {routineCondition?.cycle
-                    ? `${dayjs(routineCondition?.startDate).format('YYYY. MM. DD')} ~ ${dayjs(
-                        routineCondition?.endDate,
-                      ).format('YYYY. MM. DD')}`
-                    : '미등록'}
+                  카테고리
                 </Text>
-              </Pressable>
-            ) : null}
+                <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                  (선택)
+                </Text>
+              </View>
+              <Text style={[styles.emptyValue, taskCategoryId !== null && styles.value]}>
+                {prevSelectedCategory ? prevSelectedCategory.title : '미등록'}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
+              onPress={handleTaskRoutine}
+            >
+              <View
+                style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Text
+                    style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                  >
+                    루틴 설정
+                  </Text>
+                  <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                    (선택)
+                  </Text>
+                </View>
+              </View>
+              <Text
+                style={[
+                  theme.TYPOGRAPHY.BODY_2,
+                  { color: routineCondition?.cycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
+                ]}
+              >
+                {routineCondition?.cycle ? '등록 완료' : '미등록'}
+              </Text>
+            </Pressable>
           </View>
         </View>
         <Pressable
