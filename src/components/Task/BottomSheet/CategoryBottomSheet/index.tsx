@@ -37,7 +37,14 @@ const CategoryBottomSheet = forwardRef<BottomSheetModalMethods, Props>(
     const handleCategory = useCallback(
       ({ id, title }: TaskCategory) =>
         () => {
-          setSelectedCategory({ id, title });
+          setSelectedCategory(prev => {
+            // 이미 동일한 카테고리를 선택했다면 재선택했을 경우 선택 초기화
+            if (prev?.id === id && prev?.title === title) {
+              return null;
+            }
+
+            return { id, title };
+          });
         },
       [],
     );
