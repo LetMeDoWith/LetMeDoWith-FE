@@ -67,6 +67,9 @@ const Item = ({
 
   const data = id && mode ? todoTaskData ?? dowithTaskData : null;
   const isRoutineTask = !isNil(data?.routineCondition);
+
+  // 현재 시간이 업데이트 하려는 Task가 두윗이고, 등록 시간보다 같거나 이후일 경우
+  const isInvalidUpdateDowithTask = !isTodoMode && dayjs(`${data?.date} ${data?.startTime}`).isSameOrBefore(dayjs());
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
   const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
@@ -135,9 +138,7 @@ const Item = ({
 
       // 삭제하기 버튼을 눌렀을 때
       if (type === 'DELETE') {
-        // 현재 시간이 삭제하려는 두윗 등록 시간보다 같거나 이후일 경우 삭제 불가 팝업 노출
-        const isInvalidDeleteTask = dayjs(`${data?.date} ${data?.startTime}`).isSameOrBefore(dayjs());
-        if (!isTodoMode && isInvalidDeleteTask) {
+        if (isInvalidUpdateDowithTask) {
           showDialog({
             type: 'ALERT',
             title: '두윗모드 삭제 불가',
@@ -219,8 +220,8 @@ const Item = ({
             {!confirmedImageUrl && !isNil(feedBackCount) && (
               <FeedBackIcon count={feedBackCount as number} status={status} />
             )}
-            <Pressable onPress={handleBottomSheet} disabled={isDisabled}>
-              <EtcDots disabled={isDisabled} />
+            <Pressable onPress={handleBottomSheet} disabled={isInvalidUpdateDowithTask || isDisabled}>
+              <EtcDots disabled={isInvalidUpdateDowithTask || isDisabled} />
             </Pressable>
           </View>
         </View>
