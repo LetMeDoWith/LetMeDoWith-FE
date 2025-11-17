@@ -12,11 +12,25 @@ interface Props {
 
 const TaskFormStackNavigator = ({ id, mode, initialScreen = 'COMMON' }: Props) => {
   const { Navigator, Screen } = createStackNavigator<TaskFormStackParamList>();
+  const isTodoMode = mode === 'TODO';
+
+  const getScreenHeaderTitle = () => {
+    if (!mode) {
+      return 'DO 추가하기';
+    }
+
+    if (isTodoMode) {
+      return 'TO DO 수정하기';
+    }
+
+    return 'DO WITH 수정하기';
+  };
+
   return (
     <Navigator
       initialRouteName={initialScreen}
       screenOptions={{
-        headerTitle: `할 일 ${mode ? '수정' : '추가'}하기`,
+        headerTitle: getScreenHeaderTitle(),
         headerTitleAlign: 'center',
         headerBackTitleVisible: false,
         headerTintColor: theme.COLORS.DEFAULT.BLACK,

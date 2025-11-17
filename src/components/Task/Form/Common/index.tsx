@@ -21,6 +21,7 @@ import { isNil } from 'utils/index';
 import { StackScreenProps } from '@react-navigation/stack';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
+import { ArrowRight } from 'components/common/icons/ArrowIcon';
 
 const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
   const { params } = route;
@@ -81,9 +82,24 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
               onPress={handleTaskMode('TODO')}
             >
               <TodoMode />
-              <Text style={[styles.modeButtonText, taskMode === 'TODO' && { color: theme.COLORS.SECONDARY.BLUE_60 }]}>
-                혼자 하는 TO DO
-              </Text>
+              <View style={styles.modeButtonTextWrap}>
+                <Text
+                  style={[
+                    theme.TYPOGRAPHY.CAPTION1_BASIC,
+                    { color: taskMode === 'TODO' ? theme.COLORS.SECONDARY.BLUE_60 : theme.COLORS.GRAY_SCALE.GRAY_50 },
+                  ]}
+                >
+                  자유롭게 혼자하는
+                </Text>
+                <Text
+                  style={[
+                    theme.TYPOGRAPHY.SUB_TITLE,
+                    { color: taskMode === 'TODO' ? theme.COLORS.SECONDARY.BLUE_60 : theme.COLORS.GRAY_SCALE.GRAY_10 },
+                  ]}
+                >
+                  TO DO
+                </Text>
+              </View>
             </Pressable>
             <Pressable
               style={[
@@ -96,9 +112,24 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
               onPress={handleTaskMode('DOWITH')}
             >
               <DowithMode />
-              <Text style={[styles.modeButtonText, taskMode === 'DOWITH' && { color: theme.COLORS.PRIMARY.RED_60 }]}>
-                함께 하는 DO WITH
-              </Text>
+              <View style={styles.modeButtonTextWrap}>
+                <Text
+                  style={[
+                    theme.TYPOGRAPHY.CAPTION1_BASIC,
+                    { color: taskMode === 'DOWITH' ? theme.COLORS.PRIMARY.RED_60 : theme.COLORS.GRAY_SCALE.GRAY_50 },
+                  ]}
+                >
+                  잔소리와 함께하는
+                </Text>
+                <Text
+                  style={[
+                    theme.TYPOGRAPHY.SUB_TITLE,
+                    { color: taskMode === 'DOWITH' ? theme.COLORS.PRIMARY.RED_60 : theme.COLORS.GRAY_SCALE.GRAY_10 },
+                  ]}
+                >
+                  DO WITH
+                </Text>
+              </View>
             </Pressable>
           </View>
         </>
@@ -339,14 +370,17 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
                   </Text>
                 </View>
               </View>
-              <Text
-                style={[
-                  theme.TYPOGRAPHY.BODY_2,
-                  { color: routineCondition?.cycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
-                ]}
-              >
-                {routineCondition?.cycle ? '등록 완료' : '미등록'}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text
+                  style={[
+                    theme.TYPOGRAPHY.BODY_2,
+                    { color: routineCondition?.cycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
+                  ]}
+                >
+                  {routineCondition?.cycle ? '등록 완료' : '미등록'}
+                </Text>
+                {routineCondition?.cycle ? <ArrowRight fill={theme.COLORS.GRAY_SCALE.GRAY_40} /> : null}
+              </View>
             </Pressable>
           </View>
         </View>
@@ -405,16 +439,17 @@ const styles = StyleSheet.create({
   modeButton: {
     flex: 1,
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
     paddingHorizontal: 24,
     paddingVertical: 24,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_98,
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_96,
     borderWidth: 1,
     borderRadius: 16,
   },
-  modeButtonText: {
-    color: theme.COLORS.DEFAULT.BLACK,
-    fontSize: 13,
+  modeButtonTextWrap: {
+    alignItems: 'center',
+    gap: 2,
   },
   optionalLabelWrap: {
     flexDirection: 'row',
