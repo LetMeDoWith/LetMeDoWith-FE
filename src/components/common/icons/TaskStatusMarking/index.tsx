@@ -78,8 +78,8 @@ const getMarkFillColor = (status: TaskStatus) => {
       return {
         left: 'none',
         right: 'none',
-        backgroundLeft: 'none',
-        backgroundRight: 'none',
+        backgroundLeft: theme.COLORS.PRIMARY.RED_98,
+        backgroundRight: theme.COLORS.SECONDARY.BLUE_95,
       };
   }
 };
