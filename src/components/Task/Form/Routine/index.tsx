@@ -69,7 +69,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
   ) => {
     const id = route?.params?.id || -1;
     const mode = route?.params?.mode || 'TODO';
-    const isEditScreen = ref === null;
+    const isRoutineEditScreen = ref === null;
 
     let navigationContext;
     let formContext;
@@ -381,7 +381,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     }, [selectedEndDate, selectedPrimaryCategory, selectedWeeklyDaySet, selectedMonthlyDaySet]);
 
     useEffect(() => {
-      if (!isEditScreen) {
+      if (!isRoutineEditScreen) {
         return;
       }
 
@@ -407,7 +407,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       <>
         <ScrollView
           style={styles.container}
-          contentContainerStyle={isEditScreen && { paddingHorizontal: 20, paddingBottom: 134 }}
+          contentContainerStyle={isRoutineEditScreen && { paddingHorizontal: 20, paddingBottom: 134 }}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.dateSection}>
@@ -571,7 +571,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
             />
           </View>
         </ScrollView>
-        {isEditScreen && (
+        {isRoutineEditScreen && (
           <Pressable
             style={[
               styles.button,

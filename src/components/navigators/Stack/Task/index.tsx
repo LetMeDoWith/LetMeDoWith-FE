@@ -7,10 +7,11 @@ import type { TaskFormStackParamList, TaskModeType } from 'types/shared';
 interface Props {
   id: number;
   mode?: TaskModeType;
+  isRoutineTask?: boolean;
   initialScreen?: keyof TaskFormStackParamList;
 }
 
-const TaskFormStackNavigator = ({ id, mode, initialScreen = 'COMMON' }: Props) => {
+const TaskFormStackNavigator = ({ id, isRoutineTask, mode, initialScreen = 'COMMON' }: Props) => {
   const { Navigator, Screen } = createStackNavigator<TaskFormStackParamList>();
   const isTodoMode = mode === 'TODO';
 
@@ -37,7 +38,7 @@ const TaskFormStackNavigator = ({ id, mode, initialScreen = 'COMMON' }: Props) =
         cardStyle: { backgroundColor: theme.COLORS.DEFAULT.WHITE },
       }}
     >
-      <Screen name="COMMON" component={Form} initialParams={{ id, mode }} />
+      <Screen name="COMMON" component={Form} initialParams={{ id, mode, isRoutineTask }} />
       <Screen
         name="ROUTINE"
         component={RoutineForm}

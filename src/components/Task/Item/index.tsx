@@ -133,7 +133,7 @@ const Item = ({
 
       // 루틴 수정하기 버튼을 눌렀을 때
       if (type === 'EDIT_ROUTINE') {
-        navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'ROUTINE', isRoutineTask });
+        navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'ROUTINE' });
       }
 
       // 삭제하기 버튼을 눌렀을 때

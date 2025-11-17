@@ -65,6 +65,13 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
     : !isFieldChanged || !title || !startTime || isAddDowithTaskMutateLoading;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
 
+  /**
+   * 루틴 설정 메뉴 노출 조건
+   * 1. task 등록 스크린일 때
+   * 2. 루틴 설정 안한 일반 task 수정 스크린일 때
+   */
+  const isRoutineMenuVisible = !isEditMode || !isRoutineTask;
+
   const renderTaskModeButtonView = () => {
     if (!isEditMode) {
       return (
@@ -352,36 +359,38 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
                 {prevSelectedCategory ? prevSelectedCategory.title : '미등록'}
               </Text>
             </Pressable>
-            <Pressable
-              style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
-              onPress={handleTaskRoutine}
-            >
-              <View
-                style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}
+            {isRoutineMenuVisible ? (
+              <Pressable
+                style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
+                onPress={handleTaskRoutine}
               >
+                <View
+                  style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text
+                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                    >
+                      루틴 설정
+                    </Text>
+                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                      (선택)
+                    </Text>
+                  </View>
+                </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                   <Text
-                    style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                    style={[
+                      theme.TYPOGRAPHY.BODY_2,
+                      { color: routineCondition?.cycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
+                    ]}
                   >
-                    루틴 설정
+                    {routineCondition?.cycle ? '등록 완료' : '미등록'}
                   </Text>
-                  <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
-                    (선택)
-                  </Text>
+                  {routineCondition?.cycle ? <ArrowRight fill={theme.COLORS.GRAY_SCALE.GRAY_40} /> : null}
                 </View>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text
-                  style={[
-                    theme.TYPOGRAPHY.BODY_2,
-                    { color: routineCondition?.cycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
-                  ]}
-                >
-                  {routineCondition?.cycle ? '등록 완료' : '미등록'}
-                </Text>
-                {routineCondition?.cycle ? <ArrowRight fill={theme.COLORS.GRAY_SCALE.GRAY_40} /> : null}
-              </View>
-            </Pressable>
+              </Pressable>
+            ) : null}
           </View>
         </View>
         <Pressable
