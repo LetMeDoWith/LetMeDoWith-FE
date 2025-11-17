@@ -53,6 +53,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
   const isFieldChanged = Object.keys(dirtyFields).length > 0;
 
   const title = watch('title');
+  const date = watch('date');
   const startTime = watch('startTime');
   const taskCategoryId = watch('taskCategoryId');
   const routineCondition = watch('routineCondition');
@@ -183,9 +184,21 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
 
   const handleTaskMode = useCallback(
     (mode: TaskModeType) => () => {
+      // 지난 날짜에는 두윗 등록 불가
+      const isInvalidAddDowithTask = !isTodoMode && dayjs(date).isBefore(dayjs(), 'day');
+      if (isInvalidAddDowithTask) {
+        showDialog({
+          type: 'ALERT',
+          title: '두윗 등록 불가',
+          content:
+            '지난 날짜에는 두윗을 등록할 수 없어요.\n\n다른 두윗들에게 잔소리를 받으려면\n미래 날짜에 두윗을 등록해 주세요!',
+          handleAlertButton: hideDialog,
+        });
+        return;
+      }
       setTaskMode(mode);
     },
-    [],
+    [isTodoMode, date],
   );
 
   const handleTaskRoutine = useCallback(() => {
