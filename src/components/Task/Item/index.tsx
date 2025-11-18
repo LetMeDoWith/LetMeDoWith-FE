@@ -3,7 +3,6 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
@@ -27,8 +26,6 @@ import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
-
-dayjs.extend(customParseFormat);
 
 interface Props {
   id: number;

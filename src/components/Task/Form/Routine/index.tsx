@@ -4,7 +4,7 @@ import { Divider, Switch } from 'react-native-paper';
 import { Calendar } from 'react-native-calendars';
 import type { DateData, MarkedDates } from 'react-native-calendars/src/types';
 import dayjs from 'dayjs';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import type { DayProps } from 'react-native-calendars/src/calendar/day';
 import { FormState, useFormContext, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -25,8 +25,6 @@ import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { TASK_ROUTINE_CYCLE_ENUM } from 'schemes/task/enum';
 import { useUpdateTaskRoutine } from 'hooks/queries/task/useUpdateTaskRoutine';
 import type { TaskRoutineCycleEnumType } from 'types/task/scheme/enum';
-
-dayjs.extend(isSameOrBefore);
 
 const WEEKLY_DAY_INFO = [
   { code: 'MONDAY', value: 1, name: '월' },
@@ -330,6 +328,112 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       isExcludeHolidays,
     });
 
+    // 요일별 텍스트 색상 결정 함수
+    const getDayTextColor = (dateString: string, state?: string) => {
+      // 선택할 수 없는 요일은 회색 처리
+      if (state === 'disabled') {
+        return theme.COLORS.GRAY_SCALE.GRAY_80;
+      }
+
+      /**
+       * 해당 날의 요일 값 반환
+       * 0 - 일요일
+       * 1 - 월요일
+       * 2 - 화요일
+       * 3 - 수요일
+       * 4 - 목요일
+       * 5 - 금요일
+       * 6 - 토요일
+       */
+      const dayOfWeek = new Date(dateString).getDay();
+
+      // 일요일
+      if (dayOfWeek === 0) {
+        return theme.COLORS.PRIMARY.RED_60;
+      }
+
+      // 토요일
+      if (dayOfWeek === 6) {
+        return theme.COLORS.SECONDARY.BLUE_60;
+      }
+
+      // 평일
+      return theme.COLORS.DEFAULT.BLACK;
+    };
+
+    const renderDayComponent = ({ date, state, marking }: DayProps & { date?: DateData }) => {
+      if (!date) {
+        return null;
+      }
+
+      const textColor = getDayTextColor(date.dateString, state);
+      const isDisabled = state === 'disabled';
+
+      const isStartDay = marking?.startingDay;
+      const isEndDay = marking?.endingDay;
+      const isMiddleDay = marking?.color && !isStartDay && !isEndDay;
+      const isSingleDay = isStartDay && isEndDay;
+
+      const getBackgroundDayColor = (isTargetDay?: boolean) => {
+        if (!isMiddleDay && !isTargetDay) {
+          return 'transparent';
+        }
+
+        if (isTargetDay) {
+          return theme.COLORS.GRAY_SCALE.GRAY_92;
+        }
+
+        return theme.COLORS.GRAY_SCALE.GRAY_96;
+      };
+
+      return (
+        <View>
+          {/* 배경 레이어 - 간격을 넘어서 확장 */}
+          {!isSingleDay && (
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                left: -5,
+                right: -5,
+                flexDirection: 'row',
+                overflow: 'visible',
+              }}
+            >
+              {/* 왼쪽 절반 */}
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: getBackgroundDayColor(isEndDay),
+                }}
+              />
+              {/* 오른쪽 절반 */}
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: getBackgroundDayColor(isStartDay),
+                }}
+              />
+            </View>
+          )}
+          <Pressable
+            onPress={() => handleDayPress(date)}
+            disabled={isDisabled}
+            style={[
+              styles.dayButton,
+              (isStartDay || isEndDay) && {
+                backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_92,
+                borderRadius: 18,
+              },
+            ]}
+          >
+            <Text style={[theme.TYPOGRAPHY.BODY_2, { color: textColor }]}>{date.day}</Text>
+          </Pressable>
+        </View>
+      );
+    };
+
     const handleSubmit = () => {
       setValue('routineCondition', buildRoutineCondition());
       closeBottomSheet();
@@ -385,6 +489,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
         return;
       }
 
+      // TODO: 루틴 수정하기 스크린 첫 진입 시, 바로 실행되므로 dirtyField에 포함되지 않게 분리 필요
       setValue('routineCondition', buildRoutineCondition(), {
         shouldDirty: true,
         shouldTouch: true,
@@ -437,6 +542,8 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
               minDate={targetDateString}
               renderHeader={renderCustomHeader}
               onDayPress={handleDayPress}
+              dayComponent={renderDayComponent}
+              hideDayNames
               hideArrows
             />
           )}
@@ -638,6 +745,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  dayButton: {
+    height: 36,
+    width: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
   },
   selectHolidayTitleWrap: {
     flexDirection: 'row',
