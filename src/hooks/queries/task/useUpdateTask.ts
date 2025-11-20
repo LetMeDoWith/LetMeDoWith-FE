@@ -12,14 +12,12 @@ const useUpdateTask = ({
   id,
   type,
   mode,
-  isRoutineTask,
   year,
   month,
 }: {
   id: number;
   type: 'EDIT' | 'DELETE';
   mode: TaskModeType;
-  isRoutineTask: boolean;
   year?: number;
   month?: number;
 }) => {
@@ -28,9 +26,10 @@ const useUpdateTask = ({
   const isTodoMode = mode === 'TODO';
   const isEditType = type === 'EDIT';
 
-  return useMutation<string, AxiosError, updateTaskRequestSchemeType | undefined>({
+  return useMutation<string, AxiosError, { payload?: updateTaskRequestSchemeType; withRoutineTask: boolean }>({
     mutationKey: [...TASK_QUERY_KEY.UPDATE, isTodoMode ? 'todo' : 'dowith'],
-    mutationFn: payload => updateTask({ type, id, mode: isTodoMode ? 'TODO' : 'DOWITH', isRoutineTask, payload }),
+    mutationFn: ({ payload, withRoutineTask }) =>
+      updateTask({ type, id, mode: isTodoMode ? 'TODO' : 'DOWITH', withRoutineTask, payload }),
     onMutate: async () => {
       if (type === 'DELETE') {
         await queryClient.cancelQueries({ queryKey: [...TASK_QUERY_KEY.LIST, year, month] });
@@ -56,9 +55,11 @@ const useUpdateTask = ({
         return { previousData };
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, { withRoutineTask }) => {
       console.log(
-        `${isRoutineTask ? '루틴' : '일반'} ${isTodoMode ? '투두' : '두윗'} ${isEditType ? '업데이트' : '삭제'} 성공! `,
+        `${withRoutineTask ? '루틴' : '일반'} ${isTodoMode ? '투두' : '두윗'} ${
+          isEditType ? '업데이트' : '삭제'
+        } 성공! `,
       );
       if (isEditType) {
         navigate('HOME');

@@ -90,7 +90,7 @@ const fetchDowithTaskResponseScheme = BaseResponseScheme.extend({ data: addTaskR
 
 const updateTaskRequestScheme = todoTaskScheme
   .pick({ title: true, startTime: true, taskCategoryId: true })
-  .extend({ routineCondition: taskRoutineConditionScheme.nullable() });
+  .extend({ routineCondition: taskRoutineConditionScheme.nullable().optional() });
 
 const updateTaskRoutineRequestScheme = taskRoutineConditionScheme.optional();
 

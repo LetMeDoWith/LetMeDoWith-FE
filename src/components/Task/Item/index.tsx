@@ -74,7 +74,6 @@ const Item = ({
     type: 'DELETE',
     id,
     mode: isTodoMode ? 'TODO' : 'DOWITH',
-    isRoutineTask,
     year,
     month,
   });
@@ -144,13 +143,18 @@ const Item = ({
           });
         } else {
           showDialog({
-            title: `${isTodoMode ? '투두' : '두윗'} 삭제하기`,
-            content: `등록한 ${isTodoMode ? '투두를' : '두윗을'} 삭제하시겠어요?`,
-            leftButtonText: '취소',
-            rightButtonText: '삭제',
-            handleLeftButton: hideDialog,
+            title: `${isRoutineTask ? '루틴 ' : ''}${isTodoMode ? '투두' : '두윗'} 삭제하기`,
+            content: `${isRoutineTask ? '루틴으로 ' : ''}등록한 ${isTodoMode ? '투두를' : '두윗을'} ${
+              isRoutineTask ? '\n모두 ' : ''
+            }삭제하시겠어요?`,
+            leftButtonText: `${isRoutineTask ? '모두 삭제하기' : '취소'}`,
+            rightButtonText: `${isRoutineTask ? '이번만 삭제하기' : '삭제'}`,
+            handleLeftButton: () => {
+              deleteTaskMutate({ payload: undefined, withRoutineTask: true });
+              hideDialog();
+            },
             handleRightButton: () => {
-              deleteTaskMutate(undefined);
+              deleteTaskMutate({ payload: undefined, withRoutineTask: false });
               hideDialog();
             },
           });

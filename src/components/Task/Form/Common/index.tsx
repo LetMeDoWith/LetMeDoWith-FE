@@ -48,7 +48,6 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
     type: 'EDIT',
     id: params.id,
     mode: isTodoMode ? 'TODO' : 'DOWITH',
-    isRoutineTask,
   });
   const { mutate: addDowithTaskMutate, isPending: isAddDowithTaskMutateLoading } = useAddDowithTask();
   const isFieldChanged = Object.keys(dirtyFields).length > 0;
@@ -254,10 +253,20 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
         ...(isNil(values.routineCondition?.startDate) && { routineCondition: null }),
       };
 
-      const handleButton = () => {
-        updateTaskMutate(payload);
-        hideDialog();
-      };
+      const handleButton =
+        ({ withRoutineTask }: { withRoutineTask: boolean }) =>
+        () => {
+          const result = withRoutineTask
+            ? {
+                title: payload.title,
+                startTime: payload.startTime,
+                taskCategoryId: payload.taskCategoryId,
+              }
+            : payload;
+
+          updateTaskMutate({ payload: result, withRoutineTask });
+          hideDialog();
+        };
 
       console.log(payload);
       if (isEditMode) {
@@ -268,11 +277,10 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
             content: `루틴으로 수정한 앞으로의 ${isTodoMode ? '투두를' : '두윗을'}\n모두 수정하시겠어요?`,
             leftButtonText: '모두 수정하기',
             rightButtonText: '이번만 수정하기',
-            handleLeftButton: handleButton,
-            handleRightButton: handleButton,
+            handleLeftButton: handleButton({ withRoutineTask: true }),
+            handleRightButton: handleButton({ withRoutineTask: false }),
           });
         }
-        updateTaskMutate(payload);
         return;
       }
 
