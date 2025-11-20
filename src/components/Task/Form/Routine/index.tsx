@@ -67,6 +67,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
   ) => {
     const id = route?.params?.id || -1;
     const mode = route?.params?.mode || 'TODO';
+    const isTodoMode = mode === 'TODO';
     const isRoutineEditScreen = ref === null;
 
     let navigationContext;
@@ -93,11 +94,8 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       throw new Error('Form 메서드(setValue, watch)를 참조할 수 없습니다.');
     }
 
-    const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
-    const { data: dowithTaskData } = useFetchDowithTask(
-      { dowithTaskId: id },
-      { enabled: mode === 'DOWITH' && id !== -1 },
-    );
+    const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: isTodoMode && id !== -1 });
+    const { data: dowithTaskData } = useFetchDowithTask({ dowithTaskId: id }, { enabled: !isTodoMode && id !== -1 });
     const { mutate: updateTaskRoutine, isPending: isUpdateTaskRoutineLoading } = useUpdateTaskRoutine({
       navigation,
       mode,
@@ -121,10 +119,24 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     const isValidDatePeriod = selectedEndDate !== null;
     const routineCondition = watch('routineCondition');
 
-    const isButtonDisabled =
-      !isFieldChanged ||
-      (isRoutineEditScreen && routineCondition?.cycle !== 'DAILY' && routineCondition?.pattern.length === 0) ||
-      isUpdateTaskRoutineLoading;
+    // 등록한 루틴이 유효한지 검사하는 함수 (루틴 기간, 반복 패턴을 종류에 맞게 설정했는지)
+    const getIsValidRoutineCondition = () => {
+      if (!isValidDatePeriod) {
+        return false;
+      }
+
+      if (selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.DAILY) {
+        return true;
+      }
+
+      if (selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY) {
+        return selectedWeeklyDaySet.size > 0;
+      }
+
+      return selectedMonthlyDaySet.size > 0;
+    };
+
+    const isButtonDisabled = !isFieldChanged || !getIsValidRoutineCondition() || isUpdateTaskRoutineLoading;
 
     const onSubmit = (value: taskFormSchemeType) => {
       const { routineCondition } = value;
@@ -143,30 +155,13 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       });
     };
 
-    // 등록한 루틴이 유효한지 검사하는 함수 (루틴 기간, 반복 패턴을 종류에 맞게 설정했는지)
-    const getIsValidRoutineCondition = () => {
-      if (!isValidDatePeriod) {
-        return false;
-      }
-
-      if (selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.DAILY) {
-        return true;
-      }
-
-      if (selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY) {
-        return selectedWeeklyDaySet.size > 0;
-      }
-
-      return selectedMonthlyDaySet.size > 0;
-    };
-
     // 선택한 기간 마킹하는 함수
     const getMarkedPeriodDates = (end: string | null): MarkedDates => {
-      const startDate = dayjs(targetDateString).startOf('day');
+      const startDate = dayjs(routineCondition?.startDate || targetDateString).startOf('day');
 
       // 종료일 없으면 단일 선택 마킹
       if (!end) {
-        const single = targetDateString;
+        const single = routineCondition?.startDate || targetDateString;
         return {
           [single]: {
             startingDay: true,
@@ -216,10 +211,12 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     };
 
     const handleExcludeHolidays = (value: boolean) => {
-      setValue('routineCondition.isExcludeHolidays', value, {
-        shouldDirty: true,
-        shouldTouch: true,
-      });
+      if (isRoutineEditScreen) {
+        setValue('routineCondition.isExcludeHolidays', value, {
+          shouldDirty: true,
+          shouldTouch: true,
+        });
+      }
       setIsExcludeHolidays(value);
     };
 
@@ -454,49 +451,66 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     const handlePrimaryCategory = (value: TaskRoutineCycleEnumType) => () => {
       // 선택한 반복 패턴이 매 주가 아닐 경우 선택한 요일 Set 초기화
       if (value !== TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY) {
-        setValue('routineCondition.pattern', [], {
-          shouldDirty: true,
-          shouldTouch: true,
-        });
+        if (isRoutineEditScreen) {
+          setValue('routineCondition.pattern', [], {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
+        }
         setSelectedWeeklyDaySet(new Set());
       }
 
       // 선택한 반복 패턴이 매 월이 아닐 경우 선택한 일수 Set 초기화
       if (value !== TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY) {
-        setValue('routineCondition.pattern', [], {
-          shouldDirty: true,
-          shouldTouch: true,
-        });
+        if (isRoutineEditScreen) {
+          setValue('routineCondition.pattern', [], {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
+        }
         setSelectedMonthlyDaySet(new Set());
       }
 
       setSelectedPrimaryCategory(value);
-      setValue('routineCondition.cycle', value, {
-        shouldDirty: true,
-        shouldTouch: true,
-      });
+      if (isRoutineEditScreen) {
+        setValue('routineCondition.cycle', value, {
+          shouldDirty: true,
+          shouldTouch: true,
+        });
+      }
     };
 
     const handleDayPress = (date: DateData) => {
-      // 선택한 날짜가 오늘인 경우 무시
-      if (dayjs(date.dateString).isSame(targetDateString)) {
+      /**
+       * 날짜 선택이 유효하지 않은 경우
+       * 1. 루틴 수정 스크린 - 선택한 날짜가 이미 루틴 종료일로 설정되어 있을 경우
+       * 2. 루틴 등륵 스크린 - 선택한 날짜가 등록한 날 기준으로 동일하거나 이전일 경우
+       */
+      if (
+        (isRoutineEditScreen && date.dateString === routineCondition?.endDate) ||
+        (!isRoutineEditScreen && dayjs(date.dateString).isSameOrBefore(targetDateString))
+      ) {
         return;
       }
 
       setSelectedEndDate(prev => {
         // 선택한 종료일 재선택 시 미선택으로 초기화
         if (prev === date.dateString) {
-          setValue('routineCondition.endDate', null, {
-            shouldDirty: true,
-            shouldTouch: true,
-          });
+          if (isRoutineEditScreen) {
+            setValue('routineCondition.endDate', null, {
+              shouldDirty: true,
+              shouldTouch: true,
+            });
+          }
           return null;
         }
 
-        setValue('routineCondition.endDate', date.dateString, {
-          shouldDirty: true,
-          shouldTouch: true,
-        });
+        if (isRoutineEditScreen) {
+          setValue('routineCondition.endDate', date.dateString, {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
+        }
         return date.dateString;
       });
     };
@@ -530,7 +544,9 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
             <View style={styles.dateLeftSection}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={theme.TYPOGRAPHY.SUB_TITLE}>시작 날짜</Text>
-                <Text style={[theme.TYPOGRAPHY.BODY_2]}>{dayjs(targetDateString).format('YYYY. MM. DD (ddd)')}</Text>
+                <Text style={[theme.TYPOGRAPHY.BODY_2]}>
+                  {dayjs(routineCondition?.startDate || targetDateString).format('YYYY. MM. DD (ddd)')}
+                </Text>
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={theme.TYPOGRAPHY.SUB_TITLE}>종료 날짜</Text>
@@ -619,10 +635,12 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
                           newSet.add(value);
                         }
 
-                        setValue('routineCondition.pattern', Array.from(newSet), {
-                          shouldDirty: true,
-                          shouldTouch: true,
-                        });
+                        if (isRoutineEditScreen) {
+                          setValue('routineCondition.pattern', Array.from(newSet), {
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          });
+                        }
                         return newSet;
                       });
                     }}
@@ -665,10 +683,12 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
                           newSet.add(index + 1);
                         }
 
-                        setValue('routineCondition.pattern', Array.from(newSet), {
-                          shouldDirty: true,
-                          shouldTouch: true,
-                        });
+                        if (isRoutineEditScreen) {
+                          setValue('routineCondition.pattern', Array.from(newSet), {
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          });
+                        }
                         return newSet;
                       });
                     }}
