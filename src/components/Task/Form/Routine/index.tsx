@@ -105,7 +105,6 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     });
 
     const data = id !== -1 ? todoTaskData ?? dowithTaskData : null;
-    const isButtonDisabled = !isFieldChanged || isUpdateTaskRoutineLoading;
 
     const date = watch('date');
     const targetDateString = date;
@@ -121,6 +120,11 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
 
     const isValidDatePeriod = selectedEndDate !== null;
     const routineCondition = watch('routineCondition');
+
+    const isButtonDisabled =
+      !isFieldChanged ||
+      (isRoutineEditScreen && routineCondition?.cycle !== 'DAILY' && routineCondition?.pattern.length === 0) ||
+      isUpdateTaskRoutineLoading;
 
     const onSubmit = (value: taskFormSchemeType) => {
       const { routineCondition } = value;
@@ -211,7 +215,13 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       return marked;
     };
 
-    const handleExcludeHolidays = (value: boolean) => setIsExcludeHolidays(value);
+    const handleExcludeHolidays = (value: boolean) => {
+      setValue('routineCondition.isExcludeHolidays', value, {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      setIsExcludeHolidays(value);
+    };
 
     const initRoutineCondition = (data?: fetchTodoTaskResponseDataSchemeType | addTaskRequestSchemeType | null) => {
       const getSelectedDaySet = (type: Exclude<TaskRoutineCycleEnumType, 'DAILY'>) => {
@@ -444,15 +454,27 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     const handlePrimaryCategory = (value: TaskRoutineCycleEnumType) => () => {
       // 선택한 반복 패턴이 매 주가 아닐 경우 선택한 요일 Set 초기화
       if (value !== TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY) {
+        setValue('routineCondition.pattern', [], {
+          shouldDirty: true,
+          shouldTouch: true,
+        });
         setSelectedWeeklyDaySet(new Set());
       }
 
       // 선택한 반복 패턴이 매 월이 아닐 경우 선택한 일수 Set 초기화
       if (value !== TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY) {
+        setValue('routineCondition.pattern', [], {
+          shouldDirty: true,
+          shouldTouch: true,
+        });
         setSelectedMonthlyDaySet(new Set());
       }
 
       setSelectedPrimaryCategory(value);
+      setValue('routineCondition.cycle', value, {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
     };
 
     const handleDayPress = (date: DateData) => {
@@ -464,9 +486,17 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       setSelectedEndDate(prev => {
         // 선택한 종료일 재선택 시 미선택으로 초기화
         if (prev === date.dateString) {
+          setValue('routineCondition.endDate', null, {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
           return null;
         }
 
+        setValue('routineCondition.endDate', date.dateString, {
+          shouldDirty: true,
+          shouldTouch: true,
+        });
         return date.dateString;
       });
     };
@@ -483,25 +513,6 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       const isValid = getIsValidRoutineCondition();
       handleValidationChange?.(isValid);
     }, [selectedEndDate, selectedPrimaryCategory, selectedWeeklyDaySet, selectedMonthlyDaySet]);
-
-    useEffect(() => {
-      if (!isRoutineEditScreen) {
-        return;
-      }
-
-      // TODO: 루틴 수정하기 스크린 첫 진입 시, 바로 실행되므로 dirtyField에 포함되지 않게 분리 필요
-      setValue('routineCondition', buildRoutineCondition(), {
-        shouldDirty: true,
-        shouldTouch: true,
-      });
-    }, [
-      setValue,
-      selectedEndDate,
-      selectedPrimaryCategory,
-      selectedWeeklyDaySet,
-      selectedMonthlyDaySet,
-      isExcludeHolidays,
-    ]);
 
     useImperativeHandle(ref, () => ({
       handleSubmit,
@@ -607,6 +618,11 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
                         } else {
                           newSet.add(value);
                         }
+
+                        setValue('routineCondition.pattern', Array.from(newSet), {
+                          shouldDirty: true,
+                          shouldTouch: true,
+                        });
                         return newSet;
                       });
                     }}
@@ -648,6 +664,11 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
                         } else {
                           newSet.add(index + 1);
                         }
+
+                        setValue('routineCondition.pattern', Array.from(newSet), {
+                          shouldDirty: true,
+                          shouldTouch: true,
+                        });
                         return newSet;
                       });
                     }}
