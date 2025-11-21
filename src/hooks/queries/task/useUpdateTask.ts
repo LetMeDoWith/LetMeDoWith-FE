@@ -4,28 +4,33 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
-import { updateTodoTask } from 'services/rest/task';
-import type { RootStackParamList } from 'types/shared';
+import { updateTask } from 'services/rest/task';
+import type { RootStackParamList, TaskModeType } from 'types/shared';
 import type { fetchTaskListResponseSchemeDataType, updateTaskRequestSchemeType } from 'types/task/scheme/api';
 
-const useUpdateTodoTask = ({
+const useUpdateTask = ({
   id,
   type,
+  mode,
+  isRoutineTask,
   year,
   month,
 }: {
   id: number;
   type: 'EDIT' | 'DELETE';
+  mode: TaskModeType;
+  isRoutineTask: boolean;
   year?: number;
   month?: number;
 }) => {
   const queryClient = useQueryClient();
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList, 'TASK_FORM'>>();
+  const isTodoMode = mode === 'TODO';
   const isEditType = type === 'EDIT';
 
   return useMutation<string, AxiosError, updateTaskRequestSchemeType | undefined>({
-    mutationKey: TASK_QUERY_KEY.UPDATE_TODO,
-    mutationFn: payload => updateTodoTask({ type, id, payload }),
+    mutationKey: [...TASK_QUERY_KEY.UPDATE, isTodoMode ? 'todo' : 'dowith'],
+    mutationFn: payload => updateTask({ type, id, mode: isTodoMode ? 'TODO' : 'DOWITH', isRoutineTask, payload }),
     onMutate: async () => {
       if (type === 'DELETE') {
         await queryClient.cancelQueries({ queryKey: [...TASK_QUERY_KEY.LIST, year, month] });
@@ -52,7 +57,9 @@ const useUpdateTodoTask = ({
       }
     },
     onSuccess: () => {
-      console.log(`투두 ${isEditType ? '업데이트' : '삭제'} 성공! `);
+      console.log(
+        `${isRoutineTask ? '루틴' : '일반'} ${isTodoMode ? '투두' : '두윗'} ${isEditType ? '업데이트' : '삭제'} 성공! `,
+      );
       if (isEditType) {
         navigate('HOME');
       }
@@ -61,4 +68,4 @@ const useUpdateTodoTask = ({
   });
 };
 
-export { useUpdateTodoTask };
+export { useUpdateTask };

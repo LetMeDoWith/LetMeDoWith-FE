@@ -15,6 +15,7 @@ type RootStackParamList = {
   TASK_FORM: {
     screen: 'COMMON' | 'ROUTINE';
     date: string;
+    isRoutineTask?: boolean;
     id?: number;
     mode?: TaskModeType;
   };
@@ -39,10 +40,12 @@ type TaskModeType = 'TODO' | 'DOWITH';
 type TaskFormStackParamList = {
   COMMON: {
     id: number;
+    isRoutineTask: boolean;
     mode?: TaskModeType;
   };
   ROUTINE: {
     id: number;
+    isRoutineTask: boolean;
     mode: TaskModeType;
   };
 };

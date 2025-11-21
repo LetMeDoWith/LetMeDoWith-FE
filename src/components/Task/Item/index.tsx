@@ -25,7 +25,7 @@ import { useUpdateTodoTaskStatus } from 'hooks/queries/task/useUpdateTodoTaskSta
 import { isAos } from 'utils/device';
 import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
-import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
+import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
 
 dayjs.extend(customParseFormat);
@@ -60,23 +60,27 @@ const Item = ({
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { showDialog, hideDialog } = useDialog();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
+  const isTodoMode = mode === 'TODO';
 
-  const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
-  const { mutate: deleteTodoTaskMutate } = useUpdateTodoTask({
-    type: 'DELETE',
-    id,
-    year,
-    month,
-  });
   const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
-  const { data: dowithTaskData } = useFetchDowithTask(
-    { dowithTaskId: id },
-    { enabled: mode === 'DOWITH' && id !== -1 },
-  );
+  const { data: dowithTaskData } = useFetchDowithTask({ dowithTaskId: id }, { enabled: !isTodoMode && id !== -1 });
 
   const data = id && mode ? todoTaskData ?? dowithTaskData : null;
   const isRoutineTask = !isNil(data?.routineCondition);
+
+  // 현재 시간이 업데이트 하려는 Task가 두윗이고, 등록 시간보다 같거나 이후일 경우
+  const isInvalidUpdateDowithTask = !isTodoMode && dayjs(`${data?.date} ${data?.startTime}`).isSameOrBefore(dayjs());
+  const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
+
+  const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
+  const { mutate: deleteTaskMutate } = useUpdateTask({
+    type: 'DELETE',
+    id,
+    mode: isTodoMode ? 'TODO' : 'DOWITH',
+    isRoutineTask,
+    year,
+    month,
+  });
 
   const getSnapPoints = () => {
     if (!isRoutineTask) {
@@ -93,7 +97,7 @@ const Item = ({
   const renderTaskStatusIcon = (mode: TaskModeType, status: TaskStatusEnumType) => {
     switch (status) {
       case TASK_STATUS_ENUM.enum.WAIT:
-        if (mode === 'DOWITH') {
+        if (!isTodoMode) {
           return <UploadImage />;
         }
 
@@ -112,32 +116,44 @@ const Item = ({
 
   const handleTodoTaskStatus = (mode: TaskModeType, id: number, status: TaskStatusEnumType) => () => {
     // task가 아니거나 상태가 실패면 무시
-    if (mode === 'DOWITH' || status === 'FAIL') {
+    if (!isTodoMode || status === 'FAIL') {
       return;
     }
 
     completeTodoTaskStatusMutate({ id, status });
   };
 
-  const handleEditTask =
-    ({ type, isRoutine = false }: { type: 'EDIT' | 'DELETE'; isRoutine?: boolean }) =>
+  const handleTask =
+    ({ type, isRoutineTask }: { type: 'EDIT' | 'EDIT_ROUTINE' | 'DELETE'; isRoutineTask: boolean }) =>
     () => {
-      // 루틴 수정하기 버튼을 눌렀을 때,
-      if (isRoutine) {
-        navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'ROUTINE' });
-      } else {
-        const isEditType = type === 'EDIT';
-        if (isEditType) {
-          navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'COMMON' });
+      // 할일 수정하기 버튼을 눌렀을 때
+      if (type === 'EDIT') {
+        navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'COMMON', isRoutineTask });
+      }
+
+      // 루틴 수정하기 버튼을 눌렀을 때
+      if (type === 'EDIT_ROUTINE') {
+        navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'ROUTINE', isRoutineTask });
+      }
+
+      // 삭제하기 버튼을 눌렀을 때
+      if (type === 'DELETE') {
+        if (isInvalidUpdateDowithTask) {
+          showDialog({
+            type: 'ALERT',
+            title: '두윗모드 삭제 불가',
+            content: '시작 시간이 지난 두윗모드는\n삭제할 수 없어요.',
+            handleAlertButton: hideDialog,
+          });
         } else {
           showDialog({
-            title: '투두 삭제하기',
-            content: '등록한 투두를 삭제하시겠어요?',
+            title: `${isTodoMode ? '투두' : '두윗'} 삭제하기`,
+            content: `등록한 ${isTodoMode ? '투두를' : '두윗을'} 삭제하시겠어요?`,
             leftButtonText: '취소',
             rightButtonText: '삭제',
             handleLeftButton: hideDialog,
             handleRightButton: () => {
-              deleteTodoTaskMutate(undefined);
+              deleteTaskMutate(undefined);
               hideDialog();
             },
           });
@@ -204,25 +220,29 @@ const Item = ({
             {!confirmedImageUrl && !isNil(feedBackCount) && (
               <FeedBackIcon count={feedBackCount as number} status={status} />
             )}
-            <Pressable onPress={handleBottomSheet} disabled={isDisabled}>
-              <EtcDots disabled={isDisabled} />
+            <Pressable onPress={handleBottomSheet} disabled={isInvalidUpdateDowithTask || isDisabled}>
+              <EtcDots disabled={isInvalidUpdateDowithTask || isDisabled} />
             </Pressable>
           </View>
         </View>
       </View>
-      <BottomSheet ref={taskManagementBottomSheetModalRef} title="투두 관리하기" snapPoints={getSnapPoints()}>
+      <BottomSheet
+        ref={taskManagementBottomSheetModalRef}
+        title={`${isTodoMode ? 'TO DO' : 'DO WITH'} 관리하기`}
+        snapPoints={getSnapPoints()}
+      >
         <View style={styles.modalContainer}>
-          <Pressable style={styles.modalContentRow} onPress={handleEditTask({ type: 'EDIT' })}>
+          <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT', isRoutineTask })}>
             <TaskEdit />
             <Text style={styles.modalContentText}>할 일 수정하기</Text>
           </Pressable>
           {isRoutineTask ? (
-            <Pressable style={styles.modalContentRow} onPress={handleEditTask({ type: 'EDIT', isRoutine: true })}>
+            <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT_ROUTINE', isRoutineTask })}>
               <RoutineEdit />
               <Text style={styles.modalContentText}>루틴 수정하기</Text>
             </Pressable>
           ) : null}
-          <Pressable style={styles.modalContentRow} onPress={handleEditTask({ type: 'DELETE' })}>
+          <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'DELETE', isRoutineTask })}>
             <TaskDelete />
             <Text style={styles.modalContentText}>삭제하기</Text>
           </Pressable>

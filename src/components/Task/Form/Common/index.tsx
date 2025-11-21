@@ -19,11 +19,14 @@ import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
 import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
 import { isNil } from 'utils/index';
 import { StackScreenProps } from '@react-navigation/stack';
-import { useUpdateTodoTask } from 'hooks/queries/task/useUpdateTodoTask';
+import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
+import { useDialog } from 'components/common/Dialog/Provider';
 
 const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
   const { params } = route;
   const isEditMode = !!params.mode;
+  const isRoutineTask = params.isRoutineTask;
+  const { showDialog, hideDialog } = useDialog();
   const {
     control,
     watch,
@@ -36,24 +39,28 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
 
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
   const [taskMode, setTaskMode] = useState<TaskModeType | null>(params.mode ?? null);
+  const isTodoMode = taskMode === 'TODO';
+
   const { data: taskCategoryList } = useFetchTaskCategoryList();
   const { mutate: addTodoTaskMutate, isPending: isAddTodoTaskMutateLoading } = useAddTodoTask();
-  const { mutate: updateTodoTaskMutate, isPending: isUpdateTodoTaskMutateLoading } = useUpdateTodoTask({
+  const { mutate: updateTaskMutate, isPending: isUpdateTaskMutateLoading } = useUpdateTask({
     type: 'EDIT',
     id: params.id,
+    mode: isTodoMode ? 'TODO' : 'DOWITH',
+    isRoutineTask,
   });
   const { mutate: addDowithTaskMutate, isPending: isAddDowithTaskMutateLoading } = useAddDowithTask();
   const isFieldChanged = Object.keys(dirtyFields).length > 0;
 
   const title = watch('title');
+  const date = watch('date');
   const startTime = watch('startTime');
   const taskCategoryId = watch('taskCategoryId');
   const routineCondition = watch('routineCondition');
 
-  const isTodoMode = taskMode === 'TODO';
   const isFormDisabled = taskMode === null;
   const isButtonDisabled = isTodoMode
-    ? !isFieldChanged || !title || isAddTodoTaskMutateLoading || isUpdateTodoTaskMutateLoading
+    ? !isFieldChanged || !title || isAddTodoTaskMutateLoading || isUpdateTaskMutateLoading
     : !isFieldChanged || !title || !startTime || isAddDowithTaskMutateLoading;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
 
@@ -177,9 +184,21 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
 
   const handleTaskMode = useCallback(
     (mode: TaskModeType) => () => {
+      // 지난 날짜에는 두윗 등록 불가
+      const isInvalidAddDowithTask = !isTodoMode && dayjs(date).isBefore(dayjs(), 'day');
+      if (isInvalidAddDowithTask) {
+        showDialog({
+          type: 'ALERT',
+          title: '두윗 등록 불가',
+          content:
+            '지난 날짜에는 두윗을 등록할 수 없어요.\n\n다른 두윗들에게 잔소리를 받으려면\n미래 날짜에 두윗을 등록해 주세요!',
+          handleAlertButton: hideDialog,
+        });
+        return;
+      }
       setTaskMode(mode);
     },
-    [],
+    [isTodoMode, date],
   );
 
   const handleTaskRoutine = useCallback(() => {
@@ -197,20 +216,36 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
         ...(isNil(values.routineCondition?.startDate) && { routineCondition: null }),
       };
 
+      const handleButton = () => {
+        updateTaskMutate(payload);
+        hideDialog();
+      };
+
       console.log(payload);
-      if (isTodoMode) {
-        if (isEditMode) {
-          updateTodoTaskMutate(payload);
-          return;
+      if (isEditMode) {
+        // 루틴이 설정되어 있는 투두 Task 일 때
+        if (isRoutineTask) {
+          showDialog({
+            title: `루틴 ${isTodoMode ? '투두' : '두윗'} 수정하기`,
+            content: `루틴으로 수정한 앞으로의 ${isTodoMode ? '투두를' : '두윗을'}\n모두 수정하시겠어요?`,
+            leftButtonText: '모두 수정하기',
+            rightButtonText: '이번만 수정하기',
+            handleLeftButton: handleButton,
+            handleRightButton: handleButton,
+          });
         }
+        updateTaskMutate(payload);
+        return;
+      }
+
+      if (isTodoMode) {
         addTodoTaskMutate(payload);
         return;
       }
 
-      // TODO: 두윗 모드 수정 API 연동
       addDowithTaskMutate(payload);
     },
-    [isTodoMode, isEditMode],
+    [isTodoMode, isEditMode, isRoutineTask],
   );
 
   return (
@@ -226,7 +261,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
                 >
                   제목
                 </Text>
-                <Text style={isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }}>{title.length}/40</Text>
+                <Text style={isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }}>{title.length}/20</Text>
               </View>
               <Controller
                 name="title"
@@ -242,7 +277,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
                       onChange(value);
                     }}
                     value={value}
-                    maxLength={40}
+                    maxLength={20}
                     editable={!isFormDisabled}
                   />
                 )}
@@ -268,63 +303,51 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
                 {startTime ? dayjs(startTime, 'HH:mm:ss').format('HH:mm') : '미등록'}
               </Text>
             </Pressable>
-            <Controller
-              name="taskCategoryId"
-              control={control}
-              render={() => (
-                <Pressable
-                  style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
-                  onPress={handlePresentModalPress}
-                >
-                  <View style={styles.optionalLabelWrap}>
-                    <Text
-                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
-                    >
-                      카테고리
-                    </Text>
-                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
-                      (선택)
-                    </Text>
-                  </View>
-                  <Text style={[styles.emptyValue, taskCategoryId !== null && styles.value]}>
-                    {prevSelectedCategory ? prevSelectedCategory.title : '미등록'}
-                  </Text>
-                </Pressable>
-              )}
-            />
-            {!isEditMode ? (
-              <Pressable
-                style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
-                onPress={handleTaskRoutine}
-              >
-                <View
-                  style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Text
-                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
-                    >
-                      루틴 설정
-                    </Text>
-                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
-                      (선택)
-                    </Text>
-                  </View>
-                </View>
+            <Pressable
+              style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
+              onPress={handlePresentModalPress}
+            >
+              <View style={styles.optionalLabelWrap}>
                 <Text
-                  style={[
-                    theme.TYPOGRAPHY.BODY_2,
-                    { color: routineCondition?.cycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
-                  ]}
+                  style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
                 >
-                  {routineCondition?.cycle
-                    ? `${dayjs(routineCondition?.startDate).format('YYYY. MM. DD')} ~ ${dayjs(
-                        routineCondition?.endDate,
-                      ).format('YYYY. MM. DD')}`
-                    : '미등록'}
+                  카테고리
                 </Text>
-              </Pressable>
-            ) : null}
+                <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                  (선택)
+                </Text>
+              </View>
+              <Text style={[styles.emptyValue, taskCategoryId !== null && styles.value]}>
+                {prevSelectedCategory ? prevSelectedCategory.title : '미등록'}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
+              onPress={handleTaskRoutine}
+            >
+              <View
+                style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Text
+                    style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                  >
+                    루틴 설정
+                  </Text>
+                  <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                    (선택)
+                  </Text>
+                </View>
+              </View>
+              <Text
+                style={[
+                  theme.TYPOGRAPHY.BODY_2,
+                  { color: routineCondition?.cycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
+                ]}
+              >
+                {routineCondition?.cycle ? '등록 완료' : '미등록'}
+              </Text>
+            </Pressable>
           </View>
         </View>
         <Pressable
@@ -336,7 +359,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
             style={[
               theme.TYPOGRAPHY.TITLE_2,
               { color: theme.COLORS.DEFAULT.WHITE },
-              (isAddTodoTaskMutateLoading || isUpdateTodoTaskMutateLoading || isAddDowithTaskMutateLoading) && {
+              (isAddTodoTaskMutateLoading || isUpdateTaskMutateLoading || isAddDowithTaskMutateLoading) && {
                 backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
               },
             ]}
@@ -349,6 +372,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
         modal
         open={datePickerOpen}
         mode="time"
+        minimumDate={!isTodoMode ? new Date() : undefined}
         minuteInterval={5}
         locale="ko-KR"
         date={startTime ? dayjs(startTime, 'HH:mm:ss').toDate() : dayjs().toDate()}
