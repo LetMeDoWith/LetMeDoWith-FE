@@ -1,19 +1,20 @@
 import { createStackNavigator } from '@react-navigation/stack';
 
-import { Form } from 'components/Task';
+import { Form, RoutineForm } from 'components/Task';
 import { theme } from 'styles/theme';
 import type { TaskFormStackParamList, TaskModeType } from 'types/shared';
 
 interface Props {
   id: number;
   mode?: TaskModeType;
+  initialScreen?: keyof TaskFormStackParamList;
 }
 
-const TaskFormStackNavigator = ({ id, mode }: Props) => {
+const TaskFormStackNavigator = ({ id, mode, initialScreen = 'COMMON' }: Props) => {
   const { Navigator, Screen } = createStackNavigator<TaskFormStackParamList>();
   return (
     <Navigator
-      initialRouteName="FORM"
+      initialRouteName={initialScreen}
       screenOptions={{
         headerTitle: `할 일 ${mode ? '수정' : '추가'}하기`,
         headerTitleAlign: 'center',
@@ -22,7 +23,15 @@ const TaskFormStackNavigator = ({ id, mode }: Props) => {
         cardStyle: { backgroundColor: theme.COLORS.DEFAULT.WHITE },
       }}
     >
-      <Screen name="FORM" component={Form} initialParams={{ id, mode }} />
+      <Screen name="COMMON" component={Form} initialParams={{ id, mode }} />
+      <Screen
+        name="ROUTINE"
+        component={RoutineForm}
+        initialParams={{ id, mode }}
+        options={{
+          headerTitle: '루틴 수정하기',
+        }}
+      />
     </Navigator>
   );
 };

@@ -60,6 +60,14 @@ const addTaskRequestScheme = todoTaskScheme.omit({ id: true, status: true, taskC
   routineCondition: taskRoutineConditionScheme.nullable(),
 });
 
+const taskFormScheme = addTaskRequestScheme.omit({ routineCondition: true }).extend({
+  routineCondition: taskRoutineConditionScheme.omit({ startDate: true, endDate: true, cycle: true }).extend({
+    startDate: z.string().nullable().describe('루틴 시작일자'),
+    endDate: z.string().nullable().describe('루틴 종료일자'),
+    cycle: TASK_ROUTINE_CYCLE_ENUM.nullable().describe('루틴 주기'),
+  }),
+});
+
 const updateTodoTaskStatusResponseScheme = BaseResponseScheme.extend({
   data: z.number().describe('완료된 task id'),
 });
@@ -84,6 +92,8 @@ const updateTaskRequestScheme = todoTaskScheme
   .pick({ title: true, startTime: true, taskCategoryId: true })
   .extend({ routineCondition: taskRoutineConditionScheme.nullable() });
 
+const updateTaskRoutineRequestScheme = taskRoutineConditionScheme.optional();
+
 export {
   taskCategoryScheme,
   fetchTaskCategoryListResponseScheme,
@@ -96,8 +106,10 @@ export {
   fetchTaskListResponseDataScheme,
   fetchTaskListResponseScheme,
   addTaskRequestScheme,
+  taskFormScheme,
   updateTodoTaskStatusResponseScheme,
   fetchDowithTaskRequestScheme,
   fetchDowithTaskResponseScheme,
   updateTaskRequestScheme,
+  updateTaskRoutineRequestScheme,
 };

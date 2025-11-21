@@ -119,25 +119,32 @@ const Item = ({
     completeTodoTaskStatusMutate({ id, status });
   };
 
-  const handleEditTask = (type: 'EDIT' | 'DELETE') => () => {
-    const isEditType = type === 'EDIT';
-    if (isEditType) {
-      navigate('TASK_FORM', { date: selectedDate, id, mode });
-    } else {
-      showDialog({
-        title: '투두 삭제하기',
-        content: '등록한 투두를 삭제하시겠어요?',
-        leftButtonText: '취소',
-        rightButtonText: '삭제',
-        handleLeftButton: hideDialog,
-        handleRightButton: () => {
-          deleteTodoTaskMutate(undefined);
-          hideDialog();
-        },
-      });
-    }
-    taskManagementBottomSheetModalRef.current?.dismiss();
-  };
+  const handleEditTask =
+    ({ type, isRoutine = false }: { type: 'EDIT' | 'DELETE'; isRoutine?: boolean }) =>
+    () => {
+      // 루틴 수정하기 버튼을 눌렀을 때,
+      if (isRoutine) {
+        navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'ROUTINE' });
+      } else {
+        const isEditType = type === 'EDIT';
+        if (isEditType) {
+          navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'COMMON' });
+        } else {
+          showDialog({
+            title: '투두 삭제하기',
+            content: '등록한 투두를 삭제하시겠어요?',
+            leftButtonText: '취소',
+            rightButtonText: '삭제',
+            handleLeftButton: hideDialog,
+            handleRightButton: () => {
+              deleteTodoTaskMutate(undefined);
+              hideDialog();
+            },
+          });
+        }
+      }
+      taskManagementBottomSheetModalRef.current?.dismiss();
+    };
 
   return (
     <>
@@ -205,17 +212,17 @@ const Item = ({
       </View>
       <BottomSheet ref={taskManagementBottomSheetModalRef} title="투두 관리하기" snapPoints={getSnapPoints()}>
         <View style={styles.modalContainer}>
-          <Pressable style={styles.modalContentRow} onPress={handleEditTask('EDIT')}>
+          <Pressable style={styles.modalContentRow} onPress={handleEditTask({ type: 'EDIT' })}>
             <TaskEdit />
             <Text style={styles.modalContentText}>할 일 수정하기</Text>
           </Pressable>
           {isRoutineTask ? (
-            <View style={styles.modalContentRow}>
+            <Pressable style={styles.modalContentRow} onPress={handleEditTask({ type: 'EDIT', isRoutine: true })}>
               <RoutineEdit />
               <Text style={styles.modalContentText}>루틴 수정하기</Text>
-            </View>
+            </Pressable>
           ) : null}
-          <Pressable style={styles.modalContentRow} onPress={handleEditTask('DELETE')}>
+          <Pressable style={styles.modalContentRow} onPress={handleEditTask({ type: 'DELETE' })}>
             <TaskDelete />
             <Text style={styles.modalContentText}>삭제하기</Text>
           </Pressable>
