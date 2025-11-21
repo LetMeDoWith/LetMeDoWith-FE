@@ -3,7 +3,6 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
@@ -27,8 +26,6 @@ import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
-
-dayjs.extend(customParseFormat);
 
 interface Props {
   id: number;
@@ -77,7 +74,6 @@ const Item = ({
     type: 'DELETE',
     id,
     mode: isTodoMode ? 'TODO' : 'DOWITH',
-    isRoutineTask,
     year,
     month,
   });
@@ -133,7 +129,7 @@ const Item = ({
 
       // 루틴 수정하기 버튼을 눌렀을 때
       if (type === 'EDIT_ROUTINE') {
-        navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'ROUTINE', isRoutineTask });
+        navigate('TASK_FORM', { date: selectedDate, id, mode, screen: 'ROUTINE' });
       }
 
       // 삭제하기 버튼을 눌렀을 때
@@ -147,13 +143,18 @@ const Item = ({
           });
         } else {
           showDialog({
-            title: `${isTodoMode ? '투두' : '두윗'} 삭제하기`,
-            content: `등록한 ${isTodoMode ? '투두를' : '두윗을'} 삭제하시겠어요?`,
-            leftButtonText: '취소',
-            rightButtonText: '삭제',
-            handleLeftButton: hideDialog,
+            title: `${isRoutineTask ? '루틴 ' : ''}${isTodoMode ? '투두' : '두윗'} 삭제하기`,
+            content: `${isRoutineTask ? '루틴으로 ' : ''}등록한 ${isTodoMode ? '투두를' : '두윗을'} ${
+              isRoutineTask ? '\n모두 ' : ''
+            }삭제하시겠어요?`,
+            leftButtonText: `${isRoutineTask ? '모두 삭제하기' : '취소'}`,
+            rightButtonText: `${isRoutineTask ? '이번만 삭제하기' : '삭제'}`,
+            handleLeftButton: () => {
+              deleteTaskMutate({ payload: undefined, withRoutineTask: true });
+              hideDialog();
+            },
             handleRightButton: () => {
-              deleteTaskMutate(undefined);
+              deleteTaskMutate({ payload: undefined, withRoutineTask: false });
               hideDialog();
             },
           });

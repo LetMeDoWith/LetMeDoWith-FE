@@ -21,6 +21,7 @@ import { isNil } from 'utils/index';
 import { StackScreenProps } from '@react-navigation/stack';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
+import { ArrowRight } from 'components/common/icons/ArrowIcon';
 
 const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
   const { params } = route;
@@ -47,7 +48,6 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
     type: 'EDIT',
     id: params.id,
     mode: isTodoMode ? 'TODO' : 'DOWITH',
-    isRoutineTask,
   });
   const { mutate: addDowithTaskMutate, isPending: isAddDowithTaskMutateLoading } = useAddDowithTask();
   const isFieldChanged = Object.keys(dirtyFields).length > 0;
@@ -63,6 +63,13 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
     ? !isFieldChanged || !title || isAddTodoTaskMutateLoading || isUpdateTaskMutateLoading
     : !isFieldChanged || !title || !startTime || isAddDowithTaskMutateLoading;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
+
+  /**
+   * 루틴 설정 메뉴 노출 조건
+   * 1. task 등록 스크린일 때
+   * 2. 루틴 설정 안한 일반 task 수정 스크린일 때
+   */
+  const isRoutineMenuVisible = !isEditMode || !isRoutineTask;
 
   const renderTaskModeButtonView = () => {
     if (!isEditMode) {
@@ -81,9 +88,24 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
               onPress={handleTaskMode('TODO')}
             >
               <TodoMode />
-              <Text style={[styles.modeButtonText, taskMode === 'TODO' && { color: theme.COLORS.SECONDARY.BLUE_60 }]}>
-                혼자 하는 TO DO
-              </Text>
+              <View style={styles.modeButtonTextWrap}>
+                <Text
+                  style={[
+                    theme.TYPOGRAPHY.CAPTION1_BASIC,
+                    { color: taskMode === 'TODO' ? theme.COLORS.SECONDARY.BLUE_60 : theme.COLORS.GRAY_SCALE.GRAY_50 },
+                  ]}
+                >
+                  자유롭게 혼자하는
+                </Text>
+                <Text
+                  style={[
+                    theme.TYPOGRAPHY.SUB_TITLE,
+                    { color: taskMode === 'TODO' ? theme.COLORS.SECONDARY.BLUE_60 : theme.COLORS.GRAY_SCALE.GRAY_10 },
+                  ]}
+                >
+                  TO DO
+                </Text>
+              </View>
             </Pressable>
             <Pressable
               style={[
@@ -96,9 +118,24 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
               onPress={handleTaskMode('DOWITH')}
             >
               <DowithMode />
-              <Text style={[styles.modeButtonText, taskMode === 'DOWITH' && { color: theme.COLORS.PRIMARY.RED_60 }]}>
-                함께 하는 DO WITH
-              </Text>
+              <View style={styles.modeButtonTextWrap}>
+                <Text
+                  style={[
+                    theme.TYPOGRAPHY.CAPTION1_BASIC,
+                    { color: taskMode === 'DOWITH' ? theme.COLORS.PRIMARY.RED_60 : theme.COLORS.GRAY_SCALE.GRAY_50 },
+                  ]}
+                >
+                  잔소리와 함께하는
+                </Text>
+                <Text
+                  style={[
+                    theme.TYPOGRAPHY.SUB_TITLE,
+                    { color: taskMode === 'DOWITH' ? theme.COLORS.PRIMARY.RED_60 : theme.COLORS.GRAY_SCALE.GRAY_10 },
+                  ]}
+                >
+                  DO WITH
+                </Text>
+              </View>
             </Pressable>
           </View>
         </>
@@ -185,7 +222,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
   const handleTaskMode = useCallback(
     (mode: TaskModeType) => () => {
       // 지난 날짜에는 두윗 등록 불가
-      const isInvalidAddDowithTask = !isTodoMode && dayjs(date).isBefore(dayjs(), 'day');
+      const isInvalidAddDowithTask = mode === 'DOWITH' && dayjs(date).isBefore(dayjs(), 'day');
       if (isInvalidAddDowithTask) {
         showDialog({
           type: 'ALERT',
@@ -198,7 +235,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
       }
       setTaskMode(mode);
     },
-    [isTodoMode, date],
+    [date],
   );
 
   const handleTaskRoutine = useCallback(() => {
@@ -216,10 +253,20 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
         ...(isNil(values.routineCondition?.startDate) && { routineCondition: null }),
       };
 
-      const handleButton = () => {
-        updateTaskMutate(payload);
-        hideDialog();
-      };
+      const handleButton =
+        ({ withRoutineTask }: { withRoutineTask: boolean }) =>
+        () => {
+          const result = withRoutineTask
+            ? {
+                title: payload.title,
+                startTime: payload.startTime,
+                taskCategoryId: payload.taskCategoryId,
+              }
+            : payload;
+
+          updateTaskMutate({ payload: result, withRoutineTask });
+          hideDialog();
+        };
 
       console.log(payload);
       if (isEditMode) {
@@ -230,11 +277,10 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
             content: `루틴으로 수정한 앞으로의 ${isTodoMode ? '투두를' : '두윗을'}\n모두 수정하시겠어요?`,
             leftButtonText: '모두 수정하기',
             rightButtonText: '이번만 수정하기',
-            handleLeftButton: handleButton,
-            handleRightButton: handleButton,
+            handleLeftButton: handleButton({ withRoutineTask: true }),
+            handleRightButton: handleButton({ withRoutineTask: false }),
           });
         }
-        updateTaskMutate(payload);
         return;
       }
 
@@ -321,33 +367,38 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
                 {prevSelectedCategory ? prevSelectedCategory.title : '미등록'}
               </Text>
             </Pressable>
-            <Pressable
-              style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
-              onPress={handleTaskRoutine}
-            >
-              <View
-                style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}
+            {isRoutineMenuVisible ? (
+              <Pressable
+                style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
+                onPress={handleTaskRoutine}
               >
+                <View
+                  style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text
+                      style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                    >
+                      루틴 설정
+                    </Text>
+                    <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
+                      (선택)
+                    </Text>
+                  </View>
+                </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                   <Text
-                    style={[theme.TYPOGRAPHY.SUB_TITLE, isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+                    style={[
+                      theme.TYPOGRAPHY.BODY_2,
+                      { color: routineCondition?.cycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
+                    ]}
                   >
-                    루틴 설정
+                    {routineCondition?.cycle ? '등록 완료' : '미등록'}
                   </Text>
-                  <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>
-                    (선택)
-                  </Text>
+                  {routineCondition?.cycle ? <ArrowRight fill={theme.COLORS.GRAY_SCALE.GRAY_40} /> : null}
                 </View>
-              </View>
-              <Text
-                style={[
-                  theme.TYPOGRAPHY.BODY_2,
-                  { color: routineCondition?.cycle ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_80 },
-                ]}
-              >
-                {routineCondition?.cycle ? '등록 완료' : '미등록'}
-              </Text>
-            </Pressable>
+              </Pressable>
+            ) : null}
           </View>
         </View>
         <Pressable
@@ -405,16 +456,17 @@ const styles = StyleSheet.create({
   modeButton: {
     flex: 1,
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
     paddingHorizontal: 24,
     paddingVertical: 24,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_98,
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_96,
     borderWidth: 1,
     borderRadius: 16,
   },
-  modeButtonText: {
-    color: theme.COLORS.DEFAULT.BLACK,
-    fontSize: 13,
+  modeButtonTextWrap: {
+    alignItems: 'center',
+    gap: 2,
   },
   optionalLabelWrap: {
     flexDirection: 'row',
