@@ -6604,6 +6604,11 @@ react-native-version@^4.0.0:
     resolve-from "^5.0.0"
     semver "^7.0.0"
 
+react-native-vision-camera@^3.9.2:
+  version "3.9.2"
+  resolved "https://registry.npmjs.org/react-native-vision-camera/-/react-native-vision-camera-3.9.2.tgz"
+  integrity sha512-watHRWbeH7CBYq/5sPj2fpZj87V8J5nGdmYO61aYsDLuJ2Pkij7anAzBf8B8oZiyoSUuYpAzX4lIIi+LjWVedA==
+
 react-native@*, "react-native@>= 0.30.0", "react-native@>= 0.64.3", react-native@>=0.42.0, react-native@>=0.57, react-native@>=0.59.0, react-native@0.73.3:
   version "0.73.3"
   resolved "https://registry.npmjs.org/react-native/-/react-native-0.73.3.tgz"

@@ -106,5 +106,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+    <string>카메라 사용을 허용하시겠습니까?</string>
 </dict>
 </plist>
