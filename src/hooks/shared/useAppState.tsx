@@ -64,4 +64,4 @@ const useAppState = (onStateChange?: (state: AppStateStatus) => void) => {
   return context.appState;
 };
 
-export { AppStateProvider, useAppState };
+export { AppStateProvider, useAppState, AppStateContext };

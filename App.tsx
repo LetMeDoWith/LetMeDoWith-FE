@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -30,11 +30,15 @@ import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
 import { initNotificationLayer } from 'utils/notification';
 import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotificationToken';
 import { CameraProvider } from 'hooks/shared/useCamera';
-import { AppStateProvider, useAppState } from 'hooks/shared/useAppState';
+import { AppStateProvider, AppStateContext, useAppState } from 'hooks/shared/useAppState';
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(customParseFormat);
 
+/**
+ * React Query의 전역 에러 핸들러
+ * 모든 쿼리/뮤테이션에서 발생한 에러를 중앙에서 처리
+ */
 const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEvent) => {
   if ('action' in event && event.action && event.action.type === 'error') {
     const errorData = event.action.error.response.data;
@@ -56,6 +60,7 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
       return;
     }
 
+    // 에러 타입에 따라 Alert 표시 및 로깅
     if ('query' in event) {
       Alert.alert(`[QueryCacheNotifyEvent Error]: ${errorMessage}`);
       console.error('[QueryCacheNotifyEvent Error]:', errorData);
@@ -70,7 +75,8 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
 };
 
 const queryClient = new QueryClient();
-// 전역 에러 핸들링(모든 쿼리/뮤테이션)
+
+// 전역 에러 핸들링 구독 (모든 쿼리/뮤테이션)
 queryClient.getQueryCache().subscribe(subscribeListener);
 queryClient.getMutationCache().subscribe(subscribeListener);
 
@@ -108,7 +114,7 @@ function AppContent() {
     }),
   );
 
-  // 토큰 재발급 진행중 관련 flag 변수
+  // 토큰 재발급 진행중 관련 flag 변수 (중복 요청 방지)
   const isTokenRefreshingRef = useRef(false);
   const isFetching = useIsFetching();
   const isMutating = useIsMutating();
@@ -117,7 +123,16 @@ function AppContent() {
   const { mutate: mutateRefreshToken } = useRefreshTokenQuery();
   const { mutate: mutateNotificationToken } = useAddNotificationToken();
 
-  // 초기 앱 진입 및 Foreground 복귀시마다 토큰 재발급 로직 수행여부 체크
+  const context = useContext(AppStateContext);
+  if (!context) {
+    throw new Error('AppContent must be used within AppStateProvider');
+  }
+  const { subscribe: subscribeAppState } = context;
+
+  /**
+   * 앱이 foreground로 복귀할 때마다 토큰 만료 체크
+   * useAppState 훅을 사용하여 AppState 변경 감지
+   */
   useAppState(state => {
     if (state === 'active') {
       // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우 토큰 재발급 상태로 수정
@@ -132,12 +147,17 @@ function AppContent() {
     }
   });
 
-  // 초기 앱 진입 시 토큰 재발급 로직
+  /**
+   * 초기 앱 진입 시 실행되는 로직
+   * - 토큰 재발급
+   * - FCM 알림 레이어 초기화
+   */
   useEffect(() => {
     if (!isHydrated) {
       return;
     }
 
+    // 토큰 재발급이 필요하고 아직 진행중이 아닐 때 실행
     if (!isTokenRefreshingRef.current && isNeedRefreshToken && tokenInfo.refresh?.token) {
       isTokenRefreshingRef.current = true;
       mutateRefreshToken(
@@ -150,7 +170,7 @@ function AppContent() {
       );
     }
 
-    // 회원가입이 완료되었을 경우
+    // 회원가입이 완료되었을 경우 알림 레이어 초기화
     if (!isNeedSignUp) {
       initNotificationLayer({
         // 포그라운드 메시지 처리 (원하면 notifee 로컬 알림 등)
@@ -172,6 +192,7 @@ function AppContent() {
             console.log('[FCM] update token failed', e);
           }
         },
+        subscribeAppState,
       });
     }
   }, [
@@ -184,6 +205,7 @@ function AppContent() {
     setIsNeedRefreshToken,
     setIsNeedSignUp,
     setTokenInfo,
+    subscribeAppState,
   ]);
 
   // useEffect(() => {

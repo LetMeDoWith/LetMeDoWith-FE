@@ -1,5 +1,4 @@
-// services/notification.ts
-import { AppState } from 'react-native';
+import type { AppStateStatus } from 'react-native';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import notifee, { AndroidImportance, AuthorizationStatus } from '@notifee/react-native';
 
@@ -9,7 +8,7 @@ import { useAuthStore } from 'stores/auth';
 let initialized = false;
 let unsubOnMessage: (() => void) | null = null;
 let unsubOnTokenRefresh: (() => void) | null = null;
-let appSubscribeState: ReturnType<typeof AppState.addEventListener> | null = null;
+let unsubAppState: (() => void) | null = null;
 
 /**
  * 초기화 진입점: FCM/Notifee 권한을 확인 및 요청하고,
@@ -23,11 +22,13 @@ let appSubscribeState: ReturnType<typeof AppState.addEventListener> | null = nul
  *
  * @param options 콜백 핸들러 모음
  *  - onForegroundMessage: Foreground에서 메시지를 받았을 때 실행되는 콜백
- *  - onTokenChanged: FCM 토큰이 최초 발급되거나 갱신될 때 실행되는 콜백
+ *  - onTokenChanged: FCM 토큰이 최초 발급되거나 갱신될 때 실행되는 콜백 (서버 동기화)
+ *  - subscribeAppState: AppStateProvider의 subscribe 함수 (AppState 구독용)
  */
 const initNotificationLayer = async (options?: {
   onForegroundMessage?: (m: FirebaseMessagingTypes.RemoteMessage) => Promise<void> | void;
-  onTokenChanged?: (token: string) => Promise<void> | void; // 서버 동기화 콜백
+  onTokenChanged?: (token: string) => Promise<void> | void;
+  subscribeAppState?: (callback: (state: AppStateStatus) => void) => () => void;
 }) => {
   const {
     isNeedSignUp,
@@ -98,9 +99,9 @@ const initNotificationLayer = async (options?: {
   initialized = true;
 
   // 권한 감시 리스너는 더 이상 불필요하면 제거
-  if (appSubscribeState) {
-    appSubscribeState.remove();
-    appSubscribeState = null;
+  if (unsubAppState) {
+    unsubAppState();
+    unsubAppState = null;
   }
 };
 
@@ -109,19 +110,32 @@ const initNotificationLayer = async (options?: {
  * 다시 권한 상태를 체크하여 허용으로 변경되면 initNotificationLayer를 재호출한다.
  *
  * - initialized 상태가 true라면 이미 초기화된 것이므로 무시한다.
- * - 중복 등록을 막기 위해 appSubscribeState가 존재하면 재등록하지 않는다.
+ * - 중복 등록을 막기 위해 unsubAppState가 존재하면 재등록하지 않는다.
+ * - AppStateProvider의 subscribe 함수를 통해 AppState를 구독한다.
  *
  * @param options initNotificationLayer와 동일한 콜백 옵션
  */
 const ensurePermissionWatcher = (options?: Parameters<typeof initNotificationLayer>[0]) => {
-  if (appSubscribeState) {
+  // 이미 구독 중이면 중복 등록 방지
+  if (unsubAppState) {
     return;
   }
 
-  appSubscribeState = AppState.addEventListener('change', async state => {
+  const subscribeAppState = options?.subscribeAppState;
+
+  // subscribeAppState가 없으면 경고 (AppStateProvider 밖에서 호출된 경우)
+  if (!subscribeAppState) {
+    console.warn('ensurePermissionWatcher: subscribeAppState가 제공되지 않았습니다.');
+    return;
+  }
+
+  // AppStateProvider의 subscribe 함수를 사용하여 AppState 구독
+  unsubAppState = subscribeAppState(async state => {
+    // active 상태가 아니거나 이미 초기화되었으면 스킵
     if (state !== 'active' || initialized) {
       return;
     }
+    // 권한 상태 재확인
     const settings = await notifee.getNotificationSettings();
     const authorized = settings.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
     if (authorized) {
@@ -135,7 +149,7 @@ const ensurePermissionWatcher = (options?: Parameters<typeof initNotificationLay
  * 알림 레이어를 해제(dispose)한다.
  *
  * - messaging().onMessage / onTokenRefresh 리스너 해제
- * - AppState 구독 해제
+ * - AppState 구독 해제 (unsubAppState 실행)
  * - 내부 플래그(initialized)를 false로 초기화
  *
  * 주로 로그아웃 시점, 또는 알림 기능을 완전히 종료해야 할 때 호출한다.
@@ -145,9 +159,11 @@ const disposeNotificationLayer = () => {
   unsubOnMessage = null;
   unsubOnTokenRefresh?.();
   unsubOnTokenRefresh = null;
-  if (appSubscribeState) {
-    appSubscribeState.remove();
-    appSubscribeState = null;
+
+  // AppState 구독 해제
+  if (unsubAppState) {
+    unsubAppState();
+    unsubAppState = null;
   }
   initialized = false;
 };
