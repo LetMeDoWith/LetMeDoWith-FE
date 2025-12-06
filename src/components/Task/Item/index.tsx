@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import dayjs from 'dayjs';
 
 import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
@@ -12,8 +13,7 @@ import { BottomSheet } from 'components/common/BottomSheet';
 import { TaskEdit } from 'components/common/icons/TaskEdit';
 import { RoutineEdit } from 'components/common/icons/RoutineEdit';
 import { TaskDelete } from 'components/common/icons/TaskDelete';
-import { TaskStatusEnumType } from 'types/task/scheme/enum';
-import dayjs from 'dayjs';
+import type { TaskStatusEnumType } from 'types/task/scheme/enum';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { TaskWait } from 'components/common/icons/TaskWait';
 import { FeedBackIcon } from 'components/common/icons/FeedBackIcon';
@@ -26,6 +26,8 @@ import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
+import { Camera } from 'components/common/icons/Camera';
+import { Gallery } from 'components/common/icons/Gallery';
 
 interface Props {
   id: number;
@@ -62,6 +64,8 @@ const Item = ({
   const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
   const { data: dowithTaskData } = useFetchDowithTask({ dowithTaskId: id }, { enabled: !isTodoMode && id !== -1 });
 
+  const [showUploadImageBottomSheet, setShowUploadImageBottomSheet] = useState(false);
+
   const data = id && mode ? todoTaskData ?? dowithTaskData : null;
   const isRoutineTask = !isNil(data?.routineCondition);
 
@@ -78,7 +82,23 @@ const Item = ({
     month,
   });
 
+  const getBottomSheetTitle = () => {
+    if (showUploadImageBottomSheet) {
+      return '시작 인증하기';
+    }
+
+    if (isTodoMode) {
+      return 'TO DO 관리하기';
+    }
+
+    return 'DO WITH 관리하기';
+  };
+
   const getSnapPoints = () => {
+    if (showUploadImageBottomSheet) {
+      return [isAos ? '27%' : '25%'];
+    }
+
     if (!isRoutineTask) {
       return [isAos ? '25%' : '23%'];
     }
@@ -87,6 +107,7 @@ const Item = ({
   };
 
   const handleBottomSheet = () => {
+    setShowUploadImageBottomSheet(false);
     taskManagementBottomSheetModalRef.current?.present();
   };
 
@@ -110,9 +131,54 @@ const Item = ({
     }
   };
 
-  const handleTodoTaskStatus = (mode: TaskModeType, id: number, status: TaskStatusEnumType) => () => {
-    // task가 아니거나 상태가 실패면 무시
-    if (!isTodoMode || status === 'FAIL') {
+  const handleUploadImage = (type: 'CAMERA' | 'GALLERY') => () => {
+    console.log('type: ', type);
+    // TODO: 선택한 타입에 따라 react-native-vision-camera 기능을 사용해야 함
+  };
+
+  const renderBottomSheetContent = () => {
+    return showUploadImageBottomSheet ? (
+      <>
+        <Pressable style={styles.modalContentRow} onPress={handleUploadImage('GALLERY')}>
+          <Gallery />
+          <Text style={styles.modalContentText}>라이브러리에서 선택</Text>
+        </Pressable>
+        <Pressable style={styles.modalContentRow} onPress={handleUploadImage('CAMERA')}>
+          <Camera />
+          <Text style={styles.modalContentText}>사진 찍기</Text>
+        </Pressable>
+      </>
+    ) : (
+      <>
+        <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT', isRoutineTask })}>
+          <TaskEdit />
+          <Text style={styles.modalContentText}>할 일 수정하기</Text>
+        </Pressable>
+        {isRoutineTask ? (
+          <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT_ROUTINE', isRoutineTask })}>
+            <RoutineEdit />
+            <Text style={styles.modalContentText}>루틴 수정하기</Text>
+          </Pressable>
+        ) : null}
+        <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'DELETE', isRoutineTask })}>
+          <TaskDelete />
+          <Text style={styles.modalContentText}>삭제하기</Text>
+        </Pressable>
+      </>
+    );
+  };
+
+  const handleTaskStatus = (mode: TaskModeType, id: number, status: TaskStatusEnumType) => () => {
+    // 두윗 Task이면 이미지 업로드 바텀시트 노출
+    if (mode === 'DOWITH') {
+      setShowUploadImageBottomSheet(true);
+      taskManagementBottomSheetModalRef.current?.present();
+      return;
+    }
+    setShowUploadImageBottomSheet(false);
+
+    // 투두 Task 상태가 실패면 무시
+    if (status === 'FAIL') {
       return;
     }
 
@@ -167,7 +233,7 @@ const Item = ({
     <>
       <View style={styles.container}>
         <View style={styles.leftContainer}>
-          <Pressable onPress={handleTodoTaskStatus(mode, id, status)}>{renderTaskStatusIcon(mode, status)}</Pressable>
+          <Pressable onPress={handleTaskStatus(mode, id, status)}>{renderTaskStatusIcon(mode, status)}</Pressable>
           <View style={styles.leftContent}>
             <Text style={[styles.title, isDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>{title}</Text>
             {(startTime || taskCategoryName) && (
@@ -229,25 +295,11 @@ const Item = ({
       </View>
       <BottomSheet
         ref={taskManagementBottomSheetModalRef}
-        title={`${isTodoMode ? 'TO DO' : 'DO WITH'} 관리하기`}
+        title={getBottomSheetTitle()}
+        description={showUploadImageBottomSheet ? '사진을 올리면 잔소리 알림이 중지돼요.' : ''}
         snapPoints={getSnapPoints()}
       >
-        <View style={styles.modalContainer}>
-          <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT', isRoutineTask })}>
-            <TaskEdit />
-            <Text style={styles.modalContentText}>할 일 수정하기</Text>
-          </Pressable>
-          {isRoutineTask ? (
-            <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT_ROUTINE', isRoutineTask })}>
-              <RoutineEdit />
-              <Text style={styles.modalContentText}>루틴 수정하기</Text>
-            </Pressable>
-          ) : null}
-          <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'DELETE', isRoutineTask })}>
-            <TaskDelete />
-            <Text style={styles.modalContentText}>삭제하기</Text>
-          </Pressable>
-        </View>
+        <View style={styles.modalContainer}>{renderBottomSheetContent()}</View>
       </BottomSheet>
     </>
   );
