@@ -28,6 +28,7 @@ import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { Camera } from 'components/common/icons/Camera';
 import { Gallery } from 'components/common/icons/Gallery';
+import { useCamera } from 'hooks/shared/useCamera';
 
 interface Props {
   id: number;
@@ -58,6 +59,7 @@ const Item = ({
 }: Props) => {
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { showDialog, hideDialog } = useDialog();
+  const { openCamera } = useCamera();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const isTodoMode = mode === 'TODO';
 
@@ -132,8 +134,15 @@ const Item = ({
   };
 
   const handleUploadImage = (type: 'CAMERA' | 'GALLERY') => () => {
-    console.log('type: ', type);
-    // TODO: 선택한 타입에 따라 react-native-vision-camera 기능을 사용해야 함
+    if (type === 'CAMERA') {
+      openCamera(photo => {
+        // TODO: 사진 갤러리 등록 로직 구현
+        console.log('photo: ', photo);
+      });
+      return;
+    }
+
+    // TODO: 갤러리 앱 접근 로직 구현
   };
 
   const renderBottomSheetContent = () => {

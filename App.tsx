@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Alert, AppState, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
@@ -29,6 +29,8 @@ import { LoadingOverlay } from 'components/common/LoadingOverlay';
 import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
 import { initNotificationLayer } from 'utils/notification';
 import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotificationToken';
+import { CameraProvider } from 'hooks/shared/useCamera';
+import { AppStateProvider, useAppState } from 'hooks/shared/useAppState';
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(customParseFormat);
@@ -116,6 +118,21 @@ function AppContent() {
   const { mutate: mutateNotificationToken } = useAddNotificationToken();
 
   // 초기 앱 진입 및 Foreground 복귀시마다 토큰 재발급 로직 수행여부 체크
+  useAppState(state => {
+    if (state === 'active') {
+      // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우 토큰 재발급 상태로 수정
+      if (
+        tokenInfo.access?.token &&
+        dayjs().isAfter(tokenInfo.access?.expireAt) &&
+        tokenInfo.refresh?.token &&
+        dayjs().isBefore(tokenInfo.refresh?.expireAt)
+      ) {
+        setIsNeedRefreshToken(true);
+      }
+    }
+  });
+
+  // 초기 앱 진입 시 토큰 재발급 로직
   useEffect(() => {
     if (!isHydrated) {
       return;
@@ -157,22 +174,6 @@ function AppContent() {
         },
       });
     }
-
-    const subscription = AppState.addEventListener('change', state => {
-      if (state === 'active') {
-        // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우 토큰 재발급 상태로 수정
-        if (
-          tokenInfo.access?.token &&
-          dayjs().isAfter(tokenInfo.access?.expireAt) &&
-          tokenInfo.refresh?.token &&
-          dayjs().isBefore(tokenInfo.refresh?.expireAt)
-        ) {
-          setIsNeedRefreshToken(true);
-        }
-      }
-    });
-
-    return () => subscription.remove();
   }, [
     tokenInfo,
     isNeedRefreshToken,
@@ -215,7 +216,11 @@ function App() {
       <ThemeContext.Provider value={theme}>
         <PaperProvider>
           <DialogProvider>
-            <AppContent />
+            <AppStateProvider>
+              <CameraProvider>
+                <AppContent />
+              </CameraProvider>
+            </AppStateProvider>
           </DialogProvider>
         </PaperProvider>
       </ThemeContext.Provider>
