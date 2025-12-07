@@ -29,7 +29,7 @@ import { useDialog } from 'components/common/Dialog/Provider';
 import { Camera } from 'components/common/icons/Camera';
 import { Gallery } from 'components/common/icons/Gallery';
 import { useCamera } from 'hooks/shared/useCamera';
-import { useFetchUploadTaskSuccessImageUrlList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
+import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
 
 interface Props {
   id: number;
@@ -76,7 +76,7 @@ const Item = ({
   const isInvalidUpdateDowithTask = !isTodoMode && dayjs(`${data?.date} ${data?.startTime}`).isSameOrBefore(dayjs());
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
-  const { mutate: uploadTaskSuccessImageUrlListMutate } = useFetchUploadTaskSuccessImageUrlList(id);
+  const { mutate: uploadDowithTaskSuccessImageUrlListMutate } = useUploadDowithTaskSuccessImageList(id);
   const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
   const { mutate: deleteTaskMutate } = useUpdateTask({
     type: 'DELETE',
@@ -138,16 +138,17 @@ const Item = ({
   const handleUploadImage = (type: 'CAMERA' | 'GALLERY') => () => {
     if (type === 'CAMERA') {
       openCamera(photo => {
-        console.log('photo: ', photo);
         const fileName = photo.path.split('/').pop() || 'unknown.jpg';
-        uploadTaskSuccessImageUrlListMutate({
+        uploadDowithTaskSuccessImageUrlListMutate({
           imageFileNames: [fileName],
+          photo,
         });
       });
-      return;
     }
 
     // TODO: 갤러리 앱 접근 로직 구현
+
+    taskManagementBottomSheetModalRef.current?.dismiss();
   };
 
   const renderBottomSheetContent = () => {
@@ -183,8 +184,12 @@ const Item = ({
   };
 
   const handleTaskStatus = (mode: TaskModeType, id: number, status: TaskStatusEnumType) => () => {
-    // 두윗 Task이면 이미지 업로드 바텀시트 노출
+    // 성공 인증하지 않은 두윗 Task이면 이미지 업로드 바텀시트 노출
     if (mode === 'DOWITH') {
+      if (status === 'SUCCESS') {
+        return;
+      }
+
       setShowUploadImageBottomSheet(true);
       taskManagementBottomSheetModalRef.current?.present();
       return;

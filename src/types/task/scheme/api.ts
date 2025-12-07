@@ -20,6 +20,7 @@ import {
   updateTaskRoutineRequestScheme,
   uploadTaskSuccessImageUrlListRequestScheme,
   uploadTaskSuccessImageUrlListResponseScheme,
+  updateDowithTaskStatusSuccessRequestScheme,
 } from 'schemes/task/api';
 
 type taskCategorySchemeType = z.infer<typeof taskCategoryScheme>;
@@ -41,6 +42,7 @@ type updateTaskRequestSchemeType = z.infer<typeof updateTaskRequestScheme>;
 type updateTaskRoutineRequestSchemeType = z.infer<typeof updateTaskRoutineRequestScheme>;
 type uploadTaskSuccessImageUrlListRequestSchemeType = z.infer<typeof uploadTaskSuccessImageUrlListRequestScheme>;
 type uploadTaskSuccessImageUrlListResponseSchemeType = z.infer<typeof uploadTaskSuccessImageUrlListResponseScheme>;
+type updateDowithTaskStatusSuccessRequestSchemeType = z.infer<typeof updateDowithTaskStatusSuccessRequestScheme>;
 
 export type {
   taskCategorySchemeType,
@@ -62,4 +64,5 @@ export type {
   updateTaskRoutineRequestSchemeType,
   uploadTaskSuccessImageUrlListRequestSchemeType,
   uploadTaskSuccessImageUrlListResponseSchemeType,
+  updateDowithTaskStatusSuccessRequestSchemeType,
 };

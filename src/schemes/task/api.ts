@@ -105,6 +105,10 @@ const uploadTaskSuccessImageUrlListResponseScheme = BaseResponseScheme.extend({
   }),
 });
 
+const updateDowithTaskStatusSuccessRequestScheme = z.object({
+  publicImageUrls: z.array(z.string()).describe('이미지 파일 url 리스트'),
+});
+
 export {
   taskCategoryScheme,
   fetchTaskCategoryListResponseScheme,
@@ -125,4 +129,5 @@ export {
   updateTaskRoutineRequestScheme,
   uploadTaskSuccessImageUrlListRequestScheme,
   uploadTaskSuccessImageUrlListResponseScheme,
+  updateDowithTaskStatusSuccessRequestScheme,
 };
