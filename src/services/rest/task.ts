@@ -12,6 +12,8 @@ import type {
   updateTaskRequestSchemeType,
   updateTaskRoutineRequestSchemeType,
   updateTodoTaskStatusResponseSchemeType,
+  uploadTaskSuccessImageUrlListRequestSchemeType,
+  uploadTaskSuccessImageUrlListResponseSchemeType,
 } from 'types/task/scheme/api';
 import type { TaskStatusEnumType } from 'types/task/scheme/enum';
 import type { TaskModeType } from 'types/shared';
@@ -138,6 +140,21 @@ const updateTaskRoutine = async ({
   }
 };
 
+const fetchUploadTaskSuccessImageUrlList = async (
+  id: number,
+  payload: uploadTaskSuccessImageUrlListRequestSchemeType,
+): Promise<uploadTaskSuccessImageUrlListResponseSchemeType> => {
+  try {
+    const result = await apiClient.post<uploadTaskSuccessImageUrlListResponseSchemeType>(
+      TASK_API.UPLOAD_TASK_SUCCESS_IMAGE_URL_LIST.replace(':id', String(id)),
+      payload,
+    );
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 export {
   fetchTaskCategoryList,
   fetchTaskList,
@@ -148,4 +165,5 @@ export {
   updateStatusTodoTask,
   updateTask,
   updateTaskRoutine,
+  fetchUploadTaskSuccessImageUrlList,
 };

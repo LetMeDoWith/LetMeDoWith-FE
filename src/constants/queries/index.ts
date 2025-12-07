@@ -17,6 +17,7 @@ const TASK_QUERY_KEY = {
   UPDATE_TODO_STATUS: ['task', 'update', 'todo', 'status'],
   UPDATE: ['task', 'update'],
   UPDATE_ROUTINE: ['task', 'update', 'routine'],
+  UPLOAD_SUCCESS_IMAGE_URL_LIST: ['task', 'upload', 'success', 'image', 'url', 'list'],
 } as const;
 
 const NOTIFICATION_QUERY_KEY = {

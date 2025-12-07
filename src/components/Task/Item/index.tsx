@@ -29,6 +29,7 @@ import { useDialog } from 'components/common/Dialog/Provider';
 import { Camera } from 'components/common/icons/Camera';
 import { Gallery } from 'components/common/icons/Gallery';
 import { useCamera } from 'hooks/shared/useCamera';
+import { useFetchUploadTaskSuccessImageUrlList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
 
 interface Props {
   id: number;
@@ -75,6 +76,7 @@ const Item = ({
   const isInvalidUpdateDowithTask = !isTodoMode && dayjs(`${data?.date} ${data?.startTime}`).isSameOrBefore(dayjs());
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
+  const { mutate: uploadTaskSuccessImageUrlListMutate } = useFetchUploadTaskSuccessImageUrlList(id);
   const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
   const { mutate: deleteTaskMutate } = useUpdateTask({
     type: 'DELETE',
@@ -136,8 +138,11 @@ const Item = ({
   const handleUploadImage = (type: 'CAMERA' | 'GALLERY') => () => {
     if (type === 'CAMERA') {
       openCamera(photo => {
-        // TODO: 사진 갤러리 등록 로직 구현
         console.log('photo: ', photo);
+        const fileName = photo.path.split('/').pop() || 'unknown.jpg';
+        uploadTaskSuccessImageUrlListMutate({
+          imageFileNames: [fileName],
+        });
       });
       return;
     }
