@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
-import type { PhotoFile } from 'react-native-vision-camera';
+import { Asset } from 'react-native-image-picker';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
 import {
@@ -12,15 +12,19 @@ import type { uploadTaskSuccessImageUrlListRequestSchemeType } from 'types/task/
 
 const useUploadDowithTaskSuccessImageList = (id: number) => {
   const queryClient = useQueryClient();
-  return useMutation<void, AxiosError, uploadTaskSuccessImageUrlListRequestSchemeType & { photo: PhotoFile }>({
+  return useMutation<void, AxiosError, uploadTaskSuccessImageUrlListRequestSchemeType & { photo: Asset }>({
     mutationFn: async ({ imageFileNames, photo }) => {
+      if (!photo.uri) {
+        return;
+      }
+
       // 1. Presigned URL 리스트 받기
       const {
         data: { presignedUrls },
       } = await fetchUploadTaskSuccessImageUrlList(id, { imageFileNames });
 
       // 2. S3에 직접 이미지 업로드
-      await uploadFileToBucket(presignedUrls[0], photo.path, progress => {
+      await uploadFileToBucket(presignedUrls[0], photo.uri, progress => {
         console.log(`이미지 S3 업로드 진행률: ${Math.round(progress)}%`);
       });
 

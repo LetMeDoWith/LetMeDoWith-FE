@@ -176,7 +176,7 @@ const Item = ({
         const fileName = asset.fileName || 'photo.jpg';
 
         const photoFile = {
-          path: asset.uri || '',
+          uri: asset.uri || '',
           width: asset.width || 0,
           height: asset.height || 0,
           isRawPhoto: false,
