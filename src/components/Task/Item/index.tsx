@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import dayjs from 'dayjs';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
@@ -22,15 +22,15 @@ import { TaskFail } from 'components/common/icons/TaskFail';
 import { UploadImage } from 'components/common/icons/UploadImage';
 import { isNil } from 'utils/index';
 import { useUpdateTodoTaskStatus } from 'hooks/queries/task/useUpdateTodoTaskStatus';
-import { isAos } from 'utils/device';
 import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { Camera } from 'components/common/icons/Camera';
 import { Gallery } from 'components/common/icons/Gallery';
-import { useCamera } from 'hooks/shared/useCamera';
 import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface Props {
   id: number;
@@ -61,7 +61,6 @@ const Item = ({
 }: Props) => {
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { showDialog, hideDialog } = useDialog();
-  const { openCamera } = useCamera();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const isTodoMode = mode === 'TODO';
 
@@ -99,17 +98,19 @@ const Item = ({
     return 'DO WITH 관리하기';
   };
 
-  // TODO: 고정 픽셀값으로 바꾸기
   const getSnapPoints = () => {
+    // 카메라/갤러리 선택
     if (showUploadImageBottomSheet) {
-      return [isAos ? '27%' : '25%'];
+      return [`${(220 / SCREEN_HEIGHT) * 100}%`];
     }
 
+    // 루틴 아닌 task 설정 선택
     if (!isRoutineTask) {
-      return [isAos ? '25%' : '23%'];
+      return [`${(200 / SCREEN_HEIGHT) * 100}%`];
     }
 
-    return [isAos ? '31%' : '29%'];
+    // 루틴 task 설정 선택
+    return [`${(240 / SCREEN_HEIGHT) * 100}%`];
   };
 
   const handleBottomSheet = () => {
@@ -138,41 +139,36 @@ const Item = ({
   };
 
   const handleUploadImage = (type: 'CAMERA' | 'GALLERY') => async () => {
-    // 카메라 촬영을 사용한 업로드
-    if (type === 'CAMERA') {
-      openCamera(photo => {
-        const fileName = photo.path.split('/').pop() || 'unknown.jpg';
-        uploadDowithTaskSuccessImageUrlListMutate({
-          imageFileNames: [fileName],
-          photo,
-        });
-      });
-    } else {
-      // 갤러리 사진을 선택한 업로드
-      const result = await launchImageLibrary({
-        mediaType: 'photo',
-        selectionLimit: 1,
-      });
+    const options = {
+      mediaType: 'photo' as const,
+      quality: 0.7 as const,
+    };
+
+    try {
+      // 카메라 촬영 또는 갤러리에서 선택
+      const result = type === 'CAMERA' ? await launchCamera(options) : await launchImageLibrary(options);
 
       // 사용자가 취소한 경우
       if (result.didCancel) {
-        console.log('사용자가 갤러리를 취소했습니다');
+        console.log(`사용자가 ${type === 'CAMERA' ? '카메라를' : '갤러리를'} 취소했습니다`);
         return;
       }
 
       // 권한 거부 또는 에러 처리
       if (result.errorCode) {
-        console.error('[갤러리 에러]:', result.errorCode, result.errorMessage);
+        console.error(`[${type === 'CAMERA' ? '카메라' : '갤러리'} 에러]:`, result.errorCode, result.errorMessage);
         return;
       }
 
+      // 이미지 선택 성공
       if (result.assets && result.assets[0]) {
-        const photo = result.assets[0];
-        const fileName = photo.fileName || 'photo.jpg';
+        const asset = result.assets[0];
+        const fileName = asset.fileName || 'photo.jpg';
+
         const photoFile = {
-          path: photo.uri || '',
-          width: photo.width || 0,
-          height: photo.height || 0,
+          path: asset.uri || '',
+          width: asset.width || 0,
+          height: asset.height || 0,
           isRawPhoto: false,
           orientation: 'portrait' as const,
           isMirrored: false,
@@ -183,6 +179,8 @@ const Item = ({
           photo: photoFile,
         });
       }
+    } catch (e) {
+      console.error(`이미지 ${type === 'CAMERA' ? '촬영' : '선택'} 중 에러 발생:`, e);
     }
 
     taskManagementBottomSheetModalRef.current?.dismiss();
