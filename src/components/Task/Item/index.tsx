@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -29,6 +29,7 @@ import { useDialog } from 'components/common/Dialog/Provider';
 import { Camera } from 'components/common/icons/Camera';
 import { Gallery } from 'components/common/icons/Gallery';
 import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
+import { isAos } from 'utils/device';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -157,6 +158,15 @@ const Item = ({
       // 권한 거부 또는 에러 처리
       if (result.errorCode) {
         console.error(`[${type === 'CAMERA' ? '카메라' : '갤러리'} 에러]:`, result.errorCode, result.errorMessage);
+
+        // iOS 시뮬레이터에서 카메라 사용 시 에러 처리
+        if (type === 'CAMERA' && !isAos && result.errorCode === 'camera_unavailable') {
+          Alert.alert(
+            '카메라 사용 불가',
+            'iOS 시뮬레이터에서는 카메라를 사용할 수 없습니다.\n실제 기기에서 테스트해주세요.',
+            [{ text: '확인' }],
+          );
+        }
         return;
       }
 
