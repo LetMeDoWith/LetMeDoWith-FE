@@ -29,7 +29,6 @@ import { LoadingOverlay } from 'components/common/LoadingOverlay';
 import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
 import { initNotificationLayer } from 'utils/notification';
 import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotificationToken';
-import { CameraProvider } from 'hooks/shared/useCamera';
 import { AppStateProvider, AppStateContext, useAppState } from 'hooks/shared/useAppState';
 
 dayjs.extend(isSameOrBefore);
@@ -239,9 +238,7 @@ function App() {
         <PaperProvider>
           <DialogProvider>
             <AppStateProvider>
-              <CameraProvider>
-                <AppContent />
-              </CameraProvider>
+              <AppContent />
             </AppStateProvider>
           </DialogProvider>
         </PaperProvider>
