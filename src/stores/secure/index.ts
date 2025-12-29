@@ -1,7 +1,7 @@
 import EncryptedStorage from 'react-native-encrypted-storage';
 
 const STORAGE_KEY = {
-  AUTH_INFO: 'AUTH_INFO',
+  MERGED_INFO: 'MERGED_INFO',
 };
 
 type StorageKey = keyof typeof STORAGE_KEY;

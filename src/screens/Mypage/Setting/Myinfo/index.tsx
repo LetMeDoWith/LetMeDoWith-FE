@@ -13,7 +13,7 @@ import { ConfirmModal } from 'components/common/Modal';
 import { DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT, LOGOUT_CONFIRM_MODAL_CONTENT } from 'constants/Mypage';
 import type { SettingStackScreenProps } from 'types/shared';
 import { useDeleteAccount } from 'hooks/queries/member/useDeleteAccount';
-import { useAuthStore } from 'stores/auth';
+import { useStore } from 'stores/index';
 import { disposeNotificationLayer } from 'utils/notification';
 
 type FormData = {
@@ -22,7 +22,7 @@ type FormData = {
 };
 
 const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>) => {
-  const { initAuthInfo } = useAuthStore(({ actions: { initAuthInfo } }) => ({
+  const { initAuthInfo } = useStore(({ authActions: { initAuthInfo } }) => ({
     initAuthInfo,
   }));
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
 import type { refreshTokenRequestSchemeType, refreshTokenResponseSchemeType } from 'types/auth/scheme/api';
 import { refreshToken } from 'services/rest/auth';
 import { AUTH_QUERY_KEY } from 'constants/queries';
-import { useAuthStore } from 'stores/auth';
+import { useStore } from 'stores/index';
 import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
 import type { BaseResponseSchemeType } from 'types/shared/scheme/api';
 
@@ -13,19 +13,18 @@ import type { BaseResponseSchemeType } from 'types/shared/scheme/api';
  * 토큰 재발급 Mutation Query Hook
  */
 const useRefreshTokenQuery = () => {
-  const { initAuthInfo, setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId } =
-    useAuthStore(
-      ({
-        actions: { initAuthInfo, setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId },
-      }) => ({
-        initAuthInfo,
-        setTokenInfo,
-        setIsNeedSignUp,
-        setIsLoggedIn,
-        setIsNeedRefreshToken,
-        setMemberId,
-      }),
-    );
+  const { initAuthInfo, setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId } = useStore(
+    ({
+      authActions: { initAuthInfo, setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId },
+    }) => ({
+      initAuthInfo,
+      setTokenInfo,
+      setIsNeedSignUp,
+      setIsLoggedIn,
+      setIsNeedRefreshToken,
+      setMemberId,
+    }),
+  );
 
   return useMutation<refreshTokenResponseSchemeType, AxiosError<BaseResponseSchemeType>, refreshTokenRequestSchemeType>(
     {

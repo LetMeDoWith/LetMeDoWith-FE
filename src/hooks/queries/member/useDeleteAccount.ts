@@ -4,11 +4,11 @@ import { AxiosError } from 'axios';
 
 import { deleteAccount } from 'services/rest/member';
 import { MEMBER_QUERY_KEY } from 'constants/queries';
-import { useAuthStore } from 'stores/auth';
+import { useStore } from 'stores/index';
 import type { deleteAccountResponseSchemeType } from 'types/member/scheme/api';
 
 const useDeleteAccount = () => {
-  const { initAuthInfo } = useAuthStore(({ actions: { initAuthInfo } }) => ({
+  const { initAuthInfo } = useStore(({ authActions: { initAuthInfo } }) => ({
     initAuthInfo,
   }));
 

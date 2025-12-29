@@ -3,7 +3,7 @@ import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messag
 import notifee, { AndroidImportance, AuthorizationStatus } from '@notifee/react-native';
 
 import { isAos } from 'utils/device';
-import { useAuthStore } from 'stores/auth';
+import { useStore } from 'stores/index';
 
 let initialized = false;
 let unsubOnMessage: (() => void) | null = null;
@@ -32,8 +32,8 @@ const initNotificationLayer = async (options?: {
 }) => {
   const {
     isNeedSignUp,
-    actions: { setIsNeedSignUp },
-  } = useAuthStore.getState();
+    authActions: { setIsNeedSignUp },
+  } = useStore.getState();
 
   // 이미 초기화되어 있으면 스킵
   if (initialized) {

@@ -7,12 +7,12 @@ import { theme } from 'styles/theme';
 import type { SignUpStackParamList } from 'types/shared';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { BackButton } from 'components/common/Header/BackButton';
-import { useAuthStore } from 'stores/auth';
+import { useStore } from 'stores/index';
 
 const SignupStackNavigator = () => {
   const { Navigator, Screen } = createStackNavigator<SignUpStackParamList>();
   const { showDialog, hideDialog } = useDialog();
-  const { initAuthInfo } = useAuthStore(({ actions: { initAuthInfo } }) => ({
+  const { initAuthInfo } = useStore(({ authActions: { initAuthInfo } }) => ({
     initAuthInfo,
   }));
 
