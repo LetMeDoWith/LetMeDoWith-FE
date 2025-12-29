@@ -4,6 +4,7 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import dayjs from 'dayjs';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
@@ -98,6 +99,7 @@ const Item = ({
     return 'DO WITH 관리하기';
   };
 
+  // TODO: 고정 픽셀값으로 바꾸기
   const getSnapPoints = () => {
     if (showUploadImageBottomSheet) {
       return [isAos ? '27%' : '25%'];
@@ -135,7 +137,8 @@ const Item = ({
     }
   };
 
-  const handleUploadImage = (type: 'CAMERA' | 'GALLERY') => () => {
+  const handleUploadImage = (type: 'CAMERA' | 'GALLERY') => async () => {
+    // 카메라 촬영을 사용한 업로드
     if (type === 'CAMERA') {
       openCamera(photo => {
         const fileName = photo.path.split('/').pop() || 'unknown.jpg';
@@ -144,9 +147,43 @@ const Item = ({
           photo,
         });
       });
-    }
+    } else {
+      // 갤러리 사진을 선택한 업로드
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        selectionLimit: 1,
+      });
 
-    // TODO: 갤러리 앱 접근 로직 구현
+      // 사용자가 취소한 경우
+      if (result.didCancel) {
+        console.log('사용자가 갤러리를 취소했습니다');
+        return;
+      }
+
+      // 권한 거부 또는 에러 처리
+      if (result.errorCode) {
+        console.error('[갤러리 에러]:', result.errorCode, result.errorMessage);
+        return;
+      }
+
+      if (result.assets && result.assets[0]) {
+        const photo = result.assets[0];
+        const fileName = photo.fileName || 'photo.jpg';
+        const photoFile = {
+          path: photo.uri || '',
+          width: photo.width || 0,
+          height: photo.height || 0,
+          isRawPhoto: false,
+          orientation: 'portrait' as const,
+          isMirrored: false,
+        };
+
+        uploadDowithTaskSuccessImageUrlListMutate({
+          imageFileNames: [fileName],
+          photo: photoFile,
+        });
+      }
+    }
 
     taskManagementBottomSheetModalRef.current?.dismiss();
   };
