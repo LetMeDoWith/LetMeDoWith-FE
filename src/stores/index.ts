@@ -1,4 +1,3 @@
-// store.ts
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import dayjs from 'dayjs';
@@ -18,10 +17,9 @@ const useStore = create<MergedStoreState>()(
     {
       name: STORAGE_KEY.MERGED_INFO,
       storage: createJSONStorage(secureStorage),
-      partialize: ({ tokenInfo, memberId, isNotificationEnabled, notificationSettings }) => ({
+      partialize: ({ tokenInfo, memberId, notificationSettings }) => ({
         tokenInfo,
         memberId,
-        isNotificationEnabled,
         notificationSettings,
       }),
       onRehydrateStorage: () => (mergedState, error) => {
@@ -35,19 +33,11 @@ const useStore = create<MergedStoreState>()(
           return;
         }
 
-        // TODO: 알림 상태 동기화
         const {
           tokenInfo,
           memberId,
-          authActions: {
-            setIsLoggedIn,
-            setIsNeedSignUp,
-            setIsNeedRefreshToken,
-            setTokenInfo,
-            initAuthInfo,
-            setIsHydrated,
-            setMemberId,
-          },
+          authActions: { setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken, initAuthInfo, setIsHydrated },
+          notificationActions: { resetNotificationSettings },
         } = mergedState;
 
         try {
@@ -59,9 +49,6 @@ const useStore = create<MergedStoreState>()(
             setIsHydrated(true);
             return;
           }
-
-          setTokenInfo(tokenInfo);
-          setMemberId(memberId);
           setIsLoggedIn(true);
 
           // 회원가입을 완료하지 않았을 경우
@@ -80,6 +67,7 @@ const useStore = create<MergedStoreState>()(
                 setIsNeedRefreshToken(true);
               } else {
                 initAuthInfo();
+                resetNotificationSettings();
               }
             } else {
               setIsNeedSignUp(false);

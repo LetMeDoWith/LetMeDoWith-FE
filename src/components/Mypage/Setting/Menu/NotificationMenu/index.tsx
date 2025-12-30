@@ -8,12 +8,17 @@ import { isAos } from 'utils/device';
 interface Props {
   title: string;
   subTitle: string;
+  value: boolean;
+  handleValue: () => void;
 }
 
-const NotificationMenu = ({ title, subTitle }: Props) => {
-  const [isSwitchOn, setIsSwitchOn] = React.useState(false);
+const NotificationMenu = ({ title, subTitle, value, handleValue }: Props) => {
+  const [isSwitchOn, setIsSwitchOn] = React.useState(value);
 
-  const onToggleSwitch = useCallback(() => setIsSwitchOn(!isSwitchOn), [isSwitchOn]);
+  const onToggleSwitch = useCallback(() => {
+    setIsSwitchOn(!isSwitchOn);
+    handleValue();
+  }, [isSwitchOn]);
 
   return (
     <View style={styles.container}>
