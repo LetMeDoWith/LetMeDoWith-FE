@@ -7,6 +7,7 @@ const MEMBER_API = {
   VALID_NICKNAME: 'v1/members/nickname',
   SIGN_UP: 'v1/members',
   DELETE_ACCOUNT: 'v1/members',
+  NOTIFICATION_SETTINGS: 'v1/members/settings/notification',
 } as const;
 
 const TASK_API = {

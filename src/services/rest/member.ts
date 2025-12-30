@@ -2,6 +2,7 @@ import { MEMBER_API } from 'services/urls';
 import { apiClient } from 'services/apiClient';
 import type {
   deleteAccountResponseSchemeType,
+  notificationSettingsRequestSchemeType,
   signUpRequestSchemeType,
   signUpResponseSchemeType,
   validNicknameRequestSchemeType,
@@ -35,4 +36,13 @@ const deleteAccount = async (): Promise<deleteAccountResponseSchemeType> => {
   }
 };
 
-export { validNickname, signUp, deleteAccount };
+const updateNotificationSettings = async (payload: notificationSettingsRequestSchemeType): Promise<undefined> => {
+  try {
+    const result = await apiClient.put<undefined>(MEMBER_API.NOTIFICATION_SETTINGS, payload);
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export { validNickname, signUp, deleteAccount, updateNotificationSettings };

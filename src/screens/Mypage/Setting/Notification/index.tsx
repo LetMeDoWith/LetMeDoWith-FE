@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { NotificationMenu } from 'components/Mypage/Setting/Menu';
 import { theme } from 'styles/theme';
 import { useStore } from 'stores/index';
+import { useNotificationSettings } from 'hooks/queries/member/useNotificationSettings';
 
 const Notification = () => {
   const { base, todoBot, marketing, feedback, updateNotificationSettings } = useStore(
@@ -12,11 +13,22 @@ const Notification = () => {
       notificationActions: { updateNotificationSettings },
     }) => ({ base, todoBot, marketing, feedback, updateNotificationSettings }),
   );
+  const { mutate } = useNotificationSettings();
 
   const handleValue =
     ({ name, value }: { name: string; value: boolean }) =>
     () => {
       updateNotificationSettings({ [name]: value });
+      const {
+        notificationSettings: { base, todoBot, feedback, marketing },
+      } = useStore.getState();
+
+      mutate({
+        baseAlarmYn: base,
+        todoBotYn: todoBot,
+        feedbackYn: feedback,
+        marketingYn: marketing,
+      });
     };
 
   return (

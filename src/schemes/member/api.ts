@@ -28,10 +28,18 @@ const deleteAccountResponseScheme = BaseResponseScheme.extend({
   data: z.object({}),
 });
 
+const notificationSettingsRequestScheme = z.object({
+  baseAlarmYn: z.boolean().describe('기본 알람 수신 여부'),
+  todoBotYn: z.boolean().describe('투두 알림봇 알람 수신 여부'),
+  feedbackYn: z.boolean().describe('잔소리 (피드백) 알람 수신 여부'),
+  marketingYn: z.boolean().describe('마케팅, 광고성 알람 수신 여부'),
+});
+
 export {
   validNicknameRequestScheme,
   validNicknameResponseScheme,
   signUpRequestScheme,
   signUpResponseScheme,
   deleteAccountResponseScheme,
+  notificationSettingsRequestScheme,
 };

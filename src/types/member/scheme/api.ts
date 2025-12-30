@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import {
   deleteAccountResponseScheme,
+  notificationSettingsRequestScheme,
   signUpRequestScheme,
   signUpResponseScheme,
   validNicknameRequestScheme,
@@ -13,6 +14,7 @@ type validNicknameResponseSchemeType = z.infer<typeof validNicknameResponseSchem
 type signUpRequestSchemeType = z.infer<typeof signUpRequestScheme>;
 type signUpResponseSchemeType = z.infer<typeof signUpResponseScheme>;
 type deleteAccountResponseSchemeType = z.infer<typeof deleteAccountResponseScheme>;
+type notificationSettingsRequestSchemeType = z.infer<typeof notificationSettingsRequestScheme>;
 
 export type {
   validNicknameRequestSchemeType,
@@ -20,4 +22,5 @@ export type {
   signUpRequestSchemeType,
   signUpResponseSchemeType,
   deleteAccountResponseSchemeType,
+  notificationSettingsRequestSchemeType,
 };
