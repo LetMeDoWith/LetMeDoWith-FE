@@ -18,14 +18,13 @@ import { AppRegistry } from 'react-native';
 import App from './App';
 import { name as appName } from './app.json';
 import messaging from '@react-native-firebase/messaging';
+import { handleBackgroundMessage } from 'utils/notification';
 
 // 백그라운드 메세지 핸들러 재등록 방지
 if (!__DEV__ || !global.__hasSetBGMessageHandler) {
   // 앱이 종료/백그라운드 상태일 때 메시지 핸들러 등록
-  messaging().setBackgroundMessageHandler(async remoteMessage => {
-    console.log('[FCM][Background] message:', remoteMessage);
-    // notifee 알림 처리
-  });
+  messaging().setBackgroundMessageHandler(handleBackgroundMessage);
+
   if (__DEV__) {
     global.__hasSetBGMessageHandler = true;
   }

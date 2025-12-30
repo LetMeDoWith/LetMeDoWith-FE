@@ -1,14 +1,85 @@
 import type { AppStateStatus } from 'react-native';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import notifee, { AndroidImportance, AuthorizationStatus } from '@notifee/react-native';
+import { AndroidVisibility } from '@notifee/react-native/src/types/NotificationAndroid';
 
 import { isAos } from 'utils/device';
 import { useStore } from 'stores/index';
 
 let initialized = false;
+let channelCreated = false;
 let unsubOnMessage: (() => void) | null = null;
 let unsubOnTokenRefresh: (() => void) | null = null;
 let unsubAppState: (() => void) | null = null;
+
+const CHANNEL_ID = 'default';
+
+/**
+ * 알림 채널 생성
+ */
+const createNotificationChannel = async () => {
+  if (!isAos || channelCreated) {
+    return CHANNEL_ID;
+  }
+
+  const channelId = await notifee.createChannel({
+    id: CHANNEL_ID,
+    name: 'Default Channel',
+    importance: AndroidImportance.HIGH,
+    vibration: true,
+  });
+
+  channelCreated = true;
+  return channelId;
+};
+
+/**
+ * Foreground/Background에서 수신한 FCM 메시지를 notifee를 사용하여 로컬 알림으로 표시
+ */
+const displayNotification = async (message: FirebaseMessagingTypes.RemoteMessage) => {
+  try {
+    const imageUrl = message.notification?.image || (message.data?.imageUrl as string | undefined);
+
+    await notifee.displayNotification({
+      title: message.notification?.title || '새 알림',
+      body: message.notification?.body || '',
+      android: {
+        channelId: CHANNEL_ID,
+        smallIcon: 'ic_launcher',
+        ...(imageUrl && {
+          largeIcon: imageUrl,
+        }),
+        importance: AndroidImportance.HIGH,
+        vibrationPattern: [300, 500],
+        visibility: AndroidVisibility.PUBLIC,
+        pressAction: {
+          id: 'default',
+        },
+        timestamp: Date.now(),
+        showTimestamp: true,
+      },
+      ...(imageUrl && {
+        ios: {
+          attachments: [{ url: imageUrl }],
+        },
+      }),
+      data: message.data,
+    });
+  } catch (error) {
+    console.error('Foreground 알림 표시 실패:', error);
+  }
+};
+
+/**
+ * Background 메시지 핸들러
+ */
+const handleBackgroundMessage = async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+  console.log('[FCM][BG] 백그라운드 메시지 수신:', remoteMessage);
+
+  // Background에서도 채널이 필요하므로 생성
+  await createNotificationChannel();
+  await displayNotification(remoteMessage);
+};
 
 /**
  * 초기화 진입점: FCM/Notifee 권한을 확인 및 요청하고,
@@ -68,14 +139,8 @@ const initNotificationLayer = async (options?: {
     await messaging().registerDeviceForRemoteMessages();
   }
 
-  // Android: 채널 보장
-  if (isAos) {
-    await notifee.createChannel({
-      id: 'default',
-      name: 'Default',
-      importance: AndroidImportance.DEFAULT,
-    });
-  }
+  // AOS: 채널 생성
+  await createNotificationChannel();
 
   // 최초 토큰 확보 & 서버 동기화(변경시에만 처리하도록 onTokenChanged 내부에서 분기)
   try {
@@ -87,7 +152,9 @@ const initNotificationLayer = async (options?: {
 
   // 포그라운드 수신(1회 등록)
   unsubOnMessage = messaging().onMessage(async message => {
+    console.log('[FCM][FG] 메시지 수신:', message);
     await onMessage(message);
+    await displayNotification(message);
   });
 
   // 토큰 갱신(1회 등록)
@@ -168,4 +235,4 @@ const disposeNotificationLayer = () => {
   initialized = false;
 };
 
-export { initNotificationLayer, ensurePermissionWatcher, disposeNotificationLayer };
+export { initNotificationLayer, ensurePermissionWatcher, disposeNotificationLayer, handleBackgroundMessage };
