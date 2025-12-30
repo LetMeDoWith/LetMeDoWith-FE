@@ -24,10 +24,6 @@ const signUpRequestScheme = z.object({
 
 const signUpResponseScheme = fetchTokenResponseScheme;
 
-const deleteAccountResponseScheme = BaseResponseScheme.extend({
-  data: z.object({}),
-});
-
 const notificationSettingsRequestScheme = z.object({
   baseAlarmYn: z.boolean().describe('기본 알람 수신 여부'),
   todoBotYn: z.boolean().describe('투두 알림봇 알람 수신 여부'),
@@ -40,6 +36,5 @@ export {
   validNicknameResponseScheme,
   signUpRequestScheme,
   signUpResponseScheme,
-  deleteAccountResponseScheme,
   notificationSettingsRequestScheme,
 };

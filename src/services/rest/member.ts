@@ -1,7 +1,7 @@
 import { MEMBER_API } from 'services/urls';
 import { apiClient } from 'services/apiClient';
+import type { EmptyDataResponseSchemeType } from 'types/shared/scheme/api';
 import type {
-  deleteAccountResponseSchemeType,
   notificationSettingsRequestSchemeType,
   signUpRequestSchemeType,
   signUpResponseSchemeType,
@@ -27,18 +27,20 @@ const signUp = async (payload: signUpRequestSchemeType): Promise<signUpResponseS
   }
 };
 
-const deleteAccount = async (): Promise<deleteAccountResponseSchemeType> => {
+const deleteAccount = async (): Promise<EmptyDataResponseSchemeType> => {
   try {
-    const result = await apiClient.delete<deleteAccountResponseSchemeType>(MEMBER_API.DELETE_ACCOUNT);
+    const result = await apiClient.delete<EmptyDataResponseSchemeType>(MEMBER_API.DELETE_ACCOUNT);
     return result.data;
   } catch (e) {
     throw e;
   }
 };
 
-const updateNotificationSettings = async (payload: notificationSettingsRequestSchemeType): Promise<undefined> => {
+const updateNotificationSettings = async (
+  payload: notificationSettingsRequestSchemeType,
+): Promise<EmptyDataResponseSchemeType> => {
   try {
-    const result = await apiClient.put<undefined>(MEMBER_API.NOTIFICATION_SETTINGS, payload);
+    const result = await apiClient.put<EmptyDataResponseSchemeType>(MEMBER_API.NOTIFICATION_SETTINGS, payload);
     return result.data;
   } catch (e) {
     throw e;

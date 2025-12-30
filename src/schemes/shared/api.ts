@@ -7,4 +7,8 @@ const BaseResponseScheme = z.object({
   message: z.string(),
 });
 
-export { BaseResponseScheme };
+const EmptyDataResponseScheme = BaseResponseScheme.extend({
+  data: z.object({}),
+});
+
+export { BaseResponseScheme, EmptyDataResponseScheme };
