@@ -10,6 +10,7 @@ import { theme } from 'styles/theme';
 import { useSignUp } from 'hooks/queries/member/useSignUp';
 import { isAos } from 'utils/device';
 import { useDialog } from 'components/common/Dialog/Provider';
+import { useStore } from 'stores/index';
 
 type AgreementKeys = keyof signUpRequestSchemeType['agreements'];
 type AgreementLabels = `agreements.${AgreementKeys}`;
@@ -22,6 +23,9 @@ const CHECKBOX_MAP_LIST: { label: AgreementLabels; text: string; isLinkable: boo
 
 const ServiceAgree = () => {
   const { handleSubmit, control, watch, setValue } = useFormContext<signUpRequestSchemeType>();
+  const {
+    notificationActions: { updateNotificationSettings },
+  } = useStore();
   const { showDialog, hideDialog } = useDialog();
 
   const [allChecked, setAllChecked] = useState<boolean>(false);
@@ -77,9 +81,16 @@ const ServiceAgree = () => {
           hideDialog();
         },
       });
+
+      updateNotificationSettings({
+        marketing: advertisement,
+      });
       return;
     }
 
+    updateNotificationSettings({
+      marketing: true,
+    });
     mutate({
       ...values,
       dateOfBirth: dateOfBirth.replaceAll(' / ', '-'),

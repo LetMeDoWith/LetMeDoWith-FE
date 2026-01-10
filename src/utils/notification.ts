@@ -5,6 +5,7 @@ import { AndroidVisibility } from '@notifee/react-native/src/types/NotificationA
 
 import { isAos } from 'utils/device';
 import { useStore } from 'stores/index';
+import { updateNotificationSettings as mutateNotificationSettings } from 'services/rest/member';
 
 let initialized = false;
 let channelCreated = false;
@@ -13,6 +14,44 @@ let unsubOnTokenRefresh: (() => void) | null = null;
 let unsubAppState: (() => void) | null = null;
 
 const CHANNEL_ID = 'default';
+
+/**
+ * 알림 설정을 서버와 FE 상태에 동기화하는 함수
+ */
+const syncNotificationSettings = async (authorized: boolean) => {
+  const {
+    notificationSettings,
+    notificationActions: { updateNotificationSettings },
+  } = useStore.getState();
+
+  const settings = authorized
+    ? {
+        baseAlarmYn: true,
+        todoBotYn: true,
+        feedbackYn: true,
+        marketingYn: notificationSettings.marketing,
+      }
+    : {
+        baseAlarmYn: false,
+        todoBotYn: false,
+        feedbackYn: false,
+        marketingYn: false,
+      };
+
+  try {
+    await mutateNotificationSettings(settings);
+    updateNotificationSettings({
+      base: settings.baseAlarmYn,
+      todoBot: settings.todoBotYn,
+      feedback: settings.feedbackYn,
+      marketing: settings.marketingYn,
+    });
+
+    console.log('✅[syncNotificationSettings] 알림 설정 동기화 완료:', settings);
+  } catch (error) {
+    console.error('❌[syncNotificationSettings] 알림 설정 동기화 실패:', error);
+  }
+};
 
 /**
  * 알림 채널 생성 (한 번만 실행)
@@ -138,6 +177,7 @@ const initNotificationLayer = async (options?: {
 
   if (!authorized) {
     console.log('❌ [initNotificationLayer] 권한 거부됨');
+    await syncNotificationSettings(false);
 
     // watcher 등록 전에 체크 (이미 구독 중이면 중복 등록 방지)
     if (!unsubAppState) {
@@ -151,6 +191,7 @@ const initNotificationLayer = async (options?: {
   }
 
   console.log('✅ [initNotificationLayer] 권한 확인 완료');
+  await syncNotificationSettings(true);
 
   // iOS: 원격 알림 등록
   if (!isAos) {
@@ -236,6 +277,7 @@ const ensurePermissionWatcher = (options?: Parameters<typeof initNotificationLay
 
     if (authorized) {
       console.log('✅ [ensurePermissionWatcher] 권한 허용됨, 초기화 재시도');
+      await syncNotificationSettings(true);
       await initNotificationLayer(options);
     } else {
       console.log('❌ [ensurePermissionWatcher] 여전히 권한 거부됨');
