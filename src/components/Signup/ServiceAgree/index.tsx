@@ -3,11 +3,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
 import { Checkbox, Divider, IconButton } from 'react-native-paper';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
+import dayjs from 'dayjs';
 
 import type { signUpRequestSchemeType } from 'types/member/scheme/api';
 import { theme } from 'styles/theme';
 import { useSignUp } from 'hooks/queries/member/useSignUp';
 import { isAos } from 'utils/device';
+import { useDialog } from 'components/common/Dialog/Provider';
 
 type AgreementKeys = keyof signUpRequestSchemeType['agreements'];
 type AgreementLabels = `agreements.${AgreementKeys}`;
@@ -19,9 +21,11 @@ const CHECKBOX_MAP_LIST: { label: AgreementLabels; text: string; isLinkable: boo
 ];
 
 const ServiceAgree = () => {
+  const { handleSubmit, control, watch, setValue } = useFormContext<signUpRequestSchemeType>();
+  const { showDialog, hideDialog } = useDialog();
+
   const [allChecked, setAllChecked] = useState<boolean>(false);
   const [ageOfAgree, setAgeOfAgree] = useState<boolean>(false);
-  const { handleSubmit, control, watch, setValue } = useFormContext<signUpRequestSchemeType>();
   const termsOfAgree = watch('agreements.termsOfAgree');
   const privacy = watch('agreements.privacy');
   const advertisement = watch('agreements.advertisement');
@@ -36,17 +40,51 @@ const ServiceAgree = () => {
     return true;
   }, [ageOfAgree, allChecked, privacy, termsOfAgree]);
 
-  const onSubmit: SubmitHandler<signUpRequestSchemeType> = useCallback(
-    values => {
-      console.log(values);
-      const { dateOfBirth } = values;
-      mutate({
-        ...values,
-        dateOfBirth: dateOfBirth.replaceAll(' / ', '-'),
+  const onSubmit: SubmitHandler<signUpRequestSchemeType> = useCallback(values => {
+    console.log(values);
+    const {
+      nickname,
+      dateOfBirth,
+      agreements: { advertisement },
+    } = values;
+
+    // 광고성 알림 동의 안했을 경우 동의 강조 관련 Dialog 노출
+    if (!advertisement) {
+      showDialog({
+        title: '광고성 정보 수신 동의',
+        content: '광고성 정보 수신 미동의시 다양한 혜택 및\n이벤트 참여에 제한이 있을 수 있습니다.',
+        leftButtonText: '미동의',
+        rightButtonText: '동의',
+        handleLeftButton: () => hideDialog,
+        handleRightButton: () => {
+          setValue('agreements.advertisement', true);
+          hideDialog();
+        },
       });
-    },
-    [mutate],
-  );
+
+      showDialog({
+        type: 'ALERT',
+        title: '광고성 정보 수신거부 처리',
+        content: '광고성 수신 정보 동의는 설정 >\n마케팅ㆍ혜택 알림에서 변경 가능합니다.',
+        subContent: `작성자 : ${nickname}\n일시 : ${dayjs().format('YYYY년 MM월 DD일')}\n상태 : 광고성 정보 수신 ${
+          advertisement ? '동의' : '미동의'
+        }`,
+        handleAlertButton: () => {
+          mutate({
+            ...values,
+            dateOfBirth: dateOfBirth.replaceAll(' / ', '-'),
+          });
+          hideDialog();
+        },
+      });
+      return;
+    }
+
+    mutate({
+      ...values,
+      dateOfBirth: dateOfBirth.replaceAll(' / ', '-'),
+    });
+  }, []);
 
   const onPressCheckBox = useCallback(
     (label: AgreementLabels) => () => {

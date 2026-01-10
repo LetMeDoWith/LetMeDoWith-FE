@@ -172,9 +172,7 @@ const Item = ({
             } 접근 권한을 허용해야 해요!\n기기 설정에서 권한을 변경할 수 있어요`,
             leftButtonText: '취소',
             rightButtonText: '설정 바로가기',
-            handleLeftButton: () => {
-              hideDialog();
-            },
+            handleLeftButton: () => hideDialog,
             handleRightButton: () => {
               Linking.openSettings();
               hideDialog();
