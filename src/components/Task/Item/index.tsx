@@ -1,11 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { Alert, Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Dimensions, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import dayjs from 'dayjs';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import notifee from '@notifee/react-native';
 
 import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
@@ -177,7 +176,7 @@ const Item = ({
               hideDialog();
             },
             handleRightButton: () => {
-              notifee.openNotificationSettings();
+              Linking.openSettings();
               hideDialog();
             },
           });
