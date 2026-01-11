@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 
 import type { ProviderEnumType } from 'types/auth/scheme/enum';
-import { useAuthStore } from 'stores/auth';
+import { useStore } from 'stores/index';
 import { useFetchTokenQuery } from 'hooks/queries/auth/useFetchTokenQuery';
 
 /**
@@ -9,20 +9,11 @@ import { useFetchTokenQuery } from 'hooks/queries/auth/useFetchTokenQuery';
  * @param provider 인증 공급자 (GOOGLE | KAKAO | APPLE)
  */
 const useAuthToken = (provider: ProviderEnumType): [string | null, Dispatch<SetStateAction<string | null>>] => {
-  const { setTokenInfo, setIsLoggedIn, setIsNeedSignUp } = useAuthStore(
-    ({
-      tokenInfo,
-      isNeedRefreshToken,
-      isHydrated,
-      actions: { setTokenInfo, setIsLoggedIn, setIsNeedSignUp, setIsNeedRefreshToken },
-    }) => ({
-      tokenInfo,
-      isNeedRefreshToken,
-      isHydrated,
+  const { setTokenInfo, setIsLoggedIn, setIsNeedSignUp } = useStore(
+    ({ authActions: { setTokenInfo, setIsLoggedIn, setIsNeedSignUp } }) => ({
       setTokenInfo,
       setIsLoggedIn,
       setIsNeedSignUp,
-      setIsNeedRefreshToken,
     }),
   );
   const [idToken, setIdToken] = useState<string | null>(null);

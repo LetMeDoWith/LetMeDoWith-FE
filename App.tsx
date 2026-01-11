@@ -23,7 +23,7 @@ import { HomeStackNavigator } from 'components/navigators/Stack/Home';
 import { ThemeContext } from 'hooks/shared/useTheme';
 import { theme } from 'styles/theme';
 import { Signup } from 'screens/Signup';
-import { useAuthStore } from 'stores/auth';
+import { useStore } from 'stores/index';
 import { DialogProvider } from 'components/common/Dialog/Provider';
 import { LoadingOverlay } from 'components/common/LoadingOverlay';
 import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
@@ -45,8 +45,8 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
 
     const {
       tokenInfo,
-      actions: { setIsNeedRefreshToken },
-    } = useAuthStore.getState();
+      authActions: { setIsNeedRefreshToken },
+    } = useStore.getState();
 
     // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우 토큰 재발급 상태로 수정
     if (
@@ -86,30 +86,22 @@ function AppContent() {
     isLoggedIn,
     isNeedSignUp,
     isHydrated,
-    setTokenInfo,
-    setIsLoggedIn,
-    setIsNeedRefreshToken,
-    setIsNeedSignUp,
-    initAuthInfo,
-  } = useAuthStore(
+    authActions: { setTokenInfo, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, initAuthInfo },
+  } = useStore(
     ({
       tokenInfo,
       isNeedRefreshToken,
       isLoggedIn,
       isNeedSignUp,
       isHydrated,
-      actions: { setTokenInfo, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, initAuthInfo },
+      authActions: { setTokenInfo, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, initAuthInfo },
     }) => ({
       tokenInfo,
       isNeedRefreshToken,
       isLoggedIn,
       isNeedSignUp,
       isHydrated,
-      setTokenInfo,
-      setIsLoggedIn,
-      setIsNeedRefreshToken,
-      setIsNeedSignUp,
-      initAuthInfo,
+      authActions: { setTokenInfo, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, initAuthInfo },
     }),
   );
 

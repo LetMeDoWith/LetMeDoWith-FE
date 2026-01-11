@@ -4,15 +4,15 @@ import { AxiosError } from 'axios';
 
 import { deleteAccount } from 'services/rest/member';
 import { MEMBER_QUERY_KEY } from 'constants/queries';
-import { useAuthStore } from 'stores/auth';
-import type { deleteAccountResponseSchemeType } from 'types/member/scheme/api';
+import { useStore } from 'stores/index';
+import type { EmptyDataResponseSchemeType } from 'types/shared/scheme/api';
 
 const useDeleteAccount = () => {
-  const { initAuthInfo } = useAuthStore(({ actions: { initAuthInfo } }) => ({
+  const { initAuthInfo } = useStore(({ authActions: { initAuthInfo } }) => ({
     initAuthInfo,
   }));
 
-  return useMutation<deleteAccountResponseSchemeType, AxiosError>({
+  return useMutation<EmptyDataResponseSchemeType, AxiosError>({
     mutationKey: MEMBER_QUERY_KEY.DELETE_ACCOUNT,
     mutationFn: deleteAccount,
     onSuccess: async ({ data }) => {

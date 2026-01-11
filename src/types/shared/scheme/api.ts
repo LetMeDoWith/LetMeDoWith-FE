@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
-import { BaseResponseScheme } from 'schemes/shared/api';
+import { BaseResponseScheme, EmptyDataResponseScheme } from 'schemes/shared/api';
 
 type BaseResponseSchemeType = z.infer<typeof BaseResponseScheme>;
+type EmptyDataResponseSchemeType = z.infer<typeof EmptyDataResponseScheme>;
 
-export type { BaseResponseSchemeType };
+export type { BaseResponseSchemeType, EmptyDataResponseSchemeType };

@@ -5,14 +5,14 @@ import { AxiosError } from 'axios';
 import type { fetchTokenRequestSchemeType, fetchTokenResponseSchemeType } from 'types/auth/scheme/api';
 import { fetchToken } from 'services/rest/auth';
 import { AUTH_QUERY_KEY } from 'constants/queries';
-import { useAuthStore } from 'stores/auth';
+import { useStore } from 'stores/index';
 
 /**
  * 토큰 발급 Mutation Query Hook
  */
 const useFetchTokenQuery = () => {
-  const { setTokenInfo, setIsLoggedIn, setIsNeedSignUp, setMemberId } = useAuthStore(
-    ({ actions: { setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setMemberId } }) => ({
+  const { setTokenInfo, setIsLoggedIn, setIsNeedSignUp, setMemberId } = useStore(
+    ({ authActions: { setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setMemberId } }) => ({
       setTokenInfo,
       setIsLoggedIn,
       setIsNeedSignUp,
