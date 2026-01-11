@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Alert, Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Dimensions, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -151,13 +151,34 @@ const Item = ({
 
       // 사용자가 취소한 경우
       if (result.didCancel) {
-        console.log(`사용자가 ${type === 'CAMERA' ? '카메라를' : '갤러리를'} 취소했습니다`);
+        console.log(`사용자가 ${type === 'CAMERA' ? '카메라' : '갤러리'} 접근 권한을 취소했습니다`);
         return;
       }
 
       // 권한 거부 또는 에러 처리
       if (result.errorCode) {
         console.error(`[${type === 'CAMERA' ? '카메라' : '갤러리'} 에러]:`, result.errorCode, result.errorMessage);
+        // 권한 거부 에러인 경우만 다이얼로그 표시
+        const isPermissionDenied =
+          result.errorCode === 'permission' ||
+          result.errorCode === 'camera_unavailable' ||
+          result.errorCode === 'others';
+
+        if (isPermissionDenied) {
+          showDialog({
+            title: `${type === 'CAMERA' ? '카메라' : '갤러리'} 접근 권한 필요`,
+            content: `${
+              type === 'CAMERA' ? '카메라 ' : '갤러리'
+            } 접근 권한을 허용해야 해요!\n기기 설정에서 권한을 변경할 수 있어요`,
+            leftButtonText: '취소',
+            rightButtonText: '설정 바로가기',
+            handleLeftButton: () => hideDialog,
+            handleRightButton: () => {
+              Linking.openSettings();
+              hideDialog();
+            },
+          });
+        }
 
         // iOS 시뮬레이터에서 카메라 사용 시 에러 처리
         if (type === 'CAMERA' && !isAos && result.errorCode === 'camera_unavailable') {

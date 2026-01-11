@@ -1,14 +1,125 @@
-import type { AppStateStatus } from 'react-native';
+import { AppStateStatus } from 'react-native';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import notifee, { AndroidImportance, AuthorizationStatus } from '@notifee/react-native';
+import { AndroidVisibility } from '@notifee/react-native/src/types/NotificationAndroid';
 
 import { isAos } from 'utils/device';
 import { useStore } from 'stores/index';
+import { updateNotificationSettings as mutateNotificationSettings } from 'services/rest/member';
 
 let initialized = false;
+let channelCreated = false;
 let unsubOnMessage: (() => void) | null = null;
 let unsubOnTokenRefresh: (() => void) | null = null;
 let unsubAppState: (() => void) | null = null;
+
+const CHANNEL_ID = 'default';
+
+/**
+ * 알림 설정을 서버와 FE 상태에 동기화하는 함수
+ */
+const syncNotificationSettings = async (authorized: boolean) => {
+  const {
+    notificationSettings,
+    notificationActions: { updateNotificationSettings },
+  } = useStore.getState();
+
+  const settings = authorized
+    ? {
+        baseAlarmYn: true,
+        todoBotYn: true,
+        feedbackYn: true,
+        marketingYn: notificationSettings.marketing,
+      }
+    : {
+        baseAlarmYn: false,
+        todoBotYn: false,
+        feedbackYn: false,
+        marketingYn: false,
+      };
+
+  try {
+    await mutateNotificationSettings(settings);
+    updateNotificationSettings({
+      base: settings.baseAlarmYn,
+      todoBot: settings.todoBotYn,
+      feedback: settings.feedbackYn,
+      marketing: settings.marketingYn,
+    });
+
+    console.log('✅[syncNotificationSettings] 알림 설정 동기화 완료:', settings);
+  } catch (error) {
+    console.error('❌[syncNotificationSettings] 알림 설정 동기화 실패:', error);
+  }
+};
+
+/**
+ * 알림 채널 생성 (한 번만 실행)
+ */
+const createNotificationChannel = async () => {
+  if (!isAos || channelCreated) {
+    return CHANNEL_ID;
+  }
+
+  const channelId = await notifee.createChannel({
+    id: CHANNEL_ID,
+    name: 'Default Channel',
+    importance: AndroidImportance.HIGH,
+    vibration: true,
+  });
+
+  channelCreated = true;
+  console.log('✅ 채널 생성 완료:', channelId);
+  return channelId;
+};
+
+/**
+ * Foreground/Background에서 수신한 FCM 메시지를 notifee를 사용하여 로컬 알림으로 표시
+ */
+const displayNotification = async (message: FirebaseMessagingTypes.RemoteMessage) => {
+  try {
+    const imageUrl = message.notification?.image || (message.data?.imageUrl as string | undefined);
+
+    await notifee.displayNotification({
+      title: message.notification?.title || '새 알림',
+      body: message.notification?.body || '',
+      android: {
+        channelId: CHANNEL_ID,
+        smallIcon: 'ic_launcher',
+        ...(imageUrl && {
+          largeIcon: imageUrl,
+        }),
+        importance: AndroidImportance.HIGH,
+        vibrationPattern: [300, 500],
+        visibility: AndroidVisibility.PUBLIC,
+        pressAction: {
+          id: 'default',
+        },
+        timestamp: Date.now(),
+        showTimestamp: true,
+      },
+      ...(imageUrl && {
+        ios: {
+          attachments: [{ url: imageUrl }],
+        },
+      }),
+      data: message.data,
+    });
+  } catch (error) {
+    console.error('❌ 알림 표시 실패:', error);
+  }
+};
+
+/**
+ * Background 메시지 핸들러
+ */
+const handleBackgroundMessage = async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+  console.log('[FCM][BG] 백그라운드 메시지 수신:', remoteMessage);
+
+  // Background에서도 채널이 필요하므로 생성
+  await createNotificationChannel();
+  await displayNotification(remoteMessage);
+};
 
 /**
  * 초기화 진입점: FCM/Notifee 권한을 확인 및 요청하고,
@@ -30,13 +141,11 @@ const initNotificationLayer = async (options?: {
   onTokenChanged?: (token: string) => Promise<void> | void;
   subscribeAppState?: (callback: (state: AppStateStatus) => void) => () => void;
 }) => {
-  const {
-    isNeedSignUp,
-    authActions: { setIsNeedSignUp },
-  } = useStore.getState();
+  console.log('🚀 [initNotificationLayer] 시작');
 
   // 이미 초기화되어 있으면 스킵
   if (initialized) {
+    console.log('⚠️ [initNotificationLayer] 이미 초기화됨, 스킵');
     return;
   }
 
@@ -44,62 +153,86 @@ const initNotificationLayer = async (options?: {
   const onTokenChanged = options?.onTokenChanged ?? (async () => {});
 
   // 현재 권한 확인
+  console.log('🔐 [initNotificationLayer] 권한 확인 중...');
   const currentSetting = await notifee.getNotificationSettings();
   let authorized = currentSetting.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
+  console.log('[initNotificationLayer] 현재 권한 상태:', currentSetting.authorizationStatus, '허용됨:', authorized);
 
-  // 권한 요청이 허용되지 않은 상태일 때 권한 요청
-  if (!authorized) {
-    const res = await notifee.requestPermission();
-    authorized = res.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
-    if (!authorized) {
-      // 회원가입 진행중일 경우 값 OFF
-      if (isNeedSignUp) {
-        setIsNeedSignUp(false);
-      }
-      // 권한 요청을 거부하면 초기화 미수행 하고 포그라운드 복귀 감시로 재시도 함. initialized 값 수정 x
-      ensurePermissionWatcher(options); // 설정에서 바꾸고 돌아오면 재시도
-      return;
+  // 이미 알림 설정이 거부된 경우
+  if (currentSetting.authorizationStatus === AuthorizationStatus.DENIED) {
+    console.log('❌ [initNotificationLayer] 권한이 이미 거부됨');
+
+    // 권한 watcher 등록
+    if (!unsubAppState) {
+      console.log('👀 [initNotificationLayer] 권한 watcher 등록');
+      ensurePermissionWatcher(options);
     }
+    return;
   }
 
-  // 권한이 허용이라면 초기화 수행
+  console.log('🙏 [initNotificationLayer] 권한 요청 중...');
+  const res = await notifee.requestPermission();
+  authorized = res.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
+  console.log('[initNotificationLayer] 권한 요청 결과:', res.authorizationStatus, '허용됨:', authorized);
+
+  if (!authorized) {
+    console.log('❌ [initNotificationLayer] 권한 거부됨');
+    await syncNotificationSettings(false);
+
+    // watcher 등록 전에 체크 (이미 구독 중이면 중복 등록 방지)
+    if (!unsubAppState) {
+      console.log('👀 [initNotificationLayer] 권한 watcher 등록');
+      ensurePermissionWatcher(options);
+    } else {
+      console.log('⚠️ [initNotificationLayer] 권한 watcher 이미 등록됨, SKIP');
+    }
+
+    return;
+  }
+
+  console.log('✅ [initNotificationLayer] 권한 확인 완료');
+  await syncNotificationSettings(true);
+
   // iOS: 원격 알림 등록
   if (!isAos) {
+    console.log('📱 [initNotificationLayer] iOS 원격 알림 등록 중...');
     await messaging().registerDeviceForRemoteMessages();
   }
 
-  // Android: 채널 보장
-  if (isAos) {
-    await notifee.createChannel({
-      id: 'default',
-      name: 'Default',
-      importance: AndroidImportance.DEFAULT,
-    });
-  }
+  // AOS: 채널 생성
+  await createNotificationChannel();
 
-  // 최초 토큰 확보 & 서버 동기화(변경시에만 처리하도록 onTokenChanged 내부에서 분기)
+  // FCM 토큰 확보 & 서버 동기화(변경시에만 처리하도록 onTokenChanged 내부에서 분기)
   try {
+    console.log('🔑 [initNotificationLayer] FCM 토큰 확보 중...');
     const token = await messaging().getToken();
+    console.log('✅ [initNotificationLayer] FCM 토큰 확보 완료');
     await onTokenChanged(token);
   } catch (e) {
-    console.log('FCM 토큰을 가져오는 데 실패했습니다.');
+    console.error('❌ [initNotificationLayer] FCM 토큰 확보 실패:', e);
   }
 
-  // 포그라운드 수신(1회 등록)
+  // 포그라운드 메시지 리스너
+  console.log('👂 [initNotificationLayer] Foreground 리스너 등록 중...');
   unsubOnMessage = messaging().onMessage(async message => {
+    console.log('[FCM][FG] 메시지 수신:', message);
     await onMessage(message);
+    await displayNotification(message);
   });
 
-  // 토큰 갱신(1회 등록)
+  // 토큰 갱신 리스너
+  console.log('🔄 [initNotificationLayer] 토큰 갱신 리스너 등록 중...');
   unsubOnTokenRefresh = messaging().onTokenRefresh(async newToken => {
+    console.log('[FCM] 토큰 갱신:', newToken);
     await onTokenChanged(newToken);
   });
 
-  setIsNeedSignUp(false);
   initialized = true;
+  console.log('🎉 [initNotificationLayer] 초기화 완료!');
 
   // 권한 감시 리스너는 더 이상 불필요하면 제거
   if (unsubAppState) {
+    console.log('🗑️ [initNotificationLayer] 권한 watcher 제거');
     unsubAppState();
     unsubAppState = null;
   }
@@ -109,38 +242,45 @@ const initNotificationLayer = async (options?: {
  * 권한이 거부된 상태에서 앱이 Foreground로 복귀했을 때,
  * 다시 권한 상태를 체크하여 허용으로 변경되면 initNotificationLayer를 재호출한다.
  *
- * - initialized 상태가 true라면 이미 초기화된 것이므로 무시한다.
- * - 중복 등록을 막기 위해 unsubAppState가 존재하면 재등록하지 않는다.
  * - AppStateProvider의 subscribe 함수를 통해 AppState를 구독한다.
  *
  * @param options initNotificationLayer와 동일한 콜백 옵션
  */
 const ensurePermissionWatcher = (options?: Parameters<typeof initNotificationLayer>[0]) => {
-  // 이미 구독 중이면 중복 등록 방지
-  if (unsubAppState) {
-    return;
-  }
+  console.log('👀 [ensurePermissionWatcher] 호출됨');
 
   const subscribeAppState = options?.subscribeAppState;
 
   // subscribeAppState가 없으면 경고 (AppStateProvider 밖에서 호출된 경우)
   if (!subscribeAppState) {
-    console.warn('ensurePermissionWatcher: subscribeAppState가 제공되지 않았습니다.');
+    console.warn('⚠️ [ensurePermissionWatcher] subscribeAppState가 제공되지 않았습니다.');
     return;
   }
 
+  console.log('✅ [ensurePermissionWatcher] AppState 구독 등록');
+
   // AppStateProvider의 subscribe 함수를 사용하여 AppState 구독
   unsubAppState = subscribeAppState(async state => {
-    // active 상태가 아니거나 이미 초기화되었으면 스킵
-    if (state !== 'active' || initialized) {
+    console.log('📱 [ensurePermissionWatcher] AppState 변경:', state);
+
+    // active 상태가 아니면 스킵
+    if (state !== 'active') {
+      console.log('⚠️ [ensurePermissionWatcher] active 아님, 스킵');
       return;
     }
+
     // 권한 상태 재확인
+    console.log('🔐 [ensurePermissionWatcher] 권한 재확인 중...');
     const settings = await notifee.getNotificationSettings();
     const authorized = settings.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
+    console.log('권한 상태:', settings.authorizationStatus, '허용됨:', authorized);
+
     if (authorized) {
-      // 권한 허용으로 바뀌었으면 초기화 재시도
+      console.log('✅ [ensurePermissionWatcher] 권한 허용됨, 초기화 재시도');
+      await syncNotificationSettings(true);
       await initNotificationLayer(options);
+    } else {
+      console.log('❌ [ensurePermissionWatcher] 여전히 권한 거부됨');
     }
   });
 };
@@ -155,6 +295,8 @@ const ensurePermissionWatcher = (options?: Parameters<typeof initNotificationLay
  * 주로 로그아웃 시점, 또는 알림 기능을 완전히 종료해야 할 때 호출한다.
  */
 const disposeNotificationLayer = () => {
+  console.log('🗑️ [disposeNotificationLayer] 시작');
+
   unsubOnMessage?.();
   unsubOnMessage = null;
   unsubOnTokenRefresh?.();
@@ -162,10 +304,15 @@ const disposeNotificationLayer = () => {
 
   // AppState 구독 해제
   if (unsubAppState) {
+    console.log('🗑️ [disposeNotificationLayer] AppState 구독 해제');
     unsubAppState();
     unsubAppState = null;
   }
+
   initialized = false;
+  channelCreated = false;
+
+  console.log('✅ [disposeNotificationLayer] 완료');
 };
 
-export { initNotificationLayer, ensurePermissionWatcher, disposeNotificationLayer };
+export { initNotificationLayer, ensurePermissionWatcher, disposeNotificationLayer, handleBackgroundMessage };

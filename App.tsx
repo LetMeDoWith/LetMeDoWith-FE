@@ -86,7 +86,7 @@ function AppContent() {
     isLoggedIn,
     isNeedSignUp,
     isHydrated,
-    authActions: { setTokenInfo, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, initAuthInfo },
+    authActions: { setIsNeedRefreshToken },
   } = useStore(
     ({
       tokenInfo,
@@ -94,14 +94,14 @@ function AppContent() {
       isLoggedIn,
       isNeedSignUp,
       isHydrated,
-      authActions: { setTokenInfo, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, initAuthInfo },
+      authActions: { setIsNeedRefreshToken },
     }) => ({
       tokenInfo,
       isNeedRefreshToken,
       isLoggedIn,
       isNeedSignUp,
       isHydrated,
-      authActions: { setTokenInfo, setIsLoggedIn, setIsNeedRefreshToken, setIsNeedSignUp, initAuthInfo },
+      authActions: { setIsNeedRefreshToken },
     }),
   );
 
@@ -139,9 +139,7 @@ function AppContent() {
   });
 
   /**
-   * 초기 앱 진입 시 실행되는 로직
-   * - 토큰 재발급
-   * - FCM 알림 레이어 초기화
+   * 토큰 재발급 로직
    */
   useEffect(() => {
     if (!isHydrated) {
@@ -160,17 +158,26 @@ function AppContent() {
         },
       );
     }
+  }, [isHydrated, isNeedRefreshToken, tokenInfo.refresh?.token]);
+
+  /**
+   * 알림 레이어 초기화 (단 한 번만 실행)
+   */
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
 
     // 회원가입이 완료되었을 경우 알림 레이어 초기화
     if (!isNeedSignUp) {
+      console.log('🚀 알림 레이어 초기화 시작');
+
       initNotificationLayer({
-        // 포그라운드 메시지 처리 (원하면 notifee 로컬 알림 등)
-        onForegroundMessage: async message => {
-          console.log('[FCM][FG] 메세지 수신: ', message);
-        },
         // 토큰 변경 시 서버 동기화
         onTokenChanged: async newToken => {
           console.log('onTokenChanged: ', newToken);
+          const { isLoggedIn, isNeedSignUp } = useStore.getState();
+
           // 로그인 완료 & 회원가입 완료 상태에서만 토큰 갱신 요청
           if (!isLoggedIn || isNeedSignUp) {
             return;
@@ -186,18 +193,7 @@ function AppContent() {
         subscribeAppState,
       });
     }
-  }, [
-    tokenInfo,
-    isNeedRefreshToken,
-    isHydrated,
-    isLoggedIn,
-    isNeedSignUp,
-    setIsLoggedIn,
-    setIsNeedRefreshToken,
-    setIsNeedSignUp,
-    setTokenInfo,
-    subscribeAppState,
-  ]);
+  }, [isHydrated, isNeedSignUp]);
 
   // useEffect(() => {
   //   initAuthInfo();
