@@ -1,7 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import React, { useCallback, useRef, useState } from 'react';
 import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
-import DatePicker from 'react-native-date-picker';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 import dayjs from 'dayjs';
@@ -22,6 +21,7 @@ import { StackScreenProps } from '@react-navigation/stack';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
+import { DateTimePicker } from 'components/common/DateTimePicker';
 
 const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
   const { params } = route;
@@ -37,8 +37,8 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
   } = useFormContext<addTaskRequestSchemeType>();
   const categoryBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
   const routineBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
+  const dateTimePickerRef = useRef<BottomSheetModalMethods>(null);
 
-  const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
   const [taskMode, setTaskMode] = useState<TaskModeType | null>(params.mode ?? null);
   const isTodoMode = taskMode === 'TODO';
 
@@ -189,16 +189,13 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
     );
   };
 
-  const toggleDatePicker = useCallback(
-    (isOpen: boolean) => () => {
-      if (isFormDisabled) {
-        return;
-      }
+  const handleDatePicker = useCallback(() => {
+    if (isFormDisabled) {
+      return;
+    }
 
-      setDatePickerOpen(isOpen);
-    },
-    [isFormDisabled],
-  );
+    dateTimePickerRef.current?.present();
+  }, [isFormDisabled]);
 
   const handlePresentModalPress = useCallback(() => {
     if (isFormDisabled) {
@@ -214,7 +211,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
         shouldDirty: true,
         shouldTouch: true,
       });
-      setDatePickerOpen(false);
+      dateTimePickerRef.current?.dismiss();
     },
     [setValue],
   );
@@ -331,7 +328,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
             </View>
             <Pressable
               style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 16 }}
-              onPress={toggleDatePicker(true)}
+              onPress={handleDatePicker}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <Text
@@ -419,16 +416,14 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
           </Text>
         </Pressable>
       </View>
-      <DatePicker
-        modal
-        open={datePickerOpen}
+      <DateTimePicker
+        ref={dateTimePickerRef}
         mode="time"
-        minimumDate={!isTodoMode ? new Date() : undefined}
+        title="시작 시간"
+        description="이미 지난 시간은 선택할 수 없어요."
+        minimumDate={!isTodoMode ? dayjs().toDate() : undefined}
         minuteInterval={5}
-        locale="ko-KR"
-        date={startTime ? dayjs(startTime, 'HH:mm:ss').toDate() : dayjs().toDate()}
         onConfirm={handleDateChange}
-        onCancel={toggleDatePicker(false)}
       />
       <CategoryBottomSheet
         ref={categoryBottomSheetMethodsRef}
