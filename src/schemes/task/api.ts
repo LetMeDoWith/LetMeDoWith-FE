@@ -94,6 +94,21 @@ const updateTaskRequestScheme = todoTaskScheme
 
 const updateTaskRoutineRequestScheme = taskRoutineConditionScheme.optional();
 
+const uploadTaskSuccessImageUrlListRequestScheme = z.object({
+  imageFileNames: z.array(z.string()).describe('이미지 파일 이름 리스트'),
+});
+
+const uploadTaskSuccessImageUrlListResponseScheme = BaseResponseScheme.extend({
+  data: z.object({
+    presignedUrls: z.array(z.string()).describe('이미지 업로드 할 url 리스트'),
+    method: z.string(),
+  }),
+});
+
+const updateDowithTaskStatusSuccessRequestScheme = z.object({
+  publicImageUrls: z.array(z.string()).describe('이미지 파일 url 리스트'),
+});
+
 export {
   taskCategoryScheme,
   fetchTaskCategoryListResponseScheme,
@@ -112,4 +127,7 @@ export {
   fetchDowithTaskResponseScheme,
   updateTaskRequestScheme,
   updateTaskRoutineRequestScheme,
+  uploadTaskSuccessImageUrlListRequestScheme,
+  uploadTaskSuccessImageUrlListResponseScheme,
+  updateDowithTaskStatusSuccessRequestScheme,
 };

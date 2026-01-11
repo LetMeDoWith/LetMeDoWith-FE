@@ -1,8 +1,10 @@
-import React, { useRef } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Alert, Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import dayjs from 'dayjs';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
@@ -12,8 +14,7 @@ import { BottomSheet } from 'components/common/BottomSheet';
 import { TaskEdit } from 'components/common/icons/TaskEdit';
 import { RoutineEdit } from 'components/common/icons/RoutineEdit';
 import { TaskDelete } from 'components/common/icons/TaskDelete';
-import { TaskStatusEnumType } from 'types/task/scheme/enum';
-import dayjs from 'dayjs';
+import type { TaskStatusEnumType } from 'types/task/scheme/enum';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { TaskWait } from 'components/common/icons/TaskWait';
 import { FeedBackIcon } from 'components/common/icons/FeedBackIcon';
@@ -21,11 +22,16 @@ import { TaskFail } from 'components/common/icons/TaskFail';
 import { UploadImage } from 'components/common/icons/UploadImage';
 import { isNil } from 'utils/index';
 import { useUpdateTodoTaskStatus } from 'hooks/queries/task/useUpdateTodoTaskStatus';
-import { isAos } from 'utils/device';
 import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
+import { Camera } from 'components/common/icons/Camera';
+import { Gallery } from 'components/common/icons/Gallery';
+import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
+import { isAos } from 'utils/device';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface Props {
   id: number;
@@ -62,6 +68,8 @@ const Item = ({
   const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
   const { data: dowithTaskData } = useFetchDowithTask({ dowithTaskId: id }, { enabled: !isTodoMode && id !== -1 });
 
+  const [showUploadImageBottomSheet, setShowUploadImageBottomSheet] = useState(false);
+
   const data = id && mode ? todoTaskData ?? dowithTaskData : null;
   const isRoutineTask = !isNil(data?.routineCondition);
 
@@ -69,6 +77,7 @@ const Item = ({
   const isInvalidUpdateDowithTask = !isTodoMode && dayjs(`${data?.date} ${data?.startTime}`).isSameOrBefore(dayjs());
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
+  const { mutate: uploadDowithTaskSuccessImageUrlListMutate } = useUploadDowithTaskSuccessImageList(id);
   const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
   const { mutate: deleteTaskMutate } = useUpdateTask({
     type: 'DELETE',
@@ -78,15 +87,35 @@ const Item = ({
     month,
   });
 
-  const getSnapPoints = () => {
-    if (!isRoutineTask) {
-      return [isAos ? '25%' : '23%'];
+  const getBottomSheetTitle = () => {
+    if (showUploadImageBottomSheet) {
+      return '시작 인증하기';
     }
 
-    return [isAos ? '31%' : '29%'];
+    if (isTodoMode) {
+      return 'TO DO 관리하기';
+    }
+
+    return 'DO WITH 관리하기';
+  };
+
+  const getSnapPoints = () => {
+    // 카메라/갤러리 선택
+    if (showUploadImageBottomSheet) {
+      return [`${(220 / SCREEN_HEIGHT) * 100}%`];
+    }
+
+    // 루틴 아닌 task 설정 선택
+    if (!isRoutineTask) {
+      return [`${(200 / SCREEN_HEIGHT) * 100}%`];
+    }
+
+    // 루틴 task 설정 선택
+    return [`${(240 / SCREEN_HEIGHT) * 100}%`];
   };
 
   const handleBottomSheet = () => {
+    setShowUploadImageBottomSheet(false);
     taskManagementBottomSheetModalRef.current?.present();
   };
 
@@ -110,9 +139,110 @@ const Item = ({
     }
   };
 
-  const handleTodoTaskStatus = (mode: TaskModeType, id: number, status: TaskStatusEnumType) => () => {
-    // task가 아니거나 상태가 실패면 무시
-    if (!isTodoMode || status === 'FAIL') {
+  const handleUploadImage = (type: 'CAMERA' | 'GALLERY') => async () => {
+    const options = {
+      mediaType: 'photo' as const,
+      quality: 0.7 as const,
+    };
+
+    try {
+      // 카메라 촬영 또는 갤러리에서 선택
+      const result = type === 'CAMERA' ? await launchCamera(options) : await launchImageLibrary(options);
+
+      // 사용자가 취소한 경우
+      if (result.didCancel) {
+        console.log(`사용자가 ${type === 'CAMERA' ? '카메라를' : '갤러리를'} 취소했습니다`);
+        return;
+      }
+
+      // 권한 거부 또는 에러 처리
+      if (result.errorCode) {
+        console.error(`[${type === 'CAMERA' ? '카메라' : '갤러리'} 에러]:`, result.errorCode, result.errorMessage);
+
+        // iOS 시뮬레이터에서 카메라 사용 시 에러 처리
+        if (type === 'CAMERA' && !isAos && result.errorCode === 'camera_unavailable') {
+          Alert.alert(
+            '카메라 사용 불가',
+            'iOS 시뮬레이터에서는 카메라를 사용할 수 없습니다.\n실제 기기에서 테스트해주세요.',
+            [{ text: '확인' }],
+          );
+        }
+        return;
+      }
+
+      // 이미지 선택 성공
+      if (result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+        const fileName = asset.fileName || 'photo.jpg';
+
+        const photoFile = {
+          uri: asset.uri || '',
+          width: asset.width || 0,
+          height: asset.height || 0,
+          isRawPhoto: false,
+          orientation: 'portrait' as const,
+          isMirrored: false,
+        };
+
+        uploadDowithTaskSuccessImageUrlListMutate({
+          imageFileNames: [fileName],
+          photo: photoFile,
+        });
+      }
+    } catch (e) {
+      console.error(`이미지 ${type === 'CAMERA' ? '촬영' : '선택'} 중 에러 발생:`, e);
+    }
+
+    taskManagementBottomSheetModalRef.current?.dismiss();
+  };
+
+  const renderBottomSheetContent = () => {
+    return showUploadImageBottomSheet ? (
+      <>
+        <Pressable style={styles.modalContentRow} onPress={handleUploadImage('GALLERY')}>
+          <Gallery />
+          <Text style={styles.modalContentText}>라이브러리에서 선택</Text>
+        </Pressable>
+        <Pressable style={styles.modalContentRow} onPress={handleUploadImage('CAMERA')}>
+          <Camera />
+          <Text style={styles.modalContentText}>사진 찍기</Text>
+        </Pressable>
+      </>
+    ) : (
+      <>
+        <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT', isRoutineTask })}>
+          <TaskEdit />
+          <Text style={styles.modalContentText}>할 일 수정하기</Text>
+        </Pressable>
+        {isRoutineTask ? (
+          <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT_ROUTINE', isRoutineTask })}>
+            <RoutineEdit />
+            <Text style={styles.modalContentText}>루틴 수정하기</Text>
+          </Pressable>
+        ) : null}
+        <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'DELETE', isRoutineTask })}>
+          <TaskDelete />
+          <Text style={styles.modalContentText}>삭제하기</Text>
+        </Pressable>
+      </>
+    );
+  };
+
+  const handleTaskStatus = (mode: TaskModeType, id: number, status: TaskStatusEnumType) => () => {
+    // 성공 인증하지 않은 두윗 Task이면 이미지 업로드 바텀시트 노출
+    if (mode === 'DOWITH') {
+      if (status === 'SUCCESS') {
+        return;
+      }
+
+      setShowUploadImageBottomSheet(true);
+      taskManagementBottomSheetModalRef.current?.present();
+      return;
+    }
+    setShowUploadImageBottomSheet(false);
+
+    // 투두 Task 상태가 실패면 무시
+    if (status === 'FAIL') {
       return;
     }
 
@@ -167,7 +297,7 @@ const Item = ({
     <>
       <View style={styles.container}>
         <View style={styles.leftContainer}>
-          <Pressable onPress={handleTodoTaskStatus(mode, id, status)}>{renderTaskStatusIcon(mode, status)}</Pressable>
+          <Pressable onPress={handleTaskStatus(mode, id, status)}>{renderTaskStatusIcon(mode, status)}</Pressable>
           <View style={styles.leftContent}>
             <Text style={[styles.title, isDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>{title}</Text>
             {(startTime || taskCategoryName) && (
@@ -229,25 +359,11 @@ const Item = ({
       </View>
       <BottomSheet
         ref={taskManagementBottomSheetModalRef}
-        title={`${isTodoMode ? 'TO DO' : 'DO WITH'} 관리하기`}
+        title={getBottomSheetTitle()}
+        description={showUploadImageBottomSheet ? '사진을 올리면 잔소리 알림이 중지돼요.' : ''}
         snapPoints={getSnapPoints()}
       >
-        <View style={styles.modalContainer}>
-          <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT', isRoutineTask })}>
-            <TaskEdit />
-            <Text style={styles.modalContentText}>할 일 수정하기</Text>
-          </Pressable>
-          {isRoutineTask ? (
-            <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT_ROUTINE', isRoutineTask })}>
-              <RoutineEdit />
-              <Text style={styles.modalContentText}>루틴 수정하기</Text>
-            </Pressable>
-          ) : null}
-          <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'DELETE', isRoutineTask })}>
-            <TaskDelete />
-            <Text style={styles.modalContentText}>삭제하기</Text>
-          </Pressable>
-        </View>
+        <View style={styles.modalContainer}>{renderBottomSheetContent()}</View>
       </BottomSheet>
     </>
   );

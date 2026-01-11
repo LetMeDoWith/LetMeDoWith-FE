@@ -1,11 +1,20 @@
-import React, { forwardRef, PropsWithChildren, useCallback, useImperativeHandle, useRef } from 'react';
-import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, {
+  forwardRef,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
+import { BackHandler, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 
 import { theme } from 'styles/theme';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
 import { BottomSheetBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop';
 import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
+import { isAos } from 'utils/device';
 
 interface Props {
   title: string;
@@ -25,6 +34,8 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     props;
 
   const innerRef = useRef<BottomSheetModalMethods>(null);
+  const [isOpen, setIsOpen] = useState(false);
+
   const handleClose = useCallback(() => {
     if (handleCloseButton) {
       handleCloseButton();
@@ -38,6 +49,27 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     ),
     [],
   );
+
+  const handleSheetChanges = useCallback((index: number) => {
+    setIsOpen(index >= 0);
+  }, []);
+
+  // AOS 뒤로가기 버튼 클릭 시, 바텀 시트 닫힘 처리
+  useEffect(() => {
+    if (!isAos) {
+      return;
+    }
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (isOpen) {
+        innerRef.current?.dismiss();
+        return true; // 이벤트 소비 (기본 동작 방지)
+      }
+      return false; // 기본 동작 실행 (앱 종료 또는 이전 화면)
+    });
+
+    return () => backHandler.remove();
+  }, [isOpen]);
 
   useImperativeHandle(ref, () => {
     return new Proxy({} as BottomSheetModalMethods, {
@@ -62,6 +94,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
       snapPoints={snapPoints}
       backdropComponent={renderBackdrop}
       handleComponent={null}
+      onChange={handleSheetChanges}
       onDismiss={onDismiss}
     >
       <View style={styles.container}>

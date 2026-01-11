@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 import { apiClient } from 'services/apiClient';
 import { TASK_API } from 'services/urls';
 import type {
@@ -12,6 +14,9 @@ import type {
   updateTaskRequestSchemeType,
   updateTaskRoutineRequestSchemeType,
   updateTodoTaskStatusResponseSchemeType,
+  updateDowithTaskStatusSuccessRequestSchemeType,
+  uploadTaskSuccessImageUrlListRequestSchemeType,
+  uploadTaskSuccessImageUrlListResponseSchemeType,
 } from 'types/task/scheme/api';
 import type { TaskStatusEnumType } from 'types/task/scheme/enum';
 import type { TaskModeType } from 'types/shared';
@@ -138,6 +143,56 @@ const updateTaskRoutine = async ({
   }
 };
 
+const fetchUploadTaskSuccessImageUrlList = async (
+  id: number,
+  payload: uploadTaskSuccessImageUrlListRequestSchemeType,
+): Promise<uploadTaskSuccessImageUrlListResponseSchemeType> => {
+  try {
+    const result = await apiClient.post<uploadTaskSuccessImageUrlListResponseSchemeType>(
+      TASK_API.UPLOAD_TASK_SUCCESS_IMAGE_URL_LIST.replace(':id', String(id)),
+      payload,
+    );
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+const uploadFileToBucket = async (presignedUrl: string, fileUri: string, onProgress?: (progress: number) => void) => {
+  try {
+    const normalizedUri = fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`;
+    const response = await fetch(normalizedUri);
+    const blob = await response.blob();
+    await axios.put(presignedUrl, blob, {
+      headers: {
+        'Content-Type': 'image/jpeg',
+      },
+      onUploadProgress: progressEvent => {
+        if (progressEvent.total && onProgress) {
+          const progress = (progressEvent.loaded / progressEvent.total) * 100;
+          onProgress(progress);
+        }
+      },
+    });
+    console.log('S3 이미지 업로드 성공 !');
+  } catch (e) {
+    console.error('S3 이미지 업로드 에러:', e);
+    throw e;
+  }
+};
+
+const updateDowithTaskStatusSuccess = async (
+  id: number,
+  payload: updateDowithTaskStatusSuccessRequestSchemeType,
+): Promise<undefined> => {
+  try {
+    const result = await apiClient.post<undefined>(TASK_API.SUCCESS_DOWITH.replace(':id', String(id)), payload);
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 export {
   fetchTaskCategoryList,
   fetchTaskList,
@@ -148,4 +203,7 @@ export {
   updateStatusTodoTask,
   updateTask,
   updateTaskRoutine,
+  fetchUploadTaskSuccessImageUrlList,
+  updateDowithTaskStatusSuccess,
+  uploadFileToBucket,
 };
