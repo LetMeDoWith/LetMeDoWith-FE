@@ -5,13 +5,15 @@ const theme = {
       BLACK: '#000000',
     },
     PRIMARY: {
-      RED_98: '#FFF7F5',
-      RED_95: '#FFEBE5',
-      RED_60: '#FF6333',
+      RED_98: '#FFF3F0',
+      RED_95: '#FDE1D8',
+      RED_60: '#F67A51',
     },
     SECONDARY: {
+      BLUE_97: '#F2FAFD',
       BLUE_95: '#E5F6FF',
-      BLUE_60: '#33BBFF',
+      BLUE_60: '#6DC4E3',
+      BLUE_50: '#29A8D6',
     },
     STATUS: {
       GREEN_90: '#F5FBD0',
