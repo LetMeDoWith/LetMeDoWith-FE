@@ -26,7 +26,7 @@ const NoticeList = ({ navigation }: SettingStackScreenProps<'NOTICE'>) => (
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
   },
 });

@@ -28,6 +28,7 @@ import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { Camera } from 'components/common/icons/Camera';
 import { Gallery } from 'components/common/icons/Gallery';
+import { RoutineArrow } from 'components/common/icons/RoutineArrow';
 import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
 import { isAos } from 'utils/device';
 
@@ -43,7 +44,7 @@ interface Props {
   year: number;
   month: number;
   selectedDate: string;
-  confirmedImageUrl?: string | null;
+  successImageUrls?: string[] | null;
   feedBackCount?: number | null;
 }
 
@@ -57,7 +58,7 @@ const Item = ({
   year,
   month,
   selectedDate,
-  confirmedImageUrl,
+  successImageUrls,
   feedBackCount,
 }: Props) => {
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -318,7 +319,9 @@ const Item = ({
     <>
       <View style={styles.container}>
         <View style={styles.leftContainer}>
-          <Pressable onPress={handleTaskStatus(mode, id, status)}>{renderTaskStatusIcon(mode, status)}</Pressable>
+          <Pressable onPress={handleTaskStatus(mode, id, status)} disabled={isInvalidUpdateDowithTask || isDisabled}>
+            {renderTaskStatusIcon(mode, status)}
+          </Pressable>
           <View style={styles.leftContent}>
             <Text style={[styles.title, isDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>{title}</Text>
             {(startTime || taskCategoryName) && (
@@ -353,27 +356,28 @@ const Item = ({
                     {taskCategoryName}
                   </Text>
                 )}
+                {isRoutineTask && <RoutineArrow />}
               </View>
             )}
           </View>
         </View>
         <View style={styles.rightContainer}>
           <View style={styles.rightContent}>
-            {confirmedImageUrl && (
+            {successImageUrls && successImageUrls.length > 0 && (
               <Image
-                borderRadius={50}
+                borderRadius={4}
                 width={24}
                 height={24}
                 source={{
-                  uri: confirmedImageUrl,
+                  uri: successImageUrls[0],
                 }}
               />
             )}
-            {!confirmedImageUrl && !isNil(feedBackCount) && (
+            {!successImageUrls && !isNil(feedBackCount) && (
               <FeedBackIcon count={feedBackCount as number} status={status} />
             )}
             <Pressable onPress={handleBottomSheet} disabled={isInvalidUpdateDowithTask || isDisabled}>
-              <EtcDots disabled={isInvalidUpdateDowithTask || isDisabled} />
+              <EtcDots />
             </Pressable>
           </View>
         </View>

@@ -3,16 +3,16 @@ import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { Switch } from 'react-native-paper';
 
 import { theme } from 'styles/theme';
-import { isAos } from 'utils/device';
 
 interface Props {
   title: string;
   subTitle: string;
   value: boolean;
   handleValue: () => void;
+  isLast?: boolean;
 }
 
-const NotificationMenu = ({ title, subTitle, value, handleValue }: Props) => {
+const NotificationMenu = ({ title, subTitle, value, handleValue, isLast }: Props) => {
   const [isSwitchOn, setIsSwitchOn] = React.useState(value);
 
   const onToggleSwitch = useCallback(() => {
@@ -21,7 +21,12 @@ const NotificationMenu = ({ title, subTitle, value, handleValue }: Props) => {
   }, [isSwitchOn]);
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        !isLast && { borderBottomWidth: 0.5, borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_92 },
+      ]}
+    >
       <View style={styles.content}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subTitle}>{subTitle}</Text>
@@ -37,11 +42,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 16,
-    paddingHorizontal: 24,
-    paddingRight: isAos ? 12 : 24,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
-    borderBottomWidth: 0.5,
-    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
   content: {
     gap: 8,
