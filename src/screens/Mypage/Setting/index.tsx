@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { SettingStackParamList, SettingStackScreenProps } from 'types/shared';
 import { BasicMenu } from 'components/Mypage/Setting/Menu';
@@ -19,7 +19,7 @@ const Setting = ({ navigation: { navigate } }: SettingStackScreenProps<'DEFAULT'
   );
 
   return (
-    <View>
+    <View style={styles.container}>
       <BasicMenu title="내 정보 관리" onPress={onPress('MYINFO')} />
       <BasicMenu title="알림설정" onPress={onPress('NOTIFICATION')} />
       <BasicMenu title="이벤트 & 공지사항" onPress={onPress('NOTICE')} />
@@ -28,5 +28,11 @@ const Setting = ({ navigation: { navigate } }: SettingStackScreenProps<'DEFAULT'
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 20,
+  },
+});
 
 export { Setting };

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Pressable, StyleProp, StyleSheet, Text, ViewStyle } from 'react-native';
-import { IconButton } from 'react-native-paper';
 
 import { theme } from 'styles/theme';
+import { ArrowRight } from 'components/common/icons/ArrowIcon';
 
 interface Props {
   title: string;
@@ -13,16 +13,9 @@ interface Props {
 }
 
 const BasicMenu = ({ title, style, onPress, isArrowVisible = true, content }: Props) => (
-  <Pressable
-    style={
-      isArrowVisible
-        ? [styles.container, style]
-        : [styles.container, { paddingVertical: 18, paddingHorizontal: 24 }, style]
-    }
-    onPress={onPress}
-  >
+  <Pressable style={[styles.container, style]} onPress={onPress}>
     <Text>{title}</Text>
-    {isArrowVisible && <IconButton icon="chevron-right" iconColor={theme.COLORS.DEFAULT.BLACK} size={24} />}
+    {isArrowVisible && <ArrowRight fill={theme.COLORS.GRAY_SCALE.GRAY_40} />}
     {!isArrowVisible && content && <Text>{content}</Text>}
   </Pressable>
 );
@@ -32,8 +25,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingLeft: 24,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
+    paddingVertical: 16,
     borderBottomWidth: 0.5,
     borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_92,
   },

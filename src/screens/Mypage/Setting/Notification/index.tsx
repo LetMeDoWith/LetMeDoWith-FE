@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { NotificationMenu } from 'components/Mypage/Setting/Menu';
-import { theme } from 'styles/theme';
 import { useStore } from 'stores/index';
 import { useNotificationSettings } from 'hooks/queries/member/useNotificationSettings';
 
@@ -56,6 +55,7 @@ const Notification = () => {
         subTitle="다양한 소식과 혜택에 대한 알림입니다."
         value={marketing}
         handleValue={handleValue({ name: 'marketing', value: !marketing })}
+        isLast
       />
     </View>
   );
@@ -63,9 +63,8 @@ const Notification = () => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 32,
-    borderTopWidth: 0.5,
-    borderTopColor: theme.COLORS.DEFAULT.BLACK,
+    paddingTop: 24,
+    paddingHorizontal: 20,
   },
 });
 
