@@ -34,7 +34,7 @@ const todoTaskScheme = z.object({
 });
 
 const dowithTaskScheme = todoTaskScheme.omit({ startTime: true }).extend({
-  confirmedImageUrl: z.string().nullable().describe('인증 이미지 URL'),
+  successImageUrls: z.array(z.string()).nullable().describe('인증 이미지 URL 리스트'),
   feedBackCount: z.number().describe('피드백 개수'),
   startTime: z.string().describe('테스크 시작시간'),
 });

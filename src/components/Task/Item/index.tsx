@@ -43,7 +43,7 @@ interface Props {
   year: number;
   month: number;
   selectedDate: string;
-  confirmedImageUrl?: string | null;
+  successImageUrls?: string[] | null;
   feedBackCount?: number | null;
 }
 
@@ -57,7 +57,7 @@ const Item = ({
   year,
   month,
   selectedDate,
-  confirmedImageUrl,
+  successImageUrls,
   feedBackCount,
 }: Props) => {
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -359,17 +359,17 @@ const Item = ({
         </View>
         <View style={styles.rightContainer}>
           <View style={styles.rightContent}>
-            {confirmedImageUrl && (
+            {successImageUrls && successImageUrls.length > 0 && (
               <Image
-                borderRadius={50}
+                borderRadius={4}
                 width={24}
                 height={24}
                 source={{
-                  uri: confirmedImageUrl,
+                  uri: successImageUrls[0],
                 }}
               />
             )}
-            {!confirmedImageUrl && !isNil(feedBackCount) && (
+            {!successImageUrls && !isNil(feedBackCount) && (
               <FeedBackIcon count={feedBackCount as number} status={status} />
             )}
             <Pressable onPress={handleBottomSheet} disabled={isInvalidUpdateDowithTask || isDisabled}>
