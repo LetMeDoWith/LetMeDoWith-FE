@@ -1,3 +1,5 @@
+import { version } from '../../../package.json';
+
 const SCREEN_NAME = {
   HOME: 'HOME',
   FEED: 'FEED',
@@ -6,4 +8,6 @@ const SCREEN_NAME = {
   SIGN_UP_AGREEMENT: 'SIGN_UP_AGREEMENT',
 };
 
-export { SCREEN_NAME };
+const APP_VERSION = version;
+
+export { SCREEN_NAME, APP_VERSION };
