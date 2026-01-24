@@ -318,7 +318,9 @@ const Item = ({
     <>
       <View style={styles.container}>
         <View style={styles.leftContainer}>
-          <Pressable onPress={handleTaskStatus(mode, id, status)}>{renderTaskStatusIcon(mode, status)}</Pressable>
+          <Pressable onPress={handleTaskStatus(mode, id, status)} disabled={isInvalidUpdateDowithTask || isDisabled}>
+            {renderTaskStatusIcon(mode, status)}
+          </Pressable>
           <View style={styles.leftContent}>
             <Text style={[styles.title, isDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>{title}</Text>
             {(startTime || taskCategoryName) && (
@@ -373,7 +375,7 @@ const Item = ({
               <FeedBackIcon count={feedBackCount as number} status={status} />
             )}
             <Pressable onPress={handleBottomSheet} disabled={isInvalidUpdateDowithTask || isDisabled}>
-              <EtcDots disabled={isInvalidUpdateDowithTask || isDisabled} />
+              <EtcDots />
             </Pressable>
           </View>
         </View>
