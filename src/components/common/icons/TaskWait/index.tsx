@@ -8,11 +8,11 @@ interface Props {
   mode: TaskModeType;
 }
 
-const TaskWait = ({ width = 22, height = 22, mode }: Pick<SvgProps, 'width' | 'height'> & Props) => (
-  <Svg width={width} height={height} viewBox="0 0 22 22" fill="none">
+const TaskWait = ({ width = 24, height = 24, mode }: Pick<SvgProps, 'width' | 'height'> & Props) => (
+  <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
     <Rect
-      x="1.5"
-      y="1.5"
+      x="2.5"
+      y="2.5"
       width="19"
       height="19"
       rx="9.5"
