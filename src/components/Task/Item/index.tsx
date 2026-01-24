@@ -28,6 +28,7 @@ import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { Camera } from 'components/common/icons/Camera';
 import { Gallery } from 'components/common/icons/Gallery';
+import { RoutineArrow } from 'components/common/icons/RoutineArrow';
 import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
 import { isAos } from 'utils/device';
 
@@ -355,6 +356,7 @@ const Item = ({
                     {taskCategoryName}
                   </Text>
                 )}
+                {isRoutineTask && <RoutineArrow />}
               </View>
             )}
           </View>
