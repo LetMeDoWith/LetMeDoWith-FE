@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Modal } from 'react-native-paper';
+import { Modal, Portal } from 'react-native-paper';
 
 import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
@@ -27,43 +27,45 @@ const ConfirmModal = ({
   onCancel,
   type = 'outlined',
 }: Props) => (
-  <Modal contentContainerStyle={styles.container} visible={visible} onDismiss={onDismiss}>
-    <View style={styles.contentWrap}>
-      <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.description}>{description}</Text>
-      </View>
-      <View style={styles.buttonGroup}>
-        <Pressable
-          style={[
-            styles.button,
-            { borderBottomLeftRadius: 8, borderRightWidth: 0.5, borderColor: theme.COLORS.GRAY_SCALE.GRAY_80 },
-          ]}
-          onPress={onCancel}
-        >
-          <Text style={styles.buttonText}>{cancelText}</Text>
-        </Pressable>
-        <Pressable
-          style={
-            type === 'outlined'
-              ? [styles.button, { borderBottomRightRadius: 8 }]
-              : [styles.button, { borderBottomRightRadius: 8, backgroundColor: theme.COLORS.PRIMARY.RED_60 }]
-          }
-          onPress={onConfirm}
-        >
-          <Text
+  <Portal>
+    <Modal contentContainerStyle={styles.container} visible={visible} onDismiss={onDismiss}>
+      <View style={styles.contentWrap}>
+        <View style={styles.content}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.description}>{description}</Text>
+        </View>
+        <View style={styles.buttonGroup}>
+          <Pressable
+            style={[
+              styles.button,
+              { borderBottomLeftRadius: 8, borderRightWidth: 0.5, borderColor: theme.COLORS.GRAY_SCALE.GRAY_80 },
+            ]}
+            onPress={onCancel}
+          >
+            <Text style={styles.buttonText}>{cancelText}</Text>
+          </Pressable>
+          <Pressable
             style={
               type === 'outlined'
-                ? [styles.buttonText, styles.confirmButtonText]
-                : [styles.buttonText, styles.confirmButtonText, { color: theme.COLORS.DEFAULT.WHITE }]
+                ? [styles.button, { borderBottomRightRadius: 8 }]
+                : [styles.button, { borderBottomRightRadius: 8, backgroundColor: theme.COLORS.PRIMARY.RED_60 }]
             }
+            onPress={onConfirm}
           >
-            {confirmText}
-          </Text>
-        </Pressable>
+            <Text
+              style={
+                type === 'outlined'
+                  ? [styles.buttonText, styles.confirmButtonText]
+                  : [styles.buttonText, styles.confirmButtonText, { color: theme.COLORS.DEFAULT.WHITE }]
+              }
+            >
+              {confirmText}
+            </Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
-  </Modal>
+    </Modal>
+  </Portal>
 );
 
 const styles = StyleSheet.create({
