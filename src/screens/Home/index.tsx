@@ -11,7 +11,6 @@ import { Shadow } from 'react-native-shadow-2';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { theme } from 'styles/theme';
-import { TrafficGreenLight } from 'components/common/icons/TrafficGreenLight';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { ListContainerView } from 'components/Task/ListContainerView';
@@ -274,7 +273,6 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
         >
           <View style={styles.profile}>
             <View style={styles.iconWrap}>
-              <TrafficGreenLight />
               <Pressable style={styles.notificationWrap} onPress={handlePressNotification}>
                 <FeedbackNotification />
                 <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>잔소리</Text>
@@ -369,7 +367,7 @@ const styles = StyleSheet.create({
   },
   iconWrap: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
   },
   notificationWrap: {
     flexDirection: 'row',
