@@ -1,10 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Keyboard, Pressable, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { HelperText, IconButton, TextInput } from 'react-native-paper';
-import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
@@ -48,11 +46,13 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
   }, [isModalOpen]);
 
   const onPressLogout = useCallback(() => {
+    Keyboard.dismiss();
     toggleModalOpen();
     setModalType('LOGOUT');
   }, [toggleModalOpen]);
 
   const onPressDeleteAccount = useCallback(() => {
+    Keyboard.dismiss();
     toggleModalOpen();
     setModalType('DELETE_ACCOUNT');
   }, [toggleModalOpen]);
@@ -86,123 +86,127 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
   const isButtonDisabled = useMemo(() => !nickname, [nickname]);
 
   return (
-    <KeyboardAwareScrollView contentContainerStyle={styles.container} disableScrollOnKeyboardHide={true}>
-      <View style={styles.contentWrap}>
-        <View style={styles.imageWrap}>
-          <Pressable
-            style={{ width: 50, height: 50 }}
-            onPress={() => {
-              navigate('BADGE_INFO');
-            }}
-          >
-            <Image
-              style={styles.image}
-              source={{
-                uri: 'https://ichef.bbci.co.uk/news/1536/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg.webp',
-              }}
-            />
-            <IconButton
-              style={{ position: 'relative', left: 25, bottom: 25 }}
-              icon="pencil-circle"
-              iconColor={theme.COLORS.GRAY_SCALE.GRAY_80}
-              size={22}
-            />
-          </Pressable>
-          <Text style={styles.badgeText}>뉴비기너</Text>
-        </View>
-        <View style={styles.formContainer}>
-          <View style={styles.field}>
-            <Controller
-              render={({ field: { onChange, value } }) => (
-                <View>
-                  <Text>닉네임</Text>
-                  <TextInput
-                    placeholder="닉네임을 입력해주세요."
-                    placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_60}
-                    activeUnderlineColor={theme.COLORS.GRAY_SCALE.GRAY_80}
-                    contentStyle={{
-                      paddingLeft: 0,
-                      backgroundColor: theme.COLORS.DEFAULT.WHITE,
-                    }}
-                    onChangeText={value => {
-                      onChange(value);
-
-                      // 값이 비어졌을 때 에러 초기화
-                      if (value !== '') {
-                        return;
-                      }
-                      clearErrors('nickname');
-                    }}
-                    onBlur={() => {
-                      if (!dirtyFields.nickname) {
-                        return;
-                      }
-
-                      // TODO: 이미 사용 중인 닉네임인지 여부 검사
-
-                      if (nickname.length < 2 || nickname.length > 7) {
-                        setError('nickname', { type: 'nickname', message: '* 닉네임 길이 조건을 확인해주세요.' });
-                        return;
-                      }
-
-                      if (nickname.match(/[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9/]/)) {
-                        setError('nickname', {
-                          type: 'nickname',
-                          message: '* 띄워쓰기, 특수문자는 사용할 수 없어요.',
-                        });
-                        return;
-                      }
-
-                      clearErrors('nickname');
-                    }}
-                    value={value}
-                  />
-                </View>
-              )}
-              control={control}
-              name="nickname"
-            />
-            {errors.nickname ? (
-              <HelperText type="error" padding="none" style={[styles.message, styles.error]}>
-                {errors.nickname.message as string}
-              </HelperText>
-            ) : (
-              <HelperText
-                type="info"
-                padding="none"
-                style={[styles.message, dirtyFields.nickname ? styles.valid : styles.default]}
+    <>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <View style={styles.contentWrap}>
+            <View style={styles.imageWrap}>
+              <Pressable
+                style={{ width: 50, height: 50 }}
+                onPress={() => {
+                  navigate('BADGE_INFO');
+                }}
               >
-                {/* TODO: 사용 가능한 닉네임인지 판단 여부 api 연동 필요 */}
-                {dirtyFields.nickname ? '사용 가능한 닉네임이에요.' : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
-              </HelperText>
-            )}
-          </View>
-          <Controller
-            render={({ field: { onChange, value } }) => (
-              <View>
-                <Text>자기소개</Text>
-                <TextInput
-                  placeholder="프로필에 멋진 자기소개를 입력해 보세요."
-                  placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_60}
-                  activeUnderlineColor={theme.COLORS.GRAY_SCALE.GRAY_80}
-                  contentStyle={{
-                    paddingLeft: 0,
-                    backgroundColor: theme.COLORS.DEFAULT.WHITE,
+                <Image
+                  style={styles.image}
+                  source={{
+                    uri: 'https://ichef.bbci.co.uk/news/1536/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg.webp',
                   }}
-                  onChangeText={onChange}
-                  value={value}
                 />
+                <IconButton
+                  style={{ position: 'relative', left: 25, bottom: 25 }}
+                  icon="pencil-circle"
+                  iconColor={theme.COLORS.GRAY_SCALE.GRAY_80}
+                  size={22}
+                />
+              </Pressable>
+              <Text style={styles.badgeText}>뉴비기너</Text>
+            </View>
+            <View style={styles.formContainer}>
+              <View style={styles.field}>
+                <Controller
+                  render={({ field: { onChange, value } }) => (
+                    <View>
+                      <Text>닉네임</Text>
+                      <TextInput
+                        placeholder="닉네임을 입력해주세요."
+                        placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_60}
+                        activeUnderlineColor={theme.COLORS.GRAY_SCALE.GRAY_80}
+                        contentStyle={{
+                          paddingLeft: 0,
+                          backgroundColor: theme.COLORS.DEFAULT.WHITE,
+                        }}
+                        onChangeText={value => {
+                          onChange(value);
+
+                          // 값이 비어졌을 때 에러 초기화
+                          if (value !== '') {
+                            return;
+                          }
+                          clearErrors('nickname');
+                        }}
+                        onBlur={() => {
+                          if (!dirtyFields.nickname) {
+                            return;
+                          }
+
+                          // TODO: 이미 사용 중인 닉네임인지 여부 검사
+
+                          if (nickname.length < 2 || nickname.length > 7) {
+                            setError('nickname', { type: 'nickname', message: '* 닉네임 길이 조건을 확인해주세요.' });
+                            return;
+                          }
+
+                          if (nickname.match(/[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9/]/)) {
+                            setError('nickname', {
+                              type: 'nickname',
+                              message: '* 띄워쓰기, 특수문자는 사용할 수 없어요.',
+                            });
+                            return;
+                          }
+
+                          clearErrors('nickname');
+                        }}
+                        value={value}
+                      />
+                    </View>
+                  )}
+                  control={control}
+                  name="nickname"
+                />
+                {errors.nickname ? (
+                  <HelperText type="error" padding="none" style={[styles.message, styles.error]}>
+                    {errors.nickname.message as string}
+                  </HelperText>
+                ) : (
+                  <HelperText
+                    type="info"
+                    padding="none"
+                    style={[styles.message, dirtyFields.nickname ? styles.valid : styles.default]}
+                  >
+                    {/* TODO: 사용 가능한 닉네임인지 판단 여부 api 연동 필요 */}
+                    {dirtyFields.nickname ? '사용 가능한 닉네임이에요.' : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
+                  </HelperText>
+                )}
               </View>
-            )}
-            control={control}
-            name="description"
-          />
+              <Controller
+                render={({ field: { onChange, value } }) => (
+                  <View>
+                    <Text>자기소개</Text>
+                    <TextInput
+                      placeholder="프로필에 멋진 자기소개를 입력해 보세요."
+                      placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_60}
+                      activeUnderlineColor={theme.COLORS.GRAY_SCALE.GRAY_80}
+                      contentStyle={{
+                        paddingLeft: 0,
+                        backgroundColor: theme.COLORS.DEFAULT.WHITE,
+                      }}
+                      onChangeText={onChange}
+                      value={value}
+                    />
+                  </View>
+                )}
+                control={control}
+                name="description"
+              />
+            </View>
+            <BasicMenu title="로그아웃" style={{ paddingLeft: 0, paddingRight: 0 }} onPress={onPressLogout} />
+            <Text style={styles.deleteAccount} onPress={onPressDeleteAccount}>
+              회원탈퇴
+            </Text>
+          </View>
         </View>
-        <BasicMenu title="로그아웃" style={{ paddingLeft: 0, paddingRight: 0 }} onPress={onPressLogout} />
-        <Text style={styles.deleteAccount} onPress={onPressDeleteAccount}>
-          회원탈퇴
-        </Text>
-      </View>
+      </TouchableWithoutFeedback>
       <Pressable
         style={[styles.button, !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_60 }]}
         disabled={isButtonDisabled}
@@ -232,23 +236,20 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
         onConfirm={onPressConfirmButton}
         onCancel={onPressCancelButton}
       />
-    </KeyboardAwareScrollView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     width: Dimensions.get('window').width,
-    minHeight: isAos
-      ? Dimensions.get('window').height - getStatusBarHeight() - 50
-      : Dimensions.get('window').height - getStatusBarHeight() - getBottomSpace() - 20,
     paddingTop: 11,
     paddingBottom: 26,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
     justifyContent: 'space-between',
   },
   contentWrap: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
   },
   imageWrap: {
     alignItems: 'center',
@@ -281,9 +282,10 @@ const styles = StyleSheet.create({
   },
   button: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    borderRadius: 8,
+    bottom: isAos ? 24 : getBottomSpace() + 24,
+    left: 20,
+    right: 20,
     justifyContent: 'center',
     alignItems: 'center',
     height: 64,
