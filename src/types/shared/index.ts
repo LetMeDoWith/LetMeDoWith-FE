@@ -74,6 +74,7 @@ type SettingStackParamList = {
     date: string;
   };
   POLICY: undefined;
+  ACCOUNT: undefined;
   BADGE_INFO: undefined;
 };
 

@@ -12,7 +12,7 @@ interface Props {
   content?: string;
 }
 
-const BasicMenu = ({ title, style, onPress, isArrowVisible = true, content }: Props) => (
+const BasicMenu = ({ title, style, onPress, isArrowVisible, content }: Props) => (
   <Pressable style={[styles.container, style]} onPress={onPress}>
     <Text>{title}</Text>
     {isArrowVisible && <ArrowRight fill={theme.COLORS.GRAY_SCALE.GRAY_40} />}
