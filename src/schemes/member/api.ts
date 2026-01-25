@@ -24,6 +24,12 @@ const signUpRequestScheme = z.object({
 
 const signUpResponseScheme = fetchTokenResponseScheme;
 
+const updateMemberRequestScheme = z.object({
+  nickname: z.string().describe('닉네임'),
+  selfDescription: z.string().describe('자기소개'),
+  profileImageUrl: z.string().describe('프로필 이미지 URL'),
+});
+
 const notificationSettingsRequestScheme = z.object({
   baseAlarmYn: z.boolean().describe('기본 알람 수신 여부'),
   todoBotYn: z.boolean().describe('투두 알림봇 알람 수신 여부'),
@@ -36,5 +42,6 @@ export {
   validNicknameResponseScheme,
   signUpRequestScheme,
   signUpResponseScheme,
+  updateMemberRequestScheme,
   notificationSettingsRequestScheme,
 };

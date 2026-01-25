@@ -4,6 +4,7 @@ const AUTH_API = {
 } as const;
 
 const MEMBER_API = {
+  BASE: 'v1/members',
   VALID_NICKNAME: 'v1/members/nickname',
   SIGN_UP: 'v1/members',
   DELETE_ACCOUNT: 'v1/members',
