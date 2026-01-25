@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Alert,
   Image,
@@ -16,12 +16,6 @@ import { getBottomSpace } from 'react-native-iphone-screen-helper';
 
 import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
-import { BasicMenu } from 'components/Mypage/Setting/Menu';
-import { ConfirmModal } from 'components/common/Modal';
-import { DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT, LOGOUT_CONFIRM_MODAL_CONTENT } from 'constants/Mypage';
-import { useDeleteAccount } from 'hooks/queries/member/useDeleteAccount';
-import { useStore } from 'stores/index';
-import { disposeNotificationLayer } from 'utils/notification';
 import { useValidNickname } from 'hooks/queries/member/useValidNickname';
 import { StatusCodeEnum } from 'schemes/shared/enum';
 import { Camera } from 'components/common/icons/Camera';
@@ -34,12 +28,6 @@ type FormData = {
 };
 
 const Myinfo = () => {
-  const { initAuthInfo } = useStore(({ authActions: { initAuthInfo } }) => ({
-    initAuthInfo,
-  }));
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<'LOGOUT' | 'DELETE_ACCOUNT' | null>(null);
-  const { mutate: mutateDeleteAccount } = useDeleteAccount();
   const {
     mutate: mutateValidNickname,
     isSuccess: isSuccessMutateValidNickname,
@@ -73,40 +61,6 @@ const Myinfo = () => {
   const profileImageUrl = watch('profileImageUrl');
 
   const isButtonDisabled = useMemo(() => !nickname || !!errors.nickname, [nickname, errors.nickname]);
-
-  const toggleModalOpen = useCallback(() => {
-    setIsModalOpen(!isModalOpen);
-  }, [isModalOpen]);
-
-  const onPressLogout = useCallback(() => {
-    Keyboard.dismiss();
-    toggleModalOpen();
-    setModalType('LOGOUT');
-  }, [toggleModalOpen]);
-
-  const onPressDeleteAccount = useCallback(() => {
-    Keyboard.dismiss();
-    toggleModalOpen();
-    setModalType('DELETE_ACCOUNT');
-  }, [toggleModalOpen]);
-
-  const onPressConfirmButton = useCallback(async () => {
-    toggleModalOpen();
-
-    if (modalType === 'LOGOUT') {
-      initAuthInfo();
-      disposeNotificationLayer();
-    }
-  }, [modalType, toggleModalOpen]);
-
-  const onPressCancelButton = useCallback(() => {
-    toggleModalOpen();
-
-    if (modalType === 'DELETE_ACCOUNT') {
-      mutateDeleteAccount();
-      return;
-    }
-  }, [modalType, mutateDeleteAccount, toggleModalOpen]);
 
   const handleProfileImage = () => {
     // TODO: 갤러리 선택 기능 연동
@@ -237,10 +191,6 @@ const Myinfo = () => {
                 name="selfDescription"
               />
             </View>
-            <BasicMenu title="로그아웃" style={{ paddingLeft: 0, paddingRight: 0 }} onPress={onPressLogout} />
-            <Text style={styles.deleteAccount} onPress={onPressDeleteAccount}>
-              회원탈퇴
-            </Text>
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -251,28 +201,6 @@ const Myinfo = () => {
       >
         <Text style={styles.buttonText}>저장하기</Text>
       </Pressable>
-      <ConfirmModal
-        visible={isModalOpen}
-        title={modalType === 'LOGOUT' ? LOGOUT_CONFIRM_MODAL_CONTENT.title : DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT.title}
-        description={
-          modalType === 'LOGOUT'
-            ? LOGOUT_CONFIRM_MODAL_CONTENT.description
-            : DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT.description
-        }
-        confirmText={
-          modalType === 'LOGOUT'
-            ? LOGOUT_CONFIRM_MODAL_CONTENT.confirmButtonText
-            : DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT.confirmButtonText
-        }
-        cancelText={
-          modalType === 'LOGOUT'
-            ? LOGOUT_CONFIRM_MODAL_CONTENT.cancelButtonText
-            : DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT.cancelButtonText
-        }
-        onDismiss={toggleModalOpen}
-        onConfirm={onPressConfirmButton}
-        onCancel={onPressCancelButton}
-      />
     </>
   );
 };
@@ -341,12 +269,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     color: theme.COLORS.DEFAULT.WHITE,
-  },
-  deleteAccount: {
-    fontSize: 12,
-    marginTop: 24,
-    color: theme.COLORS.GRAY_SCALE.GRAY_60,
-    alignSelf: 'flex-start',
   },
 });
 

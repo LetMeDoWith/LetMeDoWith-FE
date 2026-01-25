@@ -20,11 +20,12 @@ const Setting = ({ navigation: { navigate } }: SettingStackScreenProps<'DEFAULT'
 
   return (
     <View style={styles.container}>
-      <BasicMenu title="내 정보 관리" onPress={onPress('MYINFO')} />
-      <BasicMenu title="알림설정" onPress={onPress('NOTIFICATION')} />
-      <BasicMenu title="이벤트 & 공지사항" onPress={onPress('NOTICE')} />
-      <BasicMenu title="이용약관" onPress={onPress('POLICY')} />
-      <BasicMenu title="버전 정보" isArrowVisible={false} content={APP_VERSION} />
+      <BasicMenu title="내 정보 관리" onPress={onPress('MYINFO')} isArrowVisible />
+      <BasicMenu title="알림설정" onPress={onPress('NOTIFICATION')} isArrowVisible />
+      <BasicMenu title="이벤트 & 공지사항" onPress={onPress('NOTICE')} isArrowVisible />
+      <BasicMenu title="이용약관" onPress={onPress('POLICY')} isArrowVisible />
+      <BasicMenu title="계정 관리" onPress={onPress('ACCOUNT')} isArrowVisible />
+      <BasicMenu title="버전 정보" content={APP_VERSION} />
     </View>
   );
 };

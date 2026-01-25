@@ -31,8 +31,10 @@ const ConfirmModal = ({
     <Modal contentContainerStyle={styles.container} visible={visible} onDismiss={onDismiss}>
       <View style={styles.contentWrap}>
         <View style={styles.content}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description}>{description}</Text>
+          <Text style={[theme.TYPOGRAPHY.TITLE_3, { color: theme.COLORS.GRAY_SCALE.GRAY_20 }]}>{title}</Text>
+          <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_50, textAlign: 'center' }]}>
+            {description}
+          </Text>
         </View>
         <View style={styles.buttonGroup}>
           <Pressable
@@ -42,22 +44,24 @@ const ConfirmModal = ({
             ]}
             onPress={onCancel}
           >
-            <Text style={styles.buttonText}>{cancelText}</Text>
+            <Text style={[theme.TYPOGRAPHY.BODY_2, styles.buttonText, { color: theme.COLORS.GRAY_SCALE.GRAY_20 }]}>
+              {cancelText}
+            </Text>
           </Pressable>
           <Pressable
-            style={
-              type === 'outlined'
-                ? [styles.button, { borderBottomRightRadius: 8 }]
-                : [styles.button, { borderBottomRightRadius: 8, backgroundColor: theme.COLORS.PRIMARY.RED_60 }]
-            }
+            style={[
+              styles.button,
+              { borderBottomRightRadius: 8 },
+              type === 'contained' && { backgroundColor: theme.COLORS.PRIMARY.RED_60 },
+            ]}
             onPress={onConfirm}
           >
             <Text
-              style={
-                type === 'outlined'
-                  ? [styles.buttonText, styles.confirmButtonText]
-                  : [styles.buttonText, styles.confirmButtonText, { color: theme.COLORS.DEFAULT.WHITE }]
-              }
+              style={[
+                theme.TYPOGRAPHY.BODY_2,
+                { color: type === 'outlined' ? theme.COLORS.PRIMARY.RED_60 : theme.COLORS.DEFAULT.WHITE },
+                styles.buttonText,
+              ]}
             >
               {confirmText}
             </Text>
@@ -74,22 +78,15 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
     width: 280,
-    height: 158,
     borderRadius: 8,
   },
   contentWrap: {
-    height: '100%',
     justifyContent: 'space-between',
   },
   content: {
+    alignItems: 'center',
     padding: 20,
     gap: 14,
-  },
-  title: {
-    fontSize: 18,
-  },
-  description: {
-    fontSize: isAos ? 11 : 14,
   },
   buttonGroup: {
     flexDirection: 'row',
@@ -104,9 +101,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     textAlign: 'center',
-  },
-  confirmButtonText: {
-    color: theme.COLORS.PRIMARY.RED_60,
   },
 });
 
