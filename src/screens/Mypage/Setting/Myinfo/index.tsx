@@ -25,6 +25,7 @@ import { disposeNotificationLayer } from 'utils/notification';
 import { useValidNickname } from 'hooks/queries/member/useValidNickname';
 import { StatusCodeEnum } from 'schemes/shared/enum';
 import { Camera } from 'components/common/icons/Camera';
+import { useUpdateMember } from 'hooks/queries/member/useUpdateMember';
 
 type FormData = {
   nickname: string;
@@ -59,6 +60,12 @@ const Myinfo = () => {
       profileImageUrl: '',
     },
     mode: 'onBlur',
+  });
+  const { mutate: mutateUpdateMember } = useUpdateMember({
+    onSuccess: () => {
+      clearErrors();
+      resetMutateValidNickname();
+    },
   });
 
   const nickname = watch('nickname');
@@ -107,8 +114,7 @@ const Myinfo = () => {
   };
 
   const onSubmit = useCallback((values: FormData) => {
-    console.log(values);
-    // TODO: 회원 정보 수정 API 연동
+    mutateUpdateMember(values);
   }, []);
 
   return (

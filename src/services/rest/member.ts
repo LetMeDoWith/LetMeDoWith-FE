@@ -5,6 +5,7 @@ import type {
   notificationSettingsRequestSchemeType,
   signUpRequestSchemeType,
   signUpResponseSchemeType,
+  updateMemberRequestSchemeType,
   validNicknameRequestSchemeType,
   validNicknameResponseSchemeType,
 } from 'types/member/scheme/api';
@@ -21,6 +22,15 @@ const validNickname = async (payload: validNicknameRequestSchemeType): Promise<v
 const signUp = async (payload: signUpRequestSchemeType): Promise<signUpResponseSchemeType> => {
   try {
     const result = await apiClient.put<signUpResponseSchemeType>(MEMBER_API.SIGN_UP, payload);
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+const updateMember = async (payload: updateMemberRequestSchemeType): Promise<EmptyDataResponseSchemeType> => {
+  try {
+    const result = await apiClient.patch<signUpResponseSchemeType>(MEMBER_API.BASE, payload);
     return result.data;
   } catch (e) {
     throw e;
@@ -47,4 +57,4 @@ const updateNotificationSettings = async (
   }
 };
 
-export { validNickname, signUp, deleteAccount, updateNotificationSettings };
+export { validNickname, signUp, updateMember, deleteAccount, updateNotificationSettings };
