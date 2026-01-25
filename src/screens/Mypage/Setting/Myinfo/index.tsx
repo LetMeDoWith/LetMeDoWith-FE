@@ -1,7 +1,17 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, Image, Keyboard, Pressable, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  Keyboard,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+  TextInput,
+} from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
-import { HelperText, IconButton, TextInput } from 'react-native-paper';
+import { HelperText } from 'react-native-paper';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 
 import { theme } from 'styles/theme';
@@ -9,37 +19,53 @@ import { isAos } from 'utils/device';
 import { BasicMenu } from 'components/Mypage/Setting/Menu';
 import { ConfirmModal } from 'components/common/Modal';
 import { DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT, LOGOUT_CONFIRM_MODAL_CONTENT } from 'constants/Mypage';
-import type { SettingStackScreenProps } from 'types/shared';
 import { useDeleteAccount } from 'hooks/queries/member/useDeleteAccount';
 import { useStore } from 'stores/index';
 import { disposeNotificationLayer } from 'utils/notification';
+import { useValidNickname } from 'hooks/queries/member/useValidNickname';
+import { StatusCodeEnum } from 'schemes/shared/enum';
+import { Camera } from 'components/common/icons/Camera';
 
 type FormData = {
   nickname: string;
-  description: string;
+  selfDescription: string;
+  profileImageUrl: string;
 };
 
-const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>) => {
+const Myinfo = () => {
   const { initAuthInfo } = useStore(({ authActions: { initAuthInfo } }) => ({
     initAuthInfo,
   }));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'LOGOUT' | 'DELETE_ACCOUNT' | null>(null);
   const { mutate: mutateDeleteAccount } = useDeleteAccount();
+  const {
+    mutate: mutateValidNickname,
+    isSuccess: isSuccessMutateValidNickname,
+    reset: resetMutateValidNickname,
+  } = useValidNickname();
 
   const {
     watch,
     control,
-    formState: { errors, dirtyFields },
+    formState: { errors, dirtyFields, touchedFields },
     setError,
     clearErrors,
     handleSubmit,
   } = useForm<FormData>({
     defaultValues: {
       nickname: '',
-      description: '',
+      selfDescription: '',
+      profileImageUrl: '',
     },
+    mode: 'onBlur',
   });
+
+  const nickname = watch('nickname');
+  const selfDescription = watch('selfDescription');
+  const profileImageUrl = watch('profileImageUrl');
+
+  const isButtonDisabled = useMemo(() => !nickname || !!errors.nickname, [nickname, errors.nickname]);
 
   const toggleModalOpen = useCallback(() => {
     setIsModalOpen(!isModalOpen);
@@ -75,15 +101,15 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
     }
   }, [modalType, mutateDeleteAccount, toggleModalOpen]);
 
+  const handleProfileImage = () => {
+    // TODO: 갤러리 선택 기능 연동
+    console.log('클릭');
+  };
+
   const onSubmit = useCallback((values: FormData) => {
     console.log(values);
     // TODO: 회원 정보 수정 API 연동
   }, []);
-
-  const nickname = watch('nickname');
-
-  // TODO: 버튼 비활성화 기획에 맞게 수정 필요
-  const isButtonDisabled = useMemo(() => !nickname, [nickname]);
 
   return (
     <>
@@ -91,56 +117,40 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
         <View style={styles.container}>
           <View style={styles.contentWrap}>
             <View style={styles.imageWrap}>
-              <Pressable
-                style={{ width: 50, height: 50 }}
-                onPress={() => {
-                  navigate('BADGE_INFO');
-                }}
-              >
-                <Image
-                  style={styles.image}
-                  source={{
-                    uri: 'https://ichef.bbci.co.uk/news/1536/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg.webp',
-                  }}
-                />
-                <IconButton
-                  style={{ position: 'relative', left: 25, bottom: 25 }}
-                  icon="pencil-circle"
-                  iconColor={theme.COLORS.GRAY_SCALE.GRAY_80}
-                  size={22}
-                />
+              <Pressable style={{ width: 120, height: 120 }} onPress={handleProfileImage}>
+                {profileImageUrl ? (
+                  <Image
+                    style={styles.image}
+                    source={{
+                      uri: profileImageUrl,
+                    }}
+                  />
+                ) : (
+                  <View style={[styles.image, { backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96 }]} />
+                )}
+                <View style={{ position: 'absolute', right: -8, bottom: -8 }}>
+                  <Camera width={32} height={32} />
+                </View>
               </Pressable>
-              <Text style={styles.badgeText}>뉴비기너</Text>
             </View>
             <View style={styles.formContainer}>
               <View style={styles.field}>
                 <Controller
-                  render={({ field: { onChange, value } }) => (
-                    <View>
-                      <Text>닉네임</Text>
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <View style={styles.inputSection}>
+                      <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_60 }]}>닉네임</Text>
                       <TextInput
+                        style={styles.input}
                         placeholder="닉네임을 입력해주세요."
-                        placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_60}
-                        activeUnderlineColor={theme.COLORS.GRAY_SCALE.GRAY_80}
-                        contentStyle={{
-                          paddingLeft: 0,
-                          backgroundColor: theme.COLORS.DEFAULT.WHITE,
-                        }}
-                        onChangeText={value => {
-                          onChange(value);
-
-                          // 값이 비어졌을 때 에러 초기화
-                          if (value !== '') {
-                            return;
-                          }
-                          clearErrors('nickname');
-                        }}
+                        onChangeText={onChange}
                         onBlur={() => {
+                          onBlur();
+                          resetMutateValidNickname();
+
                           if (!dirtyFields.nickname) {
+                            clearErrors('nickname');
                             return;
                           }
-
-                          // TODO: 이미 사용 중인 닉네임인지 여부 검사
 
                           if (nickname.length < 2 || nickname.length > 7) {
                             setError('nickname', { type: 'nickname', message: '* 닉네임 길이 조건을 확인해주세요.' });
@@ -155,7 +165,23 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
                             return;
                           }
 
-                          clearErrors('nickname');
+                          mutateValidNickname(
+                            { nickname },
+                            {
+                              onSuccess: ({ statusCode, data }) => {
+                                if (statusCode !== StatusCodeEnum.enum.S100) {
+                                  setError('nickname', { type: 'nickname', message: `* ${data}.` });
+                                  return;
+                                }
+
+                                clearErrors('nickname');
+                              },
+                              onError: e => {
+                                Alert.alert('닉네임 중복 여부 검증에 실패했습니다.');
+                                console.error(e.response?.data);
+                              },
+                            },
+                          );
                         }}
                         value={value}
                       />
@@ -168,36 +194,41 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
                   <HelperText type="error" padding="none" style={[styles.message, styles.error]}>
                     {errors.nickname.message as string}
                   </HelperText>
-                ) : (
+                ) : touchedFields.nickname && isSuccessMutateValidNickname ? (
                   <HelperText
                     type="info"
                     padding="none"
-                    style={[styles.message, dirtyFields.nickname ? styles.valid : styles.default]}
+                    style={[
+                      styles.message,
+                      touchedFields.nickname && isSuccessMutateValidNickname ? styles.valid : styles.default,
+                    ]}
                   >
-                    {/* TODO: 사용 가능한 닉네임인지 판단 여부 api 연동 필요 */}
-                    {dirtyFields.nickname ? '사용 가능한 닉네임이에요.' : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
+                    사용 가능한 닉네임이에요.
                   </HelperText>
-                )}
+                ) : null}
               </View>
               <Controller
                 render={({ field: { onChange, value } }) => (
-                  <View>
-                    <Text>자기소개</Text>
+                  <View style={styles.inputSection}>
+                    <View style={styles.labelWrap}>
+                      <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_60 }]}>
+                        자기소개(선택)
+                      </Text>
+                      <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_60 }]}>
+                        {selfDescription.length}/20
+                      </Text>
+                    </View>
                     <TextInput
+                      style={styles.input}
                       placeholder="프로필에 멋진 자기소개를 입력해 보세요."
-                      placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_60}
-                      activeUnderlineColor={theme.COLORS.GRAY_SCALE.GRAY_80}
-                      contentStyle={{
-                        paddingLeft: 0,
-                        backgroundColor: theme.COLORS.DEFAULT.WHITE,
-                      }}
                       onChangeText={onChange}
                       value={value}
+                      maxLength={20}
                     />
                   </View>
                 )}
                 control={control}
-                name="description"
+                name="selfDescription"
               />
             </View>
             <BasicMenu title="로그아웃" style={{ paddingLeft: 0, paddingRight: 0 }} onPress={onPressLogout} />
@@ -242,10 +273,8 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
 
 const styles = StyleSheet.create({
   container: {
-    width: Dimensions.get('window').width,
     paddingTop: 11,
     paddingBottom: 26,
-    backgroundColor: theme.COLORS.DEFAULT.WHITE,
     justifyContent: 'space-between',
   },
   contentWrap: {
@@ -254,21 +283,33 @@ const styles = StyleSheet.create({
   imageWrap: {
     alignItems: 'center',
   },
-  badgeText: {
-    marginTop: 12,
-  },
   image: {
-    borderRadius: 10,
+    borderRadius: 40,
     width: '100%',
     height: '100%',
   },
   formContainer: {
-    gap: 26,
+    gap: 24,
     marginTop: 45,
   },
   field: { gap: 12 },
   default: {
     color: theme.COLORS.GRAY_SCALE.GRAY_60,
+  },
+  labelWrap: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  inputSection: {
+    gap: 8,
+  },
+  input: {
+    height: 48,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_80,
+    paddingHorizontal: 16,
+    color: theme.COLORS.DEFAULT.BLACK,
   },
   message: {
     paddingVertical: 0,
@@ -278,7 +319,7 @@ const styles = StyleSheet.create({
     color: theme.COLORS.SUB.BLUE_60,
   },
   error: {
-    color: theme.COLORS.PRIMARY.RED_60,
+    color: theme.COLORS.SUB.PINK_60,
   },
   button: {
     position: 'absolute',
