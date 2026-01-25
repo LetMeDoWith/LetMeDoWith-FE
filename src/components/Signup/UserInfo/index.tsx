@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Alert, BackHandler, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, BackHandler, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Controller, useFormContext } from 'react-hook-form';
 import { useFocusEffect } from '@react-navigation/native';
 import { HelperText } from 'react-native-paper';
@@ -117,6 +117,7 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
                       resetMutateValidNickname();
 
                       if (!dirtyFields.nickname) {
+                        clearErrors('nickname');
                         return;
                       }
 
