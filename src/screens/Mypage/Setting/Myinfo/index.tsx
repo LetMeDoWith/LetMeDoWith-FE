@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import {
   Alert,
   Image,
@@ -9,25 +9,32 @@ import {
   TouchableWithoutFeedback,
   View,
   TextInput,
+  Linking,
+  Dimensions,
 } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { HelperText } from 'react-native-paper';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 
+import type { SettingStackScreenProps } from 'types/shared';
 import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
 import { useValidNickname } from 'hooks/queries/member/useValidNickname';
 import { StatusCodeEnum } from 'schemes/shared/enum';
 import { Camera } from 'components/common/icons/Camera';
 import { useUpdateMember } from 'hooks/queries/member/useUpdateMember';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { BottomSheet } from 'components/common/BottomSheet';
+import { Gallery } from 'components/common/icons/Gallery';
+import { useDialog } from 'components/common/Dialog/Provider';
+import { updateMemberRequestSchemeType } from 'types/member/scheme/api';
 
-type FormData = {
-  nickname: string;
-  selfDescription: string;
-  profileImageUrl: string;
-};
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const Myinfo = () => {
+const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>) => {
+  const uploadImageBottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const { showDialog, hideDialog } = useDialog();
   const {
     mutate: mutateValidNickname,
     isSuccess: isSuccessMutateValidNickname,
@@ -37,11 +44,12 @@ const Myinfo = () => {
   const {
     watch,
     control,
+    setValue,
     formState: { errors, dirtyFields, touchedFields },
     setError,
     clearErrors,
     handleSubmit,
-  } = useForm<FormData>({
+  } = useForm<updateMemberRequestSchemeType>({
     defaultValues: {
       nickname: '',
       selfDescription: '',
@@ -51,6 +59,7 @@ const Myinfo = () => {
   });
   const { mutate: mutateUpdateMember } = useUpdateMember({
     onSuccess: () => {
+      navigate('DEFAULT');
       clearErrors();
       resetMutateValidNickname();
     },
@@ -60,14 +69,101 @@ const Myinfo = () => {
   const selfDescription = watch('selfDescription');
   const profileImageUrl = watch('profileImageUrl');
 
-  const isButtonDisabled = useMemo(() => !nickname || !!errors.nickname, [nickname, errors.nickname]);
+  const isButtonDisabled = useMemo(
+    () => !nickname || !isSuccessMutateValidNickname || !!errors.nickname,
+    [nickname, isSuccessMutateValidNickname, errors.nickname],
+  );
 
-  const handleProfileImage = () => {
-    // TODO: 갤러리 선택 기능 연동
-    console.log('클릭');
+  const handleProfileImage = (type: 'SELECT' | 'DELETE') => async () => {
+    const options = {
+      mediaType: 'photo' as const,
+      quality: 0.7 as const,
+    };
+
+    if (type === 'DELETE') {
+      uploadImageBottomSheetModalRef.current?.dismiss();
+      setValue('profileImageUrl', '');
+      return;
+    }
+
+    try {
+      // 카메라 촬영 또는 갤러리에서 선택
+      const result = await launchImageLibrary(options);
+
+      // 사용자가 취소한 경우
+      if (result.didCancel) {
+        console.log('사용자가 갤러리 접근을 취소했습니다');
+        return;
+      }
+
+      // 권한 거부 또는 에러 처리
+      if (result.errorCode) {
+        console.error('[갤러리 에러]:', result.errorCode, result.errorMessage);
+        // 권한 거부 에러인 경우만 다이얼로그 표시
+        const isPermissionDenied =
+          result.errorCode === 'permission' ||
+          result.errorCode === 'camera_unavailable' ||
+          result.errorCode === 'others';
+
+        if (isPermissionDenied) {
+          showDialog({
+            title: '갤러리 접근 권한 필요',
+            content: '갤러리 접근 권한을 허용해야 해요!\n기기 설정에서 권한을 변경할 수 있어요',
+            leftButtonText: '취소',
+            rightButtonText: '설정 바로가기',
+            handleLeftButton: () => hideDialog,
+            handleRightButton: () => {
+              Linking.openSettings();
+              hideDialog();
+            },
+          });
+        }
+
+        return;
+      }
+
+      // 이미지 선택 성공
+      if (result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+        const fileName = asset.fileName || 'photo.jpg';
+
+        const uri = asset.uri || '';
+        const photoFile = {
+          uri,
+          width: asset.width || 0,
+          height: asset.height || 0,
+          isRawPhoto: false,
+          orientation: 'portrait' as const,
+          isMirrored: false,
+        };
+
+        // TODO: 업로드 이미지 URL 발급 API 연동
+        // setValue('profileImageUrl', uri);
+      }
+    } catch (e) {
+      console.error('이미지 선택 중 에러 발생:', e);
+    }
+
+    uploadImageBottomSheetModalRef.current?.dismiss();
   };
 
-  const onSubmit = useCallback((values: FormData) => {
+  const renderBottomSheetContent = () => (
+    <>
+      <Pressable style={styles.modalContentRow} onPress={handleProfileImage('SELECT')}>
+        <Gallery />
+        <Text style={styles.modalContentText}>앨범에서 선택</Text>
+      </Pressable>
+      {profileImageUrl && (
+        <Pressable style={styles.modalContentRow} onPress={handleProfileImage('DELETE')}>
+          <Camera />
+          <Text style={styles.modalContentText}>프로필 사진 삭제</Text>
+        </Pressable>
+      )}
+    </>
+  );
+
+  const onSubmit = useCallback((values: updateMemberRequestSchemeType) => {
+    console.log(values);
     mutateUpdateMember(values);
   }, []);
 
@@ -77,7 +173,10 @@ const Myinfo = () => {
         <View style={styles.container}>
           <View style={styles.contentWrap}>
             <View style={styles.imageWrap}>
-              <Pressable style={{ width: 120, height: 120 }} onPress={handleProfileImage}>
+              <Pressable
+                style={{ width: 120, height: 120 }}
+                onPress={() => uploadImageBottomSheetModalRef.current?.present()}
+              >
                 {profileImageUrl ? (
                   <Image
                     style={styles.image}
@@ -201,6 +300,14 @@ const Myinfo = () => {
       >
         <Text style={styles.buttonText}>저장하기</Text>
       </Pressable>
+      <BottomSheet
+        ref={uploadImageBottomSheetModalRef}
+        title="프로필 이미지 업로드"
+        description="프로필 이미지를 업로드 합니다."
+        snapPoints={[`${((profileImageUrl ? 220 : 170) / SCREEN_HEIGHT) * 100}%`]}
+      >
+        <View style={styles.modalContainer}>{renderBottomSheetContent()}</View>
+      </BottomSheet>
     </>
   );
 };
@@ -270,6 +377,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: theme.COLORS.DEFAULT.WHITE,
   },
+  modalContainer: {
+    paddingVertical: 24,
+    gap: 20,
+  },
+  modalContentRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalContentText: theme.TYPOGRAPHY.BODY_1,
 });
 
 export { Myinfo };
