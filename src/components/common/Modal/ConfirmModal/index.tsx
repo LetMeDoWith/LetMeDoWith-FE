@@ -2,7 +2,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Modal, Portal } from 'react-native-paper';
 
 import { theme } from 'styles/theme';
-import { isAos } from 'utils/device';
 
 interface Props {
   visible: boolean;

@@ -369,7 +369,7 @@ const Item = ({
                 width={24}
                 height={24}
                 source={{
-                  uri: successImageUrls[0],
+                  uri: successImageUrls[0].split('?')[0],
                 }}
               />
             )}
