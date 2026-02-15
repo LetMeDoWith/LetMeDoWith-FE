@@ -100,7 +100,8 @@ const uploadTaskSuccessImageUrlListRequestScheme = z.object({
 
 const uploadTaskSuccessImageUrlListResponseScheme = BaseResponseScheme.extend({
   data: z.object({
-    presignedUrls: z.array(z.string()).describe('이미지 업로드 할 url 리스트'),
+    publicImageUrls: z.array(z.string()).describe('이미지를 접근할 url 리스트'),
+    presignedUrls: z.array(z.string()).describe('이미지를 업로드할 url 리스트'),
     method: z.string(),
   }),
 });
