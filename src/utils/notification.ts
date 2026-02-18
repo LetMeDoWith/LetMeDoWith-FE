@@ -16,6 +16,16 @@ let unsubAppState: (() => void) | null = null;
 const CHANNEL_ID = 'default';
 
 /**
+ * 시스템 알림 권한 허용 여부를 확인하는 함수
+ * - AUTHORIZED 이상인 경우 true 반환
+ * - DENIED / NOT_DETERMINED 인 경우 false 반환
+ */
+const checkSystemPermission = async (): Promise<boolean> => {
+  const settings = await notifee.getNotificationSettings();
+  return settings.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
+};
+
+/**
  * 알림 설정을 서버와 FE 상태에 동기화하는 함수
  */
 const syncNotificationSettings = async (authorized: boolean) => {
@@ -315,4 +325,10 @@ const disposeNotificationLayer = () => {
   console.log('✅ [disposeNotificationLayer] 완료');
 };
 
-export { initNotificationLayer, ensurePermissionWatcher, disposeNotificationLayer, handleBackgroundMessage };
+export {
+  initNotificationLayer,
+  ensurePermissionWatcher,
+  disposeNotificationLayer,
+  handleBackgroundMessage,
+  checkSystemPermission,
+};

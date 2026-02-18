@@ -1,9 +1,12 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, View, Linking } from 'react-native';
 
 import { NotificationMenu } from 'components/Mypage/Setting/Menu';
 import { useStore } from 'stores/index';
 import { useNotificationSettings } from 'hooks/queries/member/useNotificationSettings';
+import { useAppState } from 'hooks/shared/useAppState';
+import { checkSystemPermission } from 'utils/notification';
+import { useDialog } from 'components/common/Dialog/Provider';
 
 const Notification = () => {
   const { base, todoBot, marketing, feedback, updateNotificationSettings } = useStore(
@@ -13,21 +16,56 @@ const Notification = () => {
     }) => ({ base, todoBot, marketing, feedback, updateNotificationSettings }),
   );
   const { mutate } = useNotificationSettings();
+  const { showDialog, hideDialog } = useDialog();
+
+  const syncIfPermissionDenied = async () => {
+    const isGranted = await checkSystemPermission();
+    if (!isGranted) {
+      updateNotificationSettings({ base: false, todoBot: false, feedback: false, marketing: false });
+      mutate({ baseAlarmYn: false, todoBotYn: false, feedbackYn: false, marketingYn: false });
+    }
+  };
+
+  // active 복귀 시 권한 동기화
+  useAppState(state => {
+    if (state === 'active') {
+      syncIfPermissionDenied();
+    }
+  });
+
+  // 화면 최초 진입 시 체크 (useAppState는 변경 이벤트만 감지)
+  useEffect(() => {
+    syncIfPermissionDenied();
+  }, []);
 
   const handleValue =
     ({ name, value }: { name: string; value: boolean }) =>
-    () => {
+    async () => {
+      // 알림 설정을 켰을 때 시스템 알림이 꺼져 있을경우 설정으로 이동할 수 있는 Dialog 노출
+      if (value) {
+        const isGranted = await checkSystemPermission();
+        if (!isGranted) {
+          showDialog({
+            type: 'ALERT',
+            title: '기기 알람 설정 꺼짐',
+            content: '현재 기기 알림이 꺼져 있습니다. 알림을 받으\n시려면 설정에서 허용해 주세요',
+            alertButtonText: '설정으로 이동',
+            handleAlertButton: () => {
+              Linking.openSettings();
+              hideDialog();
+            },
+          });
+
+          return;
+        }
+      }
+
       updateNotificationSettings({ [name]: value });
       const {
         notificationSettings: { base, todoBot, feedback, marketing },
       } = useStore.getState();
 
-      mutate({
-        baseAlarmYn: base,
-        todoBotYn: todoBot,
-        feedbackYn: feedback,
-        marketingYn: marketing,
-      });
+      mutate({ baseAlarmYn: base, todoBotYn: todoBot, feedbackYn: feedback, marketingYn: marketing });
     };
 
   return (
