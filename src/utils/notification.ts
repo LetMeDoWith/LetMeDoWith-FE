@@ -16,6 +16,16 @@ let unsubAppState: (() => void) | null = null;
 const CHANNEL_ID = 'default';
 
 /**
+ * 시스템 알림 권한 허용 여부를 확인하는 함수
+ * - AUTHORIZED 이상인 경우 true 반환
+ * - DENIED / NOT_DETERMINED 인 경우 false 반환
+ */
+const checkSystemPermission = async (): Promise<boolean> => {
+  const settings = await notifee.getNotificationSettings();
+  return settings.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
+};
+
+/**
  * 알림 설정을 서버와 FE 상태에 동기화하는 함수
  */
 const syncNotificationSettings = async (authorized: boolean) => {
@@ -155,7 +165,7 @@ const initNotificationLayer = async (options?: {
   // 현재 권한 확인
   console.log('🔐 [initNotificationLayer] 권한 확인 중...');
   const currentSetting = await notifee.getNotificationSettings();
-  let authorized = currentSetting.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
+  let authorized = await checkSystemPermission();
   console.log('[initNotificationLayer] 현재 권한 상태:', currentSetting.authorizationStatus, '허용됨:', authorized);
 
   // 이미 알림 설정이 거부된 경우
@@ -230,19 +240,21 @@ const initNotificationLayer = async (options?: {
   initialized = true;
   console.log('🎉 [initNotificationLayer] 초기화 완료!');
 
-  // 권한 감시 리스너는 더 이상 불필요하면 제거
+  // 기존 watcher를 제거하고, 권한 변경 감시 watcher를 재등록
   if (unsubAppState) {
-    console.log('🗑️ [initNotificationLayer] 권한 watcher 제거');
+    console.log('🔄 [initNotificationLayer] 기존 watcher 제거 후 재등록');
     unsubAppState();
     unsubAppState = null;
   }
+  ensurePermissionWatcher(options);
 };
 
 /**
- * 권한이 거부된 상태에서 앱이 Foreground로 복귀했을 때,
- * 다시 권한 상태를 체크하여 허용으로 변경되면 initNotificationLayer를 재호출한다.
+ * 앱이 Foreground로 복귀할 때마다 시스템 알림 권한 상태를 체크하여
+ * 앱 상태와 동기화하는 단일 watcher.
  *
- * - AppStateProvider의 subscribe 함수를 통해 AppState를 구독한다.
+ * - denied → granted: initNotificationLayer를 재호출하여 알림 레이어를 초기화한다.
+ * - granted → denied: 알림 설정을 모두 false로 동기화하고 리스너를 해제한다.
  *
  * @param options initNotificationLayer와 동일한 콜백 옵션
  */
@@ -269,18 +281,23 @@ const ensurePermissionWatcher = (options?: Parameters<typeof initNotificationLay
       return;
     }
 
-    // 권한 상태 재확인
-    console.log('🔐 [ensurePermissionWatcher] 권한 재확인 중...');
-    const settings = await notifee.getNotificationSettings();
-    const authorized = settings.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
-    console.log('권한 상태:', settings.authorizationStatus, '허용됨:', authorized);
+    const authorized = await checkSystemPermission();
 
-    if (authorized) {
+    if (authorized && !initialized) {
+      // denied → granted: 재초기화
       console.log('✅ [ensurePermissionWatcher] 권한 허용됨, 초기화 재시도');
-      await syncNotificationSettings(true);
       await initNotificationLayer(options);
-    } else {
-      console.log('❌ [ensurePermissionWatcher] 여전히 권한 거부됨');
+    } else if (!authorized && initialized) {
+      // granted → denied: 설정 동기화 및 리스너 해제
+      console.log('🔔 [ensurePermissionWatcher] 시스템 알림 권한이 거부됨, 설정 동기화');
+      await syncNotificationSettings(false);
+
+      unsubOnMessage?.();
+      unsubOnMessage = null;
+      unsubOnTokenRefresh?.();
+      unsubOnTokenRefresh = null;
+      initialized = false;
+      channelCreated = false;
     }
   });
 };
@@ -315,4 +332,10 @@ const disposeNotificationLayer = () => {
   console.log('✅ [disposeNotificationLayer] 완료');
 };
 
-export { initNotificationLayer, ensurePermissionWatcher, disposeNotificationLayer, handleBackgroundMessage };
+export {
+  initNotificationLayer,
+  ensurePermissionWatcher,
+  disposeNotificationLayer,
+  handleBackgroundMessage,
+  checkSystemPermission,
+};
