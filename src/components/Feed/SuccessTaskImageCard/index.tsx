@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { theme } from 'styles/theme';
@@ -13,10 +13,11 @@ interface Props {
   title: string;
   profileImageUrl: string;
   userName: string;
+  onPress?: () => void;
 }
 
-const SuccessTaskImageCard = ({ successImageUrl, title, profileImageUrl, userName }: Props) => (
-  <View style={styles.card}>
+const SuccessTaskImageCard = ({ successImageUrl, title, profileImageUrl, userName, onPress }: Props) => (
+  <Pressable style={styles.card} onPress={onPress}>
     <Image source={{ uri: successImageUrl }} style={styles.successImage} />
     <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.8)']} style={styles.overlay}>
       <Text style={styles.title} numberOfLines={1}>
@@ -27,7 +28,7 @@ const SuccessTaskImageCard = ({ successImageUrl, title, profileImageUrl, userNam
         <Text style={[theme.TYPOGRAPHY.CAPTION_2, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>{userName}</Text>
       </View>
     </LinearGradient>
-  </View>
+  </Pressable>
 );
 
 const styles = StyleSheet.create({
