@@ -1,18 +1,11 @@
 import React, { useCallback } from 'react';
-import { Dimensions, FlatList, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, FlatList, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { theme } from 'styles/theme';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
-import { LikeIcon } from 'components/common/icons/LikeIcon';
-
-type SuccessImageItem = {
-  successImageUrl: string;
-  title: string;
-  profileImageUrl: string;
-  userName: string;
-  likeCount: number;
-};
+import { SuccessTaskImageDetailItem } from 'components/Feed';
+import type { SuccessImageItem } from 'types/Feed';
 
 interface Props {
   visible: boolean;
@@ -26,36 +19,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SuccessTaskImageDetail = ({ visible, data, initialIndex, onClose }: Props) => {
   const insets = useSafeAreaInsets();
 
-  const renderPage = useCallback(
-    ({ item }: { item: SuccessImageItem }) => (
-      <View style={styles.page}>
-        <View style={styles.imageWrapper}>
-          <Image source={{ uri: item.successImageUrl }} style={styles.image} resizeMode="cover" />
-        </View>
-        <View style={styles.infoSection}>
-          <Text style={[theme.TYPOGRAPHY.TITLE_1, { color: theme.COLORS.DEFAULT.WHITE }]} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <View style={styles.bottomRow}>
-            <View style={styles.profileRow}>
-              <Image source={{ uri: item.profileImageUrl }} style={styles.profileImage} />
-              <Text style={styles.userName}>{item.userName}</Text>
-            </View>
-            <Pressable style={styles.likeButton}>
-              <LikeIcon
-                {...(item.likeCount > 0 && {
-                  fill: theme.COLORS.STATUS.RED_55,
-                  stroke: theme.COLORS.STATUS.RED_55,
-                })}
-              />
-              {item.likeCount > 0 && (
-                <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.DEFAULT.WHITE }]}>{item.likeCount}</Text>
-              )}
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    ),
+  const renderItem = useCallback(
+    ({ item }: { item: SuccessImageItem }) => <SuccessTaskImageDetailItem item={item} />,
     [],
   );
 
@@ -74,7 +39,7 @@ const SuccessTaskImageDetail = ({ visible, data, initialIndex, onClose }: Props)
           showsHorizontalScrollIndicator={false}
           initialScrollIndex={initialIndex}
           getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
-          renderItem={renderPage}
+          renderItem={renderItem}
           keyExtractor={(_, index) => index.toString()}
           style={styles.contentList}
           contentContainerStyle={styles.contentContainer}
@@ -95,51 +60,10 @@ const styles = StyleSheet.create({
   contentContainer: {
     alignItems: 'center',
   },
-  page: {
-    width: SCREEN_WIDTH,
-    justifyContent: 'center',
-  },
   header: {
     alignItems: 'flex-end',
     paddingHorizontal: 20,
     paddingTop: 32,
-  },
-  imageWrapper: {
-    width: '100%',
-    aspectRatio: 0.75,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  infoSection: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    gap: 12,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  profileImage: {
-    width: 24,
-    height: 24,
-    borderRadius: 16,
-  },
-  userName: {
-    color: theme.COLORS.GRAY_SCALE.GRAY_80,
-    fontSize: 14,
-  },
-  likeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
   },
 });
 

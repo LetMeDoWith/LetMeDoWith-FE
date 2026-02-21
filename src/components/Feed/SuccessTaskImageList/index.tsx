@@ -5,8 +5,7 @@ import { BlueCamera } from 'components/common/icons/BlueCamera';
 import { SuccessTaskImageCard, SuccessTaskImageDetail } from 'components/Feed';
 import { theme } from 'styles/theme';
 import { SUCCESS_TASK_IMAGE_ITEM_GAP, SUCCESS_TASK_IMAGE_ITEM_WIDTH } from 'constants/Feed';
-
-type SuccessImage = (typeof MOCK_SUCCESS_IMAGES)[number];
+import type { SuccessImageItem } from 'types/Feed';
 
 const ItemSeparator = () => <View style={{ width: SUCCESS_TASK_IMAGE_ITEM_GAP }} />;
 
@@ -74,7 +73,7 @@ const SuccessTaskImageList = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: SuccessImage; index: number }) => (
+    ({ item, index }: { item: SuccessImageItem; index: number }) => (
       <SuccessTaskImageCard {...item} onPress={() => setSelectedIndex(index)} />
     ),
     [],
