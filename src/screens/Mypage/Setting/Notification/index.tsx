@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Linking } from 'react-native';
 
 import { NotificationMenu } from 'components/Mypage/Setting/Menu';
@@ -17,25 +17,44 @@ const Notification = () => {
   );
   const { mutate } = useNotificationSettings();
   const { showDialog, hideDialog } = useDialog();
+  const pendingToggleRef = useRef<{ name: string; value: boolean } | null>(null);
 
-  const syncIfPermissionDenied = async () => {
+  const syncPermissionState = async () => {
     const isGranted = await checkSystemPermission();
+
     if (!isGranted) {
       updateNotificationSettings({ base: false, todoBot: false, feedback: false, marketing: false });
       mutate({ baseAlarmYn: false, todoBotYn: false, feedbackYn: false, marketingYn: false });
+      pendingToggleRef.current = null;
+      return;
+    }
+
+    // 시스템 알림 허용 상태에서 pending toggle이 있으면 적용
+    if (pendingToggleRef.current) {
+      const { name, value } = pendingToggleRef.current;
+      pendingToggleRef.current = null;
+
+      updateNotificationSettings({ [name]: value });
+      const { notificationSettings } = useStore.getState();
+      mutate({
+        baseAlarmYn: notificationSettings.base,
+        todoBotYn: notificationSettings.todoBot,
+        feedbackYn: notificationSettings.feedback,
+        marketingYn: notificationSettings.marketing,
+      });
     }
   };
 
-  // active 복귀 시 권한 동기화
+  // active 복귀 시 권한 동기화 + pending toggle 적용
   useAppState(state => {
     if (state === 'active') {
-      syncIfPermissionDenied();
+      syncPermissionState();
     }
   });
 
   // 화면 최초 진입 시 체크 (useAppState는 변경 이벤트만 감지)
   useEffect(() => {
-    syncIfPermissionDenied();
+    syncPermissionState();
   }, []);
 
   const handleValue =
@@ -45,6 +64,8 @@ const Notification = () => {
       if (value) {
         const isGranted = await checkSystemPermission();
         if (!isGranted) {
+          pendingToggleRef.current = { name, value };
+
           showDialog({
             type: 'ALERT',
             title: '기기 알람 설정 꺼짐',

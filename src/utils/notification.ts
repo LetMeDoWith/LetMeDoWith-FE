@@ -36,9 +36,9 @@ const syncNotificationSettings = async (authorized: boolean) => {
 
   const settings = authorized
     ? {
-        baseAlarmYn: notificationSettings.base,
-        todoBotYn: notificationSettings.todoBot,
-        feedbackYn: notificationSettings.feedback,
+        baseAlarmYn: true,
+        todoBotYn: true,
+        feedbackYn: true,
         marketingYn: notificationSettings.marketing,
       }
     : {
