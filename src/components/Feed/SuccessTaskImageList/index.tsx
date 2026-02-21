@@ -71,10 +71,12 @@ const MOCK_SUCCESS_IMAGES = [
 ];
 
 const SuccessTaskImageList = () => {
-  const [selectedItem, setSelectedItem] = useState<SuccessImage | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const renderItem = useCallback(
-    ({ item }: { item: SuccessImage }) => <SuccessTaskImageCard {...item} onPress={() => setSelectedItem(item)} />,
+    ({ item, index }: { item: SuccessImage; index: number }) => (
+      <SuccessTaskImageCard {...item} onPress={() => setSelectedIndex(index)} />
+    ),
     [],
   );
 
@@ -95,8 +97,13 @@ const SuccessTaskImageList = () => {
         renderItem={renderItem}
         keyExtractor={(_, index) => index.toString()}
       />
-      {selectedItem && (
-        <SuccessTaskImageDetail {...selectedItem} visible={!!selectedItem} onClose={() => setSelectedItem(null)} />
+      {selectedIndex !== null && (
+        <SuccessTaskImageDetail
+          visible
+          data={MOCK_SUCCESS_IMAGES}
+          initialIndex={selectedIndex}
+          onClose={() => setSelectedIndex(null)}
+        />
       )}
     </View>
   );
