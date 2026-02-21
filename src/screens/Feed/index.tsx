@@ -1,10 +1,12 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+
+import { SuccessTaskImageList } from 'components/Feed';
 
 const Feed = () => {
   return (
     <View>
-      <Text>Feed</Text>
+      <SuccessTaskImageList />
     </View>
   );
 };
