@@ -4,4 +4,5 @@ declare module 'react-native-config' {
   const GOOGLE_WEB_CLIENT_ID: string;
   const REVERSED_CLIENT_ID: string;
   const DEV_API_URL: string;
+  const ENABLE_DEVTOOLS: string;
 }

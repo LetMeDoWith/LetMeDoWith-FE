@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -17,6 +17,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import Config from 'react-native-config';
 
 import { Login } from 'screens/Login';
 import { HomeStackNavigator } from 'components/navigators/Stack/Home';
@@ -30,6 +31,12 @@ import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
 import { initNotificationLayer } from 'utils/notification';
 import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotificationToken';
 import { AppStateProvider, AppStateContext, useAppState } from 'hooks/shared/useAppState';
+
+export const navigationRef = createNavigationContainerRef();
+
+const ENABLE_DEVTOOLS = __DEV__ || Config.ENABLE_DEVTOOLS === 'true';
+
+const DevToolsRoot = ENABLE_DEVTOOLS ? require('components/__dev__/DevToolsRoot').DevToolsRoot : () => null;
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(customParseFormat);
@@ -206,7 +213,9 @@ function AppContent() {
           <KeyboardProvider>
             <GestureHandlerRootView style={styles.gestureHandlerRoot}>
               <BottomSheetModalProvider>
-                <NavigationContainer>{isNeedSignUp ? <Signup /> : <HomeStackNavigator />}</NavigationContainer>
+                <NavigationContainer ref={navigationRef}>
+                  {isNeedSignUp ? <Signup /> : <HomeStackNavigator />}
+                </NavigationContainer>
               </BottomSheetModalProvider>
             </GestureHandlerRootView>
           </KeyboardProvider>
@@ -221,17 +230,24 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeContext.Provider value={theme}>
-        <PaperProvider>
-          <DialogProvider>
-            <AppStateProvider>
-              <AppContent />
-            </AppStateProvider>
-          </DialogProvider>
-        </PaperProvider>
-      </ThemeContext.Provider>
-    </QueryClientProvider>
+    <>
+      <QueryClientProvider client={queryClient}>
+        <ThemeContext.Provider value={theme}>
+          <PaperProvider>
+            <DialogProvider>
+              <AppStateProvider>
+                <AppContent />
+              </AppStateProvider>
+            </DialogProvider>
+          </PaperProvider>
+        </ThemeContext.Provider>
+      </QueryClientProvider>
+      {ENABLE_DEVTOOLS && (
+        <GestureHandlerRootView style={styles.devToolsContainer} pointerEvents="box-none">
+          <DevToolsRoot />
+        </GestureHandlerRootView>
+      )}
+    </>
   );
 }
 
@@ -239,6 +255,11 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   gestureHandlerRoot: {
     flex: 1,
+  },
+  devToolsContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 99999,
+    elevation: 99999,
   },
 });
 
