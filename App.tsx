@@ -211,13 +211,11 @@ function AppContent() {
       {isLoggedIn ? (
         <SafeAreaProvider>
           <KeyboardProvider>
-            <GestureHandlerRootView style={styles.gestureHandlerRoot}>
-              <BottomSheetModalProvider>
-                <NavigationContainer ref={navigationRef}>
-                  {isNeedSignUp ? <Signup /> : <HomeStackNavigator />}
-                </NavigationContainer>
-              </BottomSheetModalProvider>
-            </GestureHandlerRootView>
+            <BottomSheetModalProvider>
+              <NavigationContainer ref={navigationRef}>
+                {isNeedSignUp ? <Signup /> : <HomeStackNavigator />}
+              </NavigationContainer>
+            </BottomSheetModalProvider>
           </KeyboardProvider>
         </SafeAreaProvider>
       ) : (
@@ -230,7 +228,7 @@ function AppContent() {
 
 function App() {
   return (
-    <>
+    <GestureHandlerRootView style={styles.container}>
       <QueryClientProvider client={queryClient}>
         <ThemeContext.Provider value={theme}>
           <PaperProvider>
@@ -243,23 +241,19 @@ function App() {
         </ThemeContext.Provider>
       </QueryClientProvider>
       {ENABLE_DEVTOOLS && (
-        <GestureHandlerRootView style={styles.devToolsContainer} pointerEvents="box-none">
+        <View style={styles.devToolsContainer} pointerEvents="box-none">
           <DevToolsRoot />
-        </GestureHandlerRootView>
+        </View>
       )}
-    </>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  gestureHandlerRoot: {
-    flex: 1,
-  },
   devToolsContainer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 99999,
-    elevation: 99999,
   },
 });
 
