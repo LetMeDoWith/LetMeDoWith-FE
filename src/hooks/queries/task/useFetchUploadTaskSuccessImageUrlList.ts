@@ -18,9 +18,9 @@ const useUploadDowithTaskSuccessImageList = (id: number) => {
         return;
       }
 
-      // 1. Presigned URL 리스트 받기
+      // 1. 업로드 관련 URL 리스트 받기(public, presigned)
       const {
-        data: { presignedUrls },
+        data: { presignedUrls, publicImageUrls },
       } = await fetchUploadTaskSuccessImageUrlList(id, { imageFileNames });
 
       // 2. S3에 직접 이미지 업로드
@@ -30,7 +30,7 @@ const useUploadDowithTaskSuccessImageList = (id: number) => {
 
       // 3. 이미지 업로드 완료 API 호출
       await updateDowithTaskStatusSuccess(id, {
-        publicImageUrls: presignedUrls,
+        publicImageUrls,
       });
     },
     onSuccess: async () => {
