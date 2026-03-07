@@ -13,6 +13,7 @@ import type {
   fetchTodoTaskRequestSchemeType,
   fetchTodoTaskResponseSchemeType,
   fetchSuccessDowithTasksResponseSchemeType,
+  likeDowithTaskResponseSchemeType,
   updateTaskRequestSchemeType,
   updateTaskRoutineRequestSchemeType,
   updateTodoTaskStatusResponseSchemeType,
@@ -208,6 +209,17 @@ const fetchSuccessDowithTasks = async (
   }
 };
 
+const likeDowithTask = async (dowithTaskId: number): Promise<likeDowithTaskResponseSchemeType> => {
+  try {
+    const result = await apiClient.post<likeDowithTaskResponseSchemeType>(
+      TASK_API.LIKE_DOWITH.replace(':id', String(dowithTaskId)),
+    );
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 export {
   fetchTaskCategoryList,
   fetchTaskList,
@@ -222,4 +234,5 @@ export {
   updateDowithTaskStatusSuccess,
   uploadFileToBucket,
   fetchSuccessDowithTasks,
+  likeDowithTask,
 };

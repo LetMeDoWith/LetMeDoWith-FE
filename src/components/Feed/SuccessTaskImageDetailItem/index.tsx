@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming } from 'react-native-reanimated';
 
 import { theme } from 'styles/theme';
 import { LikeIcon } from 'components/common/icons/LikeIcon';
+import { useLikeDowithTask } from 'hooks/queries/task/useLikeDowithTask';
 import type { successDowithTaskSchemeType } from 'types/task/scheme/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const SuccessTaskImageDetailItem = ({
+  id,
   successImageUrl,
   title,
   profileImageUrl,
   nickname,
-  isLiked: initialIsLiked,
+  isLiked,
   likeCount,
 }: successDowithTaskSchemeType) => {
-  const [isLiked, setIsLiked] = useState(initialIsLiked);
   const scale = useSharedValue(1);
-  const displayCount = likeCount + (isLiked && !initialIsLiked ? 1 : !isLiked && initialIsLiked ? -1 : 0);
+  const { mutate: likeDowithTask } = useLikeDowithTask();
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -27,8 +28,9 @@ const SuccessTaskImageDetailItem = ({
   const handleLike = () => {
     if (!isLiked) {
       scale.value = withSequence(withTiming(1.4, { duration: 150 }), withTiming(1, { duration: 150 }));
+      likeDowithTask(id);
     }
-    setIsLiked(prev => !prev);
+    // TODO: 좋아요 취소 API 연동
   };
 
   return (
@@ -49,8 +51,8 @@ const SuccessTaskImageDetailItem = ({
             <Animated.View style={animatedStyle}>
               <LikeIcon {...(isLiked && { fill: theme.COLORS.STATUS.RED_55, stroke: theme.COLORS.STATUS.RED_55 })} />
             </Animated.View>
-            {displayCount > 0 && (
-              <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.DEFAULT.WHITE }]}>{displayCount}</Text>
+            {likeCount > 0 && (
+              <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.DEFAULT.WHITE }]}>{likeCount}</Text>
             )}
           </Pressable>
         </View>

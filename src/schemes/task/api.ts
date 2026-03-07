@@ -119,6 +119,13 @@ const successDowithTaskScheme = z.object({
   likeCount: z.number().describe('좋아요 수'),
 });
 
+const likeDowithTaskResponseScheme = BaseResponseScheme.extend({
+  data: z.object({
+    isAlreadyLiked: z.boolean().describe('이미 좋아요가 눌려져있는지 여부'),
+    likeCount: z.number().describe('좋아요 수'),
+  }),
+});
+
 const fetchSuccessDowithTasksResponseScheme = BasePageResponseScheme.extend({
   data: z.object({
     successDowithTasks: z.array(successDowithTaskScheme),
@@ -147,5 +154,6 @@ export {
   uploadTaskSuccessImageUrlListResponseScheme,
   updateDowithTaskStatusSuccessRequestScheme,
   successDowithTaskScheme,
+  likeDowithTaskResponseScheme,
   fetchSuccessDowithTasksResponseScheme,
 };
