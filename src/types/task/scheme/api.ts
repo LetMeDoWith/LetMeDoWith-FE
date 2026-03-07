@@ -22,6 +22,7 @@ import {
   uploadTaskSuccessImageUrlListResponseScheme,
   updateDowithTaskStatusSuccessRequestScheme,
   successDowithTaskScheme,
+  likeDowithTaskResponseScheme,
   fetchSuccessDowithTasksResponseScheme,
 } from 'schemes/task/api';
 
@@ -46,6 +47,7 @@ type uploadTaskSuccessImageUrlListRequestSchemeType = z.infer<typeof uploadTaskS
 type uploadTaskSuccessImageUrlListResponseSchemeType = z.infer<typeof uploadTaskSuccessImageUrlListResponseScheme>;
 type updateDowithTaskStatusSuccessRequestSchemeType = z.infer<typeof updateDowithTaskStatusSuccessRequestScheme>;
 type successDowithTaskSchemeType = z.infer<typeof successDowithTaskScheme>;
+type likeDowithTaskResponseSchemeType = z.infer<typeof likeDowithTaskResponseScheme>;
 type fetchSuccessDowithTasksResponseSchemeType = z.infer<typeof fetchSuccessDowithTasksResponseScheme>;
 
 export type {
@@ -70,5 +72,6 @@ export type {
   uploadTaskSuccessImageUrlListResponseSchemeType,
   updateDowithTaskStatusSuccessRequestSchemeType,
   successDowithTaskSchemeType,
+  likeDowithTaskResponseSchemeType,
   fetchSuccessDowithTasksResponseSchemeType,
 };
