@@ -5,6 +5,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming } 
 import { theme } from 'styles/theme';
 import { LikeIcon } from 'components/common/icons/LikeIcon';
 import { useLikeDowithTask } from 'hooks/queries/task/useLikeDowithTask';
+import { useUnLikeDowithTask } from 'hooks/queries/task/useUnLikeDowithTask';
 import type { successDowithTaskSchemeType } from 'types/task/scheme/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -20,17 +21,19 @@ const SuccessTaskImageDetailItem = ({
 }: successDowithTaskSchemeType) => {
   const scale = useSharedValue(1);
   const { mutate: likeDowithTask } = useLikeDowithTask();
+  const { mutate: unLikeDowithTask } = useUnLikeDowithTask();
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
   const handleLike = () => {
-    if (!isLiked) {
+    if (isLiked) {
+      unLikeDowithTask(id);
+    } else {
       scale.value = withSequence(withTiming(1.4, { duration: 150 }), withTiming(1, { duration: 150 }));
       likeDowithTask(id);
     }
-    // TODO: 좋아요 취소 API 연동
   };
 
   return (

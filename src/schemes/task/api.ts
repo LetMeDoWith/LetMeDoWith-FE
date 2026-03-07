@@ -126,6 +126,13 @@ const likeDowithTaskResponseScheme = BaseResponseScheme.extend({
   }),
 });
 
+const unLikeDowithTaskResponseScheme = BaseResponseScheme.extend({
+  data: z.object({
+    isAlreadyCanceled: z.boolean().describe('이미 좋아요 취소가 되어있는지 여부'),
+    likeCount: z.number().describe('좋아요 수'),
+  }),
+});
+
 const fetchSuccessDowithTasksResponseScheme = BasePageResponseScheme.extend({
   data: z.object({
     successDowithTasks: z.array(successDowithTaskScheme),
@@ -155,5 +162,6 @@ export {
   updateDowithTaskStatusSuccessRequestScheme,
   successDowithTaskScheme,
   likeDowithTaskResponseScheme,
+  unLikeDowithTaskResponseScheme,
   fetchSuccessDowithTasksResponseScheme,
 };

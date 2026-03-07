@@ -14,6 +14,7 @@ import type {
   fetchTodoTaskResponseSchemeType,
   fetchSuccessDowithTasksResponseSchemeType,
   likeDowithTaskResponseSchemeType,
+  unLikeDowithTaskResponseSchemeType,
   updateTaskRequestSchemeType,
   updateTaskRoutineRequestSchemeType,
   updateTodoTaskStatusResponseSchemeType,
@@ -220,6 +221,17 @@ const likeDowithTask = async (dowithTaskId: number): Promise<likeDowithTaskRespo
   }
 };
 
+const unLikeDowithTask = async (dowithTaskId: number): Promise<unLikeDowithTaskResponseSchemeType> => {
+  try {
+    const result = await apiClient.delete<unLikeDowithTaskResponseSchemeType>(
+      TASK_API.LIKE_DOWITH.replace(':id', String(dowithTaskId)),
+    );
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 export {
   fetchTaskCategoryList,
   fetchTaskList,
@@ -235,4 +247,5 @@ export {
   uploadFileToBucket,
   fetchSuccessDowithTasks,
   likeDowithTask,
+  unLikeDowithTask,
 };
