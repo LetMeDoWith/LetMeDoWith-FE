@@ -5,11 +5,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from 'styles/theme';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
 import { SuccessTaskImageDetailItem } from 'components/Feed';
-import type { SuccessImageItem } from 'types/Feed';
+import type { successDowithTaskSchemeType } from 'types/task/scheme/api';
 
 interface Props {
   visible: boolean;
-  data: SuccessImageItem[];
+  data: successDowithTaskSchemeType[];
   initialIndex: number;
   onClose: () => void;
 }
@@ -20,7 +20,7 @@ const SuccessTaskImageDetail = ({ visible, data, initialIndex, onClose }: Props)
   const insets = useSafeAreaInsets();
 
   const renderItem = useCallback(
-    ({ item }: { item: SuccessImageItem }) => <SuccessTaskImageDetailItem item={item} />,
+    ({ item }: { item: successDowithTaskSchemeType }) => <SuccessTaskImageDetailItem {...item} />,
     [],
   );
 
@@ -40,7 +40,7 @@ const SuccessTaskImageDetail = ({ visible, data, initialIndex, onClose }: Props)
           initialScrollIndex={initialIndex}
           getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
           renderItem={renderItem}
-          keyExtractor={(_, index) => index.toString()}
+          keyExtractor={({ id }) => id.toString()}
           style={styles.contentList}
           contentContainerStyle={styles.contentContainer}
         />

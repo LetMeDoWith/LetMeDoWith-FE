@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { BaseResponseScheme } from 'schemes/shared/api';
+import { BasePageResponseScheme, BaseResponseScheme } from 'schemes/shared/api';
 import { CREATION_TYPE_ENUM, TASK_ROUTINE_CYCLE_ENUM, TASK_STATUS_ENUM } from 'schemes/task/enum';
 
 const taskCategoryScheme = z.object({
@@ -109,6 +109,22 @@ const updateDowithTaskStatusSuccessRequestScheme = z.object({
   publicImageUrls: z.array(z.string()).describe('이미지 파일 url 리스트'),
 });
 
+const successDowithTaskScheme = z.object({
+  id: z.number().describe('Task ID'),
+  title: z.string().describe('Task 제목'),
+  nickname: z.string().describe('유저 닉네임'),
+  profileImageUrl: z.string().describe('프로필 이미지 URL'),
+  successImageUrl: z.string().describe('인증 사진 URL'),
+  isLiked: z.boolean().describe('좋아요 여부'),
+  likeCount: z.number().describe('좋아요 수'),
+});
+
+const fetchSuccessDowithTasksResponseScheme = BasePageResponseScheme.extend({
+  data: z.object({
+    successDowithTasks: z.array(successDowithTaskScheme),
+  }),
+});
+
 export {
   taskCategoryScheme,
   fetchTaskCategoryListResponseScheme,
@@ -130,4 +146,6 @@ export {
   uploadTaskSuccessImageUrlListRequestScheme,
   uploadTaskSuccessImageUrlListResponseScheme,
   updateDowithTaskStatusSuccessRequestScheme,
+  successDowithTaskScheme,
+  fetchSuccessDowithTasksResponseScheme,
 };

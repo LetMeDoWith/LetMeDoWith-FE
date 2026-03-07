@@ -4,14 +4,21 @@ import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming } 
 
 import { theme } from 'styles/theme';
 import { LikeIcon } from 'components/common/icons/LikeIcon';
-import type { SuccessImageItem } from 'types/Feed';
+import type { successDowithTaskSchemeType } from 'types/task/scheme/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const SuccessTaskImageDetailItem = ({ item }: { item: SuccessImageItem }) => {
-  const [isLiked, setIsLiked] = useState(false);
+const SuccessTaskImageDetailItem = ({
+  successImageUrl,
+  title,
+  profileImageUrl,
+  nickname,
+  isLiked: initialIsLiked,
+  likeCount,
+}: successDowithTaskSchemeType) => {
+  const [isLiked, setIsLiked] = useState(initialIsLiked);
   const scale = useSharedValue(1);
-  const displayCount = item.likeCount + (isLiked ? 1 : 0);
+  const displayCount = likeCount + (isLiked && !initialIsLiked ? 1 : !isLiked && initialIsLiked ? -1 : 0);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -27,16 +34,16 @@ const SuccessTaskImageDetailItem = ({ item }: { item: SuccessImageItem }) => {
   return (
     <View style={styles.page}>
       <View style={styles.imageWrapper}>
-        <Image source={{ uri: item.successImageUrl }} style={styles.image} resizeMode="cover" />
+        <Image source={{ uri: successImageUrl }} style={styles.image} resizeMode="cover" />
       </View>
       <View style={styles.infoSection}>
         <Text style={[theme.TYPOGRAPHY.TITLE_1, { color: theme.COLORS.DEFAULT.WHITE }]} numberOfLines={1}>
-          {item.title}
+          {title}
         </Text>
         <View style={styles.bottomRow}>
           <View style={styles.profileRow}>
-            <Image source={{ uri: item.profileImageUrl }} style={styles.profileImage} />
-            <Text style={styles.userName}>{item.userName}</Text>
+            <Image source={{ uri: profileImageUrl }} style={styles.profileImage} />
+            <Text style={styles.userName}>{nickname}</Text>
           </View>
           <Pressable style={styles.likeButton} onPress={handleLike}>
             <Animated.View style={animatedStyle}>

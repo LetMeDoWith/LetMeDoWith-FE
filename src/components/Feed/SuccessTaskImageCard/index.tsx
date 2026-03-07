@@ -7,16 +7,15 @@ import { SUCCESS_TASK_IMAGE_ITEM_WIDTH } from 'constants/Feed';
 
 const ITEM_HEIGHT = SUCCESS_TASK_IMAGE_ITEM_WIDTH * 1.3;
 
-// TODO: 인증 사진 리스트 API 타입 연동
 interface Props {
   successImageUrl: string;
   title: string;
   profileImageUrl: string;
-  userName: string;
+  nickname: string;
   onPress?: () => void;
 }
 
-const SuccessTaskImageCard = ({ successImageUrl, title, profileImageUrl, userName, onPress }: Props) => (
+const SuccessTaskImageCard = ({ successImageUrl, title, profileImageUrl, nickname, onPress }: Props) => (
   <Pressable style={styles.card} onPress={onPress}>
     <Image source={{ uri: successImageUrl }} style={styles.successImage} />
     <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.8)']} style={styles.overlay}>
@@ -25,7 +24,7 @@ const SuccessTaskImageCard = ({ successImageUrl, title, profileImageUrl, userNam
       </Text>
       <View style={styles.profileRow}>
         <Image source={{ uri: profileImageUrl }} style={styles.profileImage} />
-        <Text style={[theme.TYPOGRAPHY.CAPTION_2, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>{userName}</Text>
+        <Text style={[theme.TYPOGRAPHY.CAPTION_2, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>{nickname}</Text>
       </View>
     </LinearGradient>
   </Pressable>
