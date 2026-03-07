@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 import { apiClient } from 'services/apiClient';
 import { TASK_API } from 'services/urls';
 import type { PageRequestSchemeType } from 'types/shared/scheme/api';
@@ -164,20 +162,41 @@ const fetchUploadTaskSuccessImageUrlList = async (
 
 const uploadFileToBucket = async (presignedUrl: string, fileUri: string, onProgress?: (progress: number) => void) => {
   try {
+    // 로컬 파일 URI를 blob으로 변환
     const normalizedUri = fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`;
-    const response = await fetch(normalizedUri);
-    const blob = await response.blob();
-    await axios.put(presignedUrl, blob, {
-      headers: {
-        'Content-Type': 'image/jpeg',
-      },
-      onUploadProgress: progressEvent => {
-        if (progressEvent.total && onProgress) {
-          const progress = (progressEvent.loaded / progressEvent.total) * 100;
-          onProgress(progress);
+    const fileResponse = await fetch(normalizedUri);
+    const blob = await fileResponse.blob();
+
+    /**
+     * XMLHttpRequest를 사용하여 S3에 직접 업로드
+     * axios는 React Native의 blob을 바이너리가 아닌 메타데이터 객체로 직렬화하여 이미지가 깨지는 문제가 있음
+     * XMLHttpRequest는 React Native blob을 네이티브 바이너리로 올바르게 전송
+     */
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', presignedUrl);
+      xhr.setRequestHeader('Content-Type', 'image/jpeg');
+
+      if (onProgress) {
+        xhr.upload.onprogress = event => {
+          if (event.lengthComputable) {
+            onProgress((event.loaded / event.total) * 100);
+          }
+        };
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve();
+        } else {
+          reject(new Error(`S3 업로드 실패: ${xhr.status}`));
         }
-      },
+      };
+
+      xhr.onerror = () => reject(new Error('S3 업로드 네트워크 에러'));
+      xhr.send(blob);
     });
+
     console.log('S3 이미지 업로드 성공 !');
   } catch (e) {
     console.error('S3 이미지 업로드 에러:', e);
