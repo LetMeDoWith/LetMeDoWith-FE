@@ -2,17 +2,17 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
-import { likeDowithTask } from 'services/rest/task';
+import { unLikeDowithTask } from 'services/rest/task';
 import type {
+  unLikeDowithTaskResponseSchemeType,
   fetchSuccessDowithTasksResponseSchemeType,
-  likeDowithTaskResponseSchemeType,
 } from 'types/task/scheme/api';
 
-const useLikeDowithTask = () => {
+const useUnLikeDowithTask = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<likeDowithTaskResponseSchemeType, AxiosError, number>({
-    mutationFn: dowithTaskId => likeDowithTask(dowithTaskId),
+  return useMutation<unLikeDowithTaskResponseSchemeType, AxiosError, number>({
+    mutationFn: dowithTaskId => unLikeDowithTask(dowithTaskId),
     onSuccess: (res, dowithTaskId) => {
       queryClient.setQueriesData<fetchSuccessDowithTasksResponseSchemeType>(
         { queryKey: TASK_QUERY_KEY.SUCCESS_DOWITH_TASKS },
@@ -24,7 +24,7 @@ const useLikeDowithTask = () => {
             ...prev,
             data: {
               successDowithTasks: prev.data.successDowithTasks.map(task =>
-                task.id === dowithTaskId ? { ...task, isLiked: true, likeCount: res.data.likeCount } : task,
+                task.id === dowithTaskId ? { ...task, isLiked: false, likeCount: res.data.likeCount } : task,
               ),
             },
           };
@@ -34,4 +34,4 @@ const useLikeDowithTask = () => {
   });
 };
 
-export { useLikeDowithTask };
+export { useUnLikeDowithTask };
