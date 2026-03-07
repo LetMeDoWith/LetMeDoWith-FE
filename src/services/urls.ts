@@ -19,6 +19,7 @@ const TASK_API = {
   WAIT_TODO: 'v1/tasks/todo/:id/wait',
   UPLOAD_TASK_SUCCESS_IMAGE_URL_LIST: 'v1/tasks/dowith/:id/success/image/upload-presigned-url',
   SUCCESS_DOWITH: 'v1/tasks/dowith/:id/success',
+  SUCCESS_DOWITH_TASKS: 'v1/tasks/dowith/success',
 } as const;
 
 const NOTIFICATION_API = {

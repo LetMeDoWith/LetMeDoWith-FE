@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { apiClient } from 'services/apiClient';
 import { TASK_API } from 'services/urls';
+import type { PageRequestSchemeType } from 'types/shared/scheme/api';
 import type {
   addTaskRequestSchemeType,
   fetchDowithTaskRequestSchemeType,
@@ -11,6 +12,7 @@ import type {
   fetchTaskListResponseSchemeType,
   fetchTodoTaskRequestSchemeType,
   fetchTodoTaskResponseSchemeType,
+  fetchSuccessDowithTasksResponseSchemeType,
   updateTaskRequestSchemeType,
   updateTaskRoutineRequestSchemeType,
   updateTodoTaskStatusResponseSchemeType,
@@ -193,6 +195,19 @@ const updateDowithTaskStatusSuccess = async (
   }
 };
 
+const fetchSuccessDowithTasks = async (
+  params?: PageRequestSchemeType,
+): Promise<fetchSuccessDowithTasksResponseSchemeType> => {
+  try {
+    const result = await apiClient.get<fetchSuccessDowithTasksResponseSchemeType>(TASK_API.SUCCESS_DOWITH_TASKS, {
+      params,
+    });
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 export {
   fetchTaskCategoryList,
   fetchTaskList,
@@ -206,4 +221,5 @@ export {
   fetchUploadTaskSuccessImageUrlList,
   updateDowithTaskStatusSuccess,
   uploadFileToBucket,
+  fetchSuccessDowithTasks,
 };
