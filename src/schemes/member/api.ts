@@ -37,6 +37,18 @@ const notificationSettingsRequestScheme = z.object({
   marketingYn: z.boolean().describe('마케팅, 광고성 알람 수신 여부'),
 });
 
+const profileImageUploadPresignedUrlRequestScheme = z.object({
+  imageFileName: z.string().describe('업로드할 프로필 이미지 파일 이름(확장자 포함)'),
+});
+
+const profileImageUploadPresignedUrlResponseScheme = BaseResponseScheme.extend({
+  data: z.object({
+    publicImageUrl: z.string().describe('업로드 후 저장될 프로필 이미지 공개 URL'),
+    presignedUrl: z.string().describe('실제 업로드 요청에 사용할 presigned URL'),
+    method: z.string(),
+  }),
+});
+
 export {
   validNicknameRequestScheme,
   validNicknameResponseScheme,
@@ -44,4 +56,6 @@ export {
   signUpResponseScheme,
   updateMemberRequestScheme,
   notificationSettingsRequestScheme,
+  profileImageUploadPresignedUrlRequestScheme,
+  profileImageUploadPresignedUrlResponseScheme,
 };

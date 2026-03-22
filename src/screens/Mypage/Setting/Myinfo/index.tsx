@@ -29,6 +29,8 @@ import { BottomSheet } from 'components/common/BottomSheet';
 import { Gallery } from 'components/common/icons/Gallery';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { updateMemberRequestSchemeType } from 'types/member/scheme/api';
+import { fetchProfileImageUploadPresignedUrl } from 'services/rest/member';
+import { uploadFileToBucket } from 'services/rest/task';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -125,20 +127,19 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
       // 이미지 선택 성공
       if (result.assets && result.assets[0]) {
         const asset = result.assets[0];
-        const fileName = asset.fileName || 'photo.jpg';
-
+        const imageFileName = asset.fileName || 'photo.jpg';
         const uri = asset.uri || '';
-        const photoFile = {
-          uri,
-          width: asset.width || 0,
-          height: asset.height || 0,
-          isRawPhoto: false,
-          orientation: 'portrait' as const,
-          isMirrored: false,
-        };
 
-        // TODO: 업로드 이미지 URL 발급 API 연동
-        // setValue('profileImageUrl', uri);
+        // 1. presigned URL 발급
+        const {
+          data: { presignedUrl, publicImageUrl },
+        } = await fetchProfileImageUploadPresignedUrl({ imageFileName });
+
+        // 2. S3에 이미지 업로드
+        await uploadFileToBucket(presignedUrl, uri);
+
+        // 3. 업로드된 공개 URL을 프로필 이미지로 설정
+        setValue('profileImageUrl', publicImageUrl);
       }
     } catch (e) {
       console.error('이미지 선택 중 에러 발생:', e);
