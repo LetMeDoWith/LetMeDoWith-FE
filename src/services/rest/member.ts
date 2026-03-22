@@ -8,6 +8,8 @@ import type {
   updateMemberRequestSchemeType,
   validNicknameRequestSchemeType,
   validNicknameResponseSchemeType,
+  profileImageUploadPresignedUrlRequestSchemeType,
+  profileImageUploadPresignedUrlResponseSchemeType,
 } from 'types/member/scheme/api';
 
 const validNickname = async (payload: validNicknameRequestSchemeType): Promise<validNicknameResponseSchemeType> => {
@@ -57,4 +59,25 @@ const updateNotificationSettings = async (
   }
 };
 
-export { validNickname, signUp, updateMember, deleteAccount, updateNotificationSettings };
+const fetchProfileImageUploadPresignedUrl = async (
+  payload: profileImageUploadPresignedUrlRequestSchemeType,
+): Promise<profileImageUploadPresignedUrlResponseSchemeType> => {
+  try {
+    const result = await apiClient.post<profileImageUploadPresignedUrlResponseSchemeType>(
+      MEMBER_API.PROFILE_IMAGE_UPLOAD_PRESIGNED_URL,
+      payload,
+    );
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export {
+  validNickname,
+  signUp,
+  updateMember,
+  deleteAccount,
+  updateNotificationSettings,
+  fetchProfileImageUploadPresignedUrl,
+};
