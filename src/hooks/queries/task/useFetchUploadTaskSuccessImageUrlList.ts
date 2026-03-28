@@ -3,34 +3,31 @@ import { AxiosError } from 'axios';
 import { Asset } from 'react-native-image-picker';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
-import {
-  fetchUploadTaskSuccessImageUrlList,
-  updateDowithTaskStatusSuccess,
-  uploadFileToBucket,
-} from 'services/rest/task';
+import { fetchUploadTaskSuccessImageUrlList, updateDowithTaskStatusSuccess } from 'services/rest/task';
+import { useUploadImage } from 'hooks/shared/useUploadImage';
 import type { uploadTaskSuccessImageUrlListRequestSchemeType } from 'types/task/scheme/api';
 
 const useUploadDowithTaskSuccessImageList = (id: number) => {
   const queryClient = useQueryClient();
+  const { upload } = useUploadImage(async (imageFileName: string) => {
+    const {
+      data: { presignedUrls, publicImageUrls },
+    } = await fetchUploadTaskSuccessImageUrlList(id, { imageFileNames: [imageFileName] });
+    return { presignedUrl: presignedUrls[0], publicImageUrl: publicImageUrls[0] };
+  });
+
   return useMutation<void, AxiosError, uploadTaskSuccessImageUrlListRequestSchemeType & { photo: Asset }>({
     mutationFn: async ({ imageFileNames, photo }) => {
       if (!photo.uri) {
         return;
       }
 
-      // 1. 업로드 관련 URL 리스트 받기(public, presigned)
-      const {
-        data: { presignedUrls, publicImageUrls },
-      } = await fetchUploadTaskSuccessImageUrlList(id, { imageFileNames });
+      // 1. presigned URL 발급 + S3 업로드
+      const publicImageUrl = await upload(photo.uri, imageFileNames[0]);
 
-      // 2. S3에 직접 이미지 업로드
-      await uploadFileToBucket(presignedUrls[0], photo.uri, progress => {
-        console.log(`이미지 S3 업로드 진행률: ${Math.round(progress)}%`);
-      });
-
-      // 3. 이미지 업로드 완료 API 호출
+      // 2. 이미지 업로드 완료 API 호출
       await updateDowithTaskStatusSuccess(id, {
-        publicImageUrls,
+        publicImageUrls: [publicImageUrl],
       });
     },
     onSuccess: async () => {
