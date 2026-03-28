@@ -30,7 +30,7 @@ import { Gallery } from 'components/common/icons/Gallery';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { updateMemberRequestSchemeType } from 'types/member/scheme/api';
 import { fetchProfileImageUploadPresignedUrl } from 'services/rest/member';
-import { uploadFileToBucket } from 'services/rest/task';
+import { useUploadImage } from 'hooks/shared/useUploadImage';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -59,6 +59,12 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
     },
     mode: 'onBlur',
   });
+
+  const { upload: uploadProfileImage } = useUploadImage(async (imageFileName: string) => {
+    const { data } = await fetchProfileImageUploadPresignedUrl({ imageFileName });
+    return data;
+  });
+
   const { mutate: mutateUpdateMember } = useUpdateMember({
     onSuccess: () => {
       navigate('DEFAULT');
@@ -130,15 +136,7 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
         const imageFileName = asset.fileName || 'photo.jpg';
         const uri = asset.uri || '';
 
-        // 1. presigned URL 발급
-        const {
-          data: { presignedUrl, publicImageUrl },
-        } = await fetchProfileImageUploadPresignedUrl({ imageFileName });
-
-        // 2. S3에 이미지 업로드
-        await uploadFileToBucket(presignedUrl, uri);
-
-        // 3. 업로드된 공개 URL을 프로필 이미지로 설정
+        const publicImageUrl = await uploadProfileImage(uri, imageFileName);
         setValue('profileImageUrl', publicImageUrl);
       }
     } catch (e) {
