@@ -134,6 +134,24 @@ const unLikeDowithTaskResponseScheme = BaseResponseScheme.extend({
   }),
 });
 
+const feedbackAvailableDowithTaskScheme = z.object({
+  id: z.number().describe('Task ID'),
+  memberId: z.string().describe('작성자 member ID'),
+  nickname: z.string().describe('작성자 닉네임'),
+  badgeImageUrl: z.string().describe('뱃지 이미지 URL'),
+  title: z.string().describe('Task 제목'),
+  status: z.string().describe('Task 상태'),
+  date: z.string().describe('Task 수행일자'),
+  startTime: z.string().describe('Task 시작시간'),
+  feedbackCount: z.number().describe('피드백 수'),
+});
+
+const fetchFeedbackAvailableDowithTasksResponseScheme = BasePageResponseScheme.extend({
+  data: z.object({
+    dowithTasks: z.array(feedbackAvailableDowithTaskScheme),
+  }),
+});
+
 const fetchSuccessDowithTasksResponseScheme = BasePageResponseScheme.extend({
   data: z.object({
     successDowithTasks: z.array(successDowithTaskScheme),
@@ -161,6 +179,8 @@ export {
   uploadTaskSuccessImageUrlListRequestScheme,
   uploadTaskSuccessImageUrlListResponseScheme,
   updateDowithTaskStatusSuccessRequestScheme,
+  feedbackAvailableDowithTaskScheme,
+  fetchFeedbackAvailableDowithTasksResponseScheme,
   successDowithTaskScheme,
   likeDowithTaskResponseScheme,
   unLikeDowithTaskResponseScheme,

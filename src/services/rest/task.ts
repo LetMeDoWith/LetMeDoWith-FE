@@ -10,6 +10,7 @@ import type {
   fetchTaskListResponseSchemeType,
   fetchTodoTaskRequestSchemeType,
   fetchTodoTaskResponseSchemeType,
+  fetchFeedbackAvailableDowithTasksResponseSchemeType,
   fetchSuccessDowithTasksResponseSchemeType,
   likeDowithTaskResponseSchemeType,
   unLikeDowithTaskResponseSchemeType,
@@ -216,6 +217,20 @@ const updateDowithTaskStatusSuccess = async (
   }
 };
 
+const fetchFeedbackAvailableDowithTasks = async (
+  params?: PageRequestSchemeType,
+): Promise<fetchFeedbackAvailableDowithTasksResponseSchemeType> => {
+  try {
+    const result = await apiClient.get<fetchFeedbackAvailableDowithTasksResponseSchemeType>(
+      TASK_API.FEEDBACK_AVAILABLE_DOWITH_TASKS,
+      { params },
+    );
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 const fetchSuccessDowithTasks = async (
   params?: PageRequestSchemeType,
 ): Promise<fetchSuccessDowithTasksResponseSchemeType> => {
@@ -264,6 +279,7 @@ export {
   fetchUploadTaskSuccessImageUrlList,
   updateDowithTaskStatusSuccess,
   uploadFileToBucket,
+  fetchFeedbackAvailableDowithTasks,
   fetchSuccessDowithTasks,
   likeDowithTask,
   unLikeDowithTask,
