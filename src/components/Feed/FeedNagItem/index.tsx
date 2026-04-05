@@ -43,10 +43,12 @@ const FeedNagItem = ({ badgeImageUrl, nickname, title, startTime, feedbackCount 
       <Text style={styles.taskDescription}>{title}</Text>
       <View style={styles.bottomRow}>
         <View style={styles.infoRow}>
-          <View style={styles.infoItem}>
-            <Clock width={12} height={12} fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
-            <Text style={styles.info}>{remainingTime} 남음</Text>
-          </View>
+          {remainingTime ? (
+            <View style={styles.infoItem}>
+              <Clock width={12} height={12} fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
+              <Text style={styles.info}>{remainingTime} 남음</Text>
+            </View>
+          ) : null}
           <View style={styles.infoItem}>
             <Thunder width={12} height={12} fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
             <Text style={styles.info}>{feedbackCount}</Text>

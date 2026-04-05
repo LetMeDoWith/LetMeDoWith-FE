@@ -6,7 +6,7 @@ const formatRemainingTime = (startTime: string): string => {
   const diff = dayjs(target).diff(now, 'minute');
 
   if (diff <= 0) {
-    return '진행중';
+    return '';
   }
 
   const h = Math.floor(diff / 60);
