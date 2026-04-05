@@ -18,6 +18,7 @@ const TASK_QUERY_KEY = {
   UPDATE: ['task', 'update'],
   UPDATE_ROUTINE: ['task', 'update', 'routine'],
   SUCCESS_DOWITH_TASKS: ['task', 'success', 'dowith'],
+  FEEDBACK_AVAILABLE_DOWITH_TASKS: ['task', 'feedback-available', 'dowith'],
 } as const;
 
 const NOTIFICATION_QUERY_KEY = {

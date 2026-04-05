@@ -23,6 +23,7 @@ const TASK_API = {
   SUCCESS_DOWITH: 'v1/tasks/dowith/:id/success',
   SUCCESS_DOWITH_TASKS: 'v1/tasks/dowith/success',
   LIKE_DOWITH: 'v1/tasks/dowith/:id/like',
+  FEEDBACK_AVAILABLE_DOWITH_TASKS: 'v1/tasks/dowith/feedback-available',
 } as const;
 
 const NOTIFICATION_API = {

@@ -1,38 +1,46 @@
 import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Clock } from 'components/common/icons/Clock';
 import { Thunder } from 'components/common/icons/Thunder';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
+import { TASK_QUERY_KEY } from 'constants/queries';
 import { theme } from 'styles/theme';
+import { formatRemainingTime } from 'utils/date';
 
 interface Props {
-  profileImageUrl: string;
+  badgeImageUrl: string;
   nickname: string;
-  taskDescription: string;
-  remainingTime: string;
-  nagCount: number;
+  title: string;
+  startTime: string;
+  feedbackCount: number;
 }
 
 const REACTION_EMOJIS = ['😆', '😡', '🤣', '👏'];
 
-const FeedNagItem = ({ profileImageUrl, nickname, taskDescription, remainingTime, nagCount }: Props) => {
+const FeedNagItem = ({ badgeImageUrl, nickname, title, startTime, feedbackCount }: Props) => {
+  const queryClient = useQueryClient();
   const [showReactions, setShowReactions] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
 
   const handleReaction = (emoji: string) => {
     setSelectedEmoji(emoji);
     setShowReactions(false);
+    // TODO: 피드백 전송 API 연동
+    queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS });
   };
+
+  const remainingTime = formatRemainingTime(startTime);
 
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
-        <Image style={styles.image} source={{ uri: profileImageUrl }} />
+        <Image style={styles.image} source={{ uri: badgeImageUrl }} />
         <Text style={styles.nickname}>{nickname}</Text>
       </View>
-      <Text style={styles.taskDescription}>{taskDescription}</Text>
+      <Text style={styles.taskDescription}>{title}</Text>
       <View style={styles.bottomRow}>
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
@@ -41,7 +49,7 @@ const FeedNagItem = ({ profileImageUrl, nickname, taskDescription, remainingTime
           </View>
           <View style={styles.infoItem}>
             <Thunder width={12} height={12} fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
-            <Text style={styles.info}>{nagCount}</Text>
+            <Text style={styles.info}>{feedbackCount}</Text>
           </View>
         </View>
         {selectedEmoji ? (

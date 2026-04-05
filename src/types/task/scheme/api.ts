@@ -21,6 +21,8 @@ import {
   uploadTaskSuccessImageUrlListRequestScheme,
   uploadTaskSuccessImageUrlListResponseScheme,
   updateDowithTaskStatusSuccessRequestScheme,
+  feedbackAvailableDowithTaskScheme,
+  fetchFeedbackAvailableDowithTasksResponseScheme,
   successDowithTaskScheme,
   likeDowithTaskResponseScheme,
   unLikeDowithTaskResponseScheme,
@@ -47,6 +49,8 @@ type updateTaskRoutineRequestSchemeType = z.infer<typeof updateTaskRoutineReques
 type uploadTaskSuccessImageUrlListRequestSchemeType = z.infer<typeof uploadTaskSuccessImageUrlListRequestScheme>;
 type uploadTaskSuccessImageUrlListResponseSchemeType = z.infer<typeof uploadTaskSuccessImageUrlListResponseScheme>;
 type updateDowithTaskStatusSuccessRequestSchemeType = z.infer<typeof updateDowithTaskStatusSuccessRequestScheme>;
+type feedbackAvailableDowithTaskSchemeType = z.infer<typeof feedbackAvailableDowithTaskScheme>;
+type fetchFeedbackAvailableDowithTasksResponseSchemeType = z.infer<typeof fetchFeedbackAvailableDowithTasksResponseScheme>;
 type successDowithTaskSchemeType = z.infer<typeof successDowithTaskScheme>;
 type likeDowithTaskResponseSchemeType = z.infer<typeof likeDowithTaskResponseScheme>;
 type unLikeDowithTaskResponseSchemeType = z.infer<typeof unLikeDowithTaskResponseScheme>;
@@ -73,6 +77,8 @@ export type {
   uploadTaskSuccessImageUrlListRequestSchemeType,
   uploadTaskSuccessImageUrlListResponseSchemeType,
   updateDowithTaskStatusSuccessRequestSchemeType,
+  feedbackAvailableDowithTaskSchemeType,
+  fetchFeedbackAvailableDowithTasksResponseSchemeType,
   successDowithTaskSchemeType,
   likeDowithTaskResponseSchemeType,
   unLikeDowithTaskResponseSchemeType,
