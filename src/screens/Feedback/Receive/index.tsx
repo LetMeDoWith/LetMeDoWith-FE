@@ -1,19 +1,19 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Comment } from 'components/Feedback';
+import { EmptyComment } from 'components/Feedback';
 
+// TODO: 받은 잔소리 API 연동
 const ReceiveFeedback = () => {
   return (
     <View style={styles.container}>
-      <Comment />
-      <Comment />
+      <EmptyComment />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    gap: 16,
+    flex: 1,
   },
 });
 

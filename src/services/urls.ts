@@ -26,8 +26,12 @@ const TASK_API = {
   FEEDBACK_AVAILABLE_DOWITH_TASKS: 'v1/tasks/dowith/feedback-available',
 } as const;
 
+const FEEDBACK_API = {
+  SEND: 'v1/feedbacks/send',
+} as const;
+
 const NOTIFICATION_API = {
   ADD_TOKEN: 'v1/notifications/tokens',
 };
 
-export { AUTH_API, MEMBER_API, TASK_API, NOTIFICATION_API };
+export { AUTH_API, MEMBER_API, TASK_API, FEEDBACK_API, NOTIFICATION_API };

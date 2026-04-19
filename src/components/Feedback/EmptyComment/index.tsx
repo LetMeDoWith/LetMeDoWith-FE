@@ -1,14 +1,15 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { DashedThunder } from 'components/common/icons/DashedThunder';
 import { theme } from 'styles/theme';
 
 const EmptyComment = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>아직 보낸 잔소리가 없어요 </Text>
-      <View style={styles.descriptionWrap}>
-        <Text style={styles.description}>내가 먼저 잔소리를 보내면 </Text>
-        <Text style={styles.description}>잔소리 받을 확률 UP! </Text>
+      <DashedThunder />
+      <View style={styles.textWrap}>
+        <Text style={styles.title}>아직 보낸 잔소리가 없어요!</Text>
+        <Text style={styles.description}>멘트 변경 필요</Text>
       </View>
     </View>
   );
@@ -20,13 +21,14 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
-  title: { ...theme.TYPOGRAPHY.TITLE_2, fontWeight: 'bold', color: theme.COLORS.GRAY_SCALE.GRAY_80 },
-  descriptionWrap: {
+  textWrap: {
     alignItems: 'center',
+    gap: 4,
   },
-  description: { ...theme.TYPOGRAPHY.BODY_2, color: theme.COLORS.GRAY_SCALE.GRAY_80 },
+  title: { ...theme.TYPOGRAPHY.TITLE_3, color: theme.COLORS.GRAY_SCALE.GRAY_50 },
+  description: { ...theme.TYPOGRAPHY.CAPTION1_BASIC, color: theme.COLORS.GRAY_SCALE.GRAY_50 },
 });
 
 export { EmptyComment };

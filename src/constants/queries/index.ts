@@ -21,8 +21,12 @@ const TASK_QUERY_KEY = {
   FEEDBACK_AVAILABLE_DOWITH_TASKS: ['task', 'feedback-available', 'dowith'],
 } as const;
 
+const FEEDBACK_QUERY_KEY = {
+  SEND: ['feedback', 'send'],
+} as const;
+
 const NOTIFICATION_QUERY_KEY = {
   ADD_TOKEN: ['notification', 'add', 'token'],
 };
 
-export { AUTH_QUERY_KEY, MEMBER_QUERY_KEY, TASK_QUERY_KEY, NOTIFICATION_QUERY_KEY };
+export { AUTH_QUERY_KEY, MEMBER_QUERY_KEY, TASK_QUERY_KEY, FEEDBACK_QUERY_KEY, NOTIFICATION_QUERY_KEY };
