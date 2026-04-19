@@ -50,7 +50,9 @@ type uploadTaskSuccessImageUrlListRequestSchemeType = z.infer<typeof uploadTaskS
 type uploadTaskSuccessImageUrlListResponseSchemeType = z.infer<typeof uploadTaskSuccessImageUrlListResponseScheme>;
 type updateDowithTaskStatusSuccessRequestSchemeType = z.infer<typeof updateDowithTaskStatusSuccessRequestScheme>;
 type feedbackAvailableDowithTaskSchemeType = z.infer<typeof feedbackAvailableDowithTaskScheme>;
-type fetchFeedbackAvailableDowithTasksResponseSchemeType = z.infer<typeof fetchFeedbackAvailableDowithTasksResponseScheme>;
+type fetchFeedbackAvailableDowithTasksResponseSchemeType = z.infer<
+  typeof fetchFeedbackAvailableDowithTasksResponseScheme
+>;
 type successDowithTaskSchemeType = z.infer<typeof successDowithTaskScheme>;
 type likeDowithTaskResponseSchemeType = z.infer<typeof likeDowithTaskResponseScheme>;
 type unLikeDowithTaskResponseSchemeType = z.infer<typeof unLikeDowithTaskResponseScheme>;
