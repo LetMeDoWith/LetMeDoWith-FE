@@ -28,6 +28,7 @@ const TASK_API = {
 
 const FEEDBACK_API = {
   SEND: 'v1/feedbacks/send',
+  RECEIVED: 'v1/feedbacks/received',
 } as const;
 
 const NOTIFICATION_API = {

@@ -12,4 +12,15 @@ const fetchSendFeedbacks = async (params?: PageRequestSchemeType): Promise<fetch
   }
 };
 
-export { fetchSendFeedbacks };
+const fetchReceivedFeedbacks = async (
+  params?: PageRequestSchemeType,
+): Promise<fetchSendFeedbacksResponseSchemeType> => {
+  try {
+    const result = await apiClient.get<fetchSendFeedbacksResponseSchemeType>(FEEDBACK_API.RECEIVED, { params });
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export { fetchSendFeedbacks, fetchReceivedFeedbacks };

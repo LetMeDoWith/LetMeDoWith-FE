@@ -20,7 +20,7 @@ const SendFeedback = () => {
   if (feedbacks.length === 0) {
     return (
       <View style={styles.container}>
-        <EmptyComment />
+        <EmptyComment type="SEND" />
       </View>
     );
   }
