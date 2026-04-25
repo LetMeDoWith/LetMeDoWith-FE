@@ -21,4 +21,29 @@ const formatRemainingTime = (startTime: string): string => {
   return `${m}분`;
 };
 
-export { formatRemainingTime };
+const formatTimeAgo = (dateString: string): string => {
+  const now = dayjs();
+  const target = dayjs(dateString);
+  const diffMinutes = now.diff(target, 'minute');
+
+  if (diffMinutes < 1) {
+    return '방금 전';
+  }
+  if (diffMinutes < 60) {
+    return `${diffMinutes}분 전`;
+  }
+
+  const diffHours = now.diff(target, 'hour');
+  if (diffHours < 24) {
+    return `${diffHours}시간 전`;
+  }
+
+  const diffDays = now.diff(target, 'day');
+  if (diffDays < 30) {
+    return `${diffDays}일 전`;
+  }
+
+  return target.format('YYYY.MM.DD');
+};
+
+export { formatRemainingTime, formatTimeAgo };

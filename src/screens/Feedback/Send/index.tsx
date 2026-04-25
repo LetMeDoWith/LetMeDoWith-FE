@@ -1,8 +1,8 @@
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 
-import { Comment, EmptyComment } from 'components/Feedback';
+import { SentComment, EmptyComment } from 'components/Feedback';
 import { useFetchSendFeedbacks } from 'hooks/queries/feedback/useFetchSendFeedbacks';
-import type { sendFeedbackSchemeType } from 'types/feedback/scheme/api';
+import type { sentFeedbackSchemeType } from 'types/feedback/scheme/api';
 
 const SendFeedback = () => {
   const { data, isLoading } = useFetchSendFeedbacks();
@@ -25,11 +25,13 @@ const SendFeedback = () => {
     );
   }
 
-  const renderItem = ({ item, index }: { item: sendFeedbackSchemeType; index: number }) => (
-    <Comment
+  const renderItem = ({ item, index }: { item: sentFeedbackSchemeType; index: number }) => (
+    <SentComment
       profileImageUrl={item.senderProfileImageUrl}
       message={item.taskFeedbackTemplate.message}
       nickname={item.senderNickname}
+      dowithTaskTitle={item.dowithTaskTitle}
+      dowithTaskStatus={item.dowithTaskStatus}
       isLast={index === feedbacks.length - 1}
     />
   );

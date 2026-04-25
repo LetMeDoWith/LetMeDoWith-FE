@@ -1,9 +1,23 @@
 import { z } from 'zod';
 
-import { taskFeedbackTemplateScheme, sendFeedbackScheme, fetchSendFeedbacksResponseScheme } from 'schemes/feedback/api';
+import {
+  taskFeedbackTemplateScheme,
+  sentFeedbackScheme,
+  receivedFeedbackScheme,
+  fetchSentFeedbacksResponseScheme,
+  fetchReceivedFeedbacksResponseScheme,
+} from 'schemes/feedback/api';
 
 type taskFeedbackTemplateSchemeType = z.infer<typeof taskFeedbackTemplateScheme>;
-type sendFeedbackSchemeType = z.infer<typeof sendFeedbackScheme>;
-type fetchSendFeedbacksResponseSchemeType = z.infer<typeof fetchSendFeedbacksResponseScheme>;
+type sentFeedbackSchemeType = z.infer<typeof sentFeedbackScheme>;
+type receivedFeedbackSchemeType = z.infer<typeof receivedFeedbackScheme>;
+type fetchSentFeedbacksResponseSchemeType = z.infer<typeof fetchSentFeedbacksResponseScheme>;
+type fetchReceivedFeedbacksResponseSchemeType = z.infer<typeof fetchReceivedFeedbacksResponseScheme>;
 
-export type { taskFeedbackTemplateSchemeType, sendFeedbackSchemeType, fetchSendFeedbacksResponseSchemeType };
+export type {
+  taskFeedbackTemplateSchemeType,
+  sentFeedbackSchemeType,
+  receivedFeedbackSchemeType,
+  fetchSentFeedbacksResponseSchemeType,
+  fetchReceivedFeedbacksResponseSchemeType,
+};
