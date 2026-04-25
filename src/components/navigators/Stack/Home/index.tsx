@@ -6,6 +6,7 @@ import { SettingStackNavigator } from 'components/navigators/Stack/Mypage';
 import { BottomTabNavigator } from 'components/navigators/Tab/Home';
 import { FeedbackStackNavigator } from 'components/navigators/Stack/Feedback';
 import { TaskForm } from 'screens/Home/Task';
+import { RealtimeNag } from 'screens/Feed/RealtimeNag';
 import type { RootStackParamList } from 'types/shared';
 
 const HomeStackNavigator = () => {
@@ -25,6 +26,7 @@ const HomeStackNavigator = () => {
       <Screen name="SETTING" component={SettingStackNavigator} options={{ headerShown: false }} />
       <Screen name="TASK_FORM" component={TaskForm} options={{ headerShown: false }} />
       <Screen name="FEEDBACK" component={FeedbackStackNavigator} options={{ headerShown: false }} />
+      <Screen name="REALTIME_NAG" component={RealtimeNag} options={{ headerTitle: '실시간 잔소리하기' }} />
     </Navigator>
   );
 };

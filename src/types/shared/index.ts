@@ -27,6 +27,7 @@ type RootStackParamList = {
     mode?: TaskModeType;
   };
   FEEDBACK: undefined;
+  REALTIME_NAG: undefined;
 };
 
 type RootStackScreenProps<T extends keyof RootStackParamList> = StackScreenProps<RootStackParamList, T>;

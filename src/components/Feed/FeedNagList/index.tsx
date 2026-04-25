@@ -1,14 +1,18 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { DoubleThunder } from 'components/common/icons/DoubleThunder';
 import { FeedNagItem } from 'components/Feed/FeedNagItem';
 import { useFetchFeedbackAvailableDowithTasks } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasks';
+import type { RootStackParamList } from 'types/shared';
 import { theme } from 'styles/theme';
 
 const DISPLAY_COUNT = 5;
 
 const FeedNagList = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { data, isLoading } = useFetchFeedbackAvailableDowithTasks();
 
   const allTasks = data?.dowithTasks ?? [];
@@ -38,12 +42,7 @@ const FeedNagList = () => {
             ))}
           </View>
           {hasMore && (
-            <Pressable
-              style={styles.moreButton}
-              onPress={() => {
-                // TODO: 실시간 잔소리하기 스크린으로 이동
-              }}
-            >
+            <Pressable style={styles.moreButton} onPress={() => navigation.navigate('REALTIME_NAG')}>
               <Text style={styles.moreButtonText}>잔소리 더 하러가기</Text>
             </Pressable>
           )}
