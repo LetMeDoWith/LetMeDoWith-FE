@@ -377,7 +377,7 @@ const Item = ({
               <FeedBackIcon count={feedBackCount as number} status={status} />
             )}
             <Pressable onPress={handleBottomSheet} disabled={isInvalidUpdateDowithTask || isDisabled}>
-              <EtcDots />
+              <EtcDots disabled={isInvalidUpdateDowithTask || isDisabled} />
             </Pressable>
           </View>
         </View>

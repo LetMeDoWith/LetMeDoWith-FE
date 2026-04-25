@@ -13,19 +13,19 @@ const EtcDots = ({ width = 16, height = 16, disabled = false }: Pick<SvgProps, '
       cx="3.25"
       cy="8"
       r="1.25"
-      fill={disabled ? theme.COLORS.GRAY_SCALE.GRAY_92 : theme.COLORS.GRAY_SCALE.GRAY_70}
+      fill={disabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_40}
     />
     <Circle
       cx="8"
       cy="8"
       r="1.25"
-      fill={disabled ? theme.COLORS.GRAY_SCALE.GRAY_92 : theme.COLORS.GRAY_SCALE.GRAY_70}
+      fill={disabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_40}
     />
     <Circle
       cx="12.75"
       cy="8"
       r="1.25"
-      fill={disabled ? theme.COLORS.GRAY_SCALE.GRAY_92 : theme.COLORS.GRAY_SCALE.GRAY_70}
+      fill={disabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_40}
     />
   </Svg>
 );
