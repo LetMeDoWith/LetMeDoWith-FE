@@ -1,13 +1,22 @@
-import React from 'react';
 import { ScrollView } from 'react-native';
 
-import { FeedNagList, SuccessTaskImageList } from 'components/Feed';
+import { FeedNagList, FeedNagEmpty, SuccessTaskImageList } from 'components/Feed';
+import { useFetchFeedbackAvailableDowithTasks } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasks';
 
 const Feed = () => {
+  const { data } = useFetchFeedbackAvailableDowithTasks();
+  const hasNagTasks = (data?.dowithTasks.length ?? 0) > 0;
+
   return (
     <ScrollView>
-      <FeedNagList />
-      <SuccessTaskImageList />
+      {hasNagTasks ? (
+        <>
+          <FeedNagList />
+          <SuccessTaskImageList />
+        </>
+      ) : (
+        <FeedNagEmpty />
+      )}
     </ScrollView>
   );
 };

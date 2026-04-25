@@ -1,6 +1,7 @@
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 
 import { FeedNagItem } from 'components/Feed/FeedNagItem';
+import { FeedNagEmpty } from 'components/Feed/FeedNagEmpty';
 import { useFetchFeedbackAvailableDowithTasksInfinite } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasksInfinite';
 import type { feedbackAvailableDowithTaskSchemeType } from 'types/task/scheme/api';
 
@@ -32,6 +33,10 @@ const RealtimeNag = () => {
         <ActivityIndicator />
       </View>
     );
+  }
+
+  if (dowithTasks.length === 0) {
+    return <FeedNagEmpty />;
   }
 
   return (
