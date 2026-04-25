@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -212,7 +212,7 @@ function AppContent() {
         <SafeAreaProvider>
           <KeyboardProvider>
             <BottomSheetModalProvider>
-              <NavigationContainer ref={navigationRef}>
+              <NavigationContainer ref={navigationRef} theme={DefaultTheme}>
                 {isNeedSignUp ? <Signup /> : <HomeStackNavigator />}
               </NavigationContainer>
             </BottomSheetModalProvider>
