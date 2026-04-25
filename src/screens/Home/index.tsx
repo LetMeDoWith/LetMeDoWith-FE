@@ -19,6 +19,8 @@ import { FeedbackNotification } from 'components/common/icons/FeedbackNotificati
 import { CustomCalendarHeader } from 'components/Task';
 import { TaskStatusMarking } from 'components/common/icons/TaskStatusMarking';
 import { useFetchTaskList } from 'hooks/queries/task/useFetchTaskList';
+import { useScheduledRefetch } from 'hooks/shared/useScheduledRefetch';
+import { TASK_QUERY_KEY } from 'constants/queries';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { TASK_STATUS } from 'constants/Task';
 import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
@@ -28,6 +30,10 @@ const FIRST_DAY = 0;
 
 const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   const { top } = useSafeAreaInsets();
+
+  // 정시 기준 5분 간격(1분, 6분, ..., 56분)으로 TaskList 자동 refetch
+  useScheduledRefetch([TASK_QUERY_KEY.LIST]);
+
   const todayDateString = dayjs().format('YYYY-MM-DD');
   const [currentDate, setCurrentDate] = useState(todayDateString);
   const [selectedDate, setSelectedDate] = useState(todayDateString);
