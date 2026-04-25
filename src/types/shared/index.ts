@@ -1,4 +1,5 @@
 import type { StackScreenProps } from '@react-navigation/stack';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
@@ -9,8 +10,14 @@ type SignUpStackParamList = {
 
 type SignUpStackScreenProps<T extends keyof SignUpStackParamList> = StackScreenProps<SignUpStackParamList, T>;
 
+type HomeTabParamList = {
+  MYTODO: undefined;
+  FEED: undefined;
+  MYPAGE: undefined;
+};
+
 type RootStackParamList = {
-  HOME: undefined;
+  HOME: NavigatorScreenParams<HomeTabParamList> | undefined;
   SETTING: undefined;
   TASK_FORM: {
     screen: 'COMMON' | 'ROUTINE';
@@ -23,12 +30,6 @@ type RootStackParamList = {
 };
 
 type RootStackScreenProps<T extends keyof RootStackParamList> = StackScreenProps<RootStackParamList, T>;
-
-type HomeTabParamList = {
-  MYTODO: undefined;
-  FEED: undefined;
-  MYPAGE: undefined;
-};
 
 type HomeTabScreenProps<T extends keyof HomeTabParamList> = CompositeScreenProps<
   BottomTabScreenProps<HomeTabParamList, T>,
