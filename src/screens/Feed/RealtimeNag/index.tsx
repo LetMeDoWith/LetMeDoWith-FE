@@ -19,11 +19,13 @@ const RealtimeNag = () => {
 
   const renderItem = ({ item }: { item: feedbackAvailableDowithTaskSchemeType }) => (
     <FeedNagItem
+      taskId={item.id}
       badgeImageUrl={item.badgeImageUrl}
       nickname={item.nickname}
       title={item.title}
       startTime={item.startTime}
       feedbackCount={item.feedbackCount}
+      myFeedbacks={item.myFeedbacks}
     />
   );
 

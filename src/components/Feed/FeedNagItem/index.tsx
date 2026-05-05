@@ -1,50 +1,96 @@
-import React, { useCallback, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Image, type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { useQueryClient } from '@tanstack/react-query';
 
 import { Clock } from 'components/common/icons/Clock';
 import { Thunder } from 'components/common/icons/Thunder';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
 import { ConfettiEffect } from 'components/common/ConfettiEffect';
-import { TASK_QUERY_KEY } from 'constants/queries';
 import { useFetchFeedbackTemplates } from 'hooks/queries/feedback/useFetchFeedbackTemplates';
+import { useSendFeedback } from 'hooks/queries/feedback/useSendFeedback';
 import { useFeedbackAnimation } from 'hooks/shared/useFeedbackAnimation';
 import { theme } from 'styles/theme';
 import { formatRemainingTime } from 'utils/date';
 import type { taskFeedbackTemplateSchemeType } from 'types/feedback/scheme/api';
+import type { myFeedbackSchemeType } from 'types/task/scheme/api';
 
 interface Props {
+  taskId: number;
   badgeImageUrl: string;
   nickname: string;
   title: string;
   startTime: string;
   feedbackCount: number;
+  myFeedbacks: myFeedbackSchemeType[];
 }
 
-const FeedNagItem = ({ badgeImageUrl, nickname, title, startTime, feedbackCount }: Props) => {
-  const queryClient = useQueryClient();
+// "보낸 잔소리" 라벨 예상 너비 + paddingHorizontal + gap
+const SENT_LABEL_WIDTH = 70;
+const SENT_EMOJI_SIZE = 24;
+const SENT_EMOJI_GAP = 8;
+const OVERFLOW_TEXT_WIDTH = 40;
+const SENT_BUBBLE_PADDING_H = 12;
+
+const FeedNagItem = ({
+  taskId,
+  badgeImageUrl,
+  nickname,
+  title,
+  startTime,
+  feedbackCount,
+  myFeedbacks,
+}: Props) => {
   const { data: templates } = useFetchFeedbackTemplates();
+  const { mutate: sendFeedback } = useSendFeedback();
   const [showReactions, setShowReactions] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<taskFeedbackTemplateSchemeType | null>(null);
 
   const { isAnimating, animatingTemplate, animationTrigger, contentAnimatedStyle, emojiAnimatedStyle, startAnimation } =
     useFeedbackAnimation();
 
+  const templateMap = React.useMemo(() => {
+    const map = new Map<number, taskFeedbackTemplateSchemeType>();
+    templates?.forEach(t => map.set(t.id, t));
+    return map;
+  }, [templates]);
+
   const handleReaction = useCallback(
     (template: taskFeedbackTemplateSchemeType) => {
-      setSelectedTemplate(template);
       setShowReactions(false);
       startAnimation(template);
-
-      // TODO: 피드백 전송 API 연동
-      queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS });
+      sendFeedback({ taskId, templateId: template.id });
     },
-    [startAnimation, queryClient],
+    [startAnimation, sendFeedback, taskId],
   );
 
+  const [bubbleWidth, setBubbleWidth] = useState(0);
+
+  const onBubbleLayout = useCallback((e: LayoutChangeEvent) => {
+    setBubbleWidth(e.nativeEvent.layout.width);
+  }, []);
+
+  const { visibleFeedbacks, overflowCount } = useMemo(() => {
+    if (bubbleWidth === 0 || myFeedbacks.length === 0) {
+      return { visibleFeedbacks: myFeedbacks, overflowCount: 0 };
+    }
+
+    const availableWidth = bubbleWidth - SENT_BUBBLE_PADDING_H * 2 - SENT_LABEL_WIDTH;
+    const maxWithOverflow = Math.floor((availableWidth - OVERFLOW_TEXT_WIDTH) / (SENT_EMOJI_SIZE + SENT_EMOJI_GAP));
+    const maxWithoutOverflow = Math.floor(availableWidth / (SENT_EMOJI_SIZE + SENT_EMOJI_GAP));
+
+    if (myFeedbacks.length <= maxWithoutOverflow) {
+      return { visibleFeedbacks: myFeedbacks, overflowCount: 0 };
+    }
+
+    const visibleCount = Math.max(1, maxWithOverflow);
+    return {
+      visibleFeedbacks: myFeedbacks.slice(0, visibleCount),
+      overflowCount: myFeedbacks.length - visibleCount,
+    };
+  }, [bubbleWidth, myFeedbacks]);
+
   const remainingTime = formatRemainingTime(startTime);
+  const hasFeedbacks = myFeedbacks.length > 0;
 
   return (
     <View style={styles.container}>
@@ -97,10 +143,17 @@ const FeedNagItem = ({ badgeImageUrl, nickname, title, startTime, feedbackCount 
               </View>
             </View>
           )}
-          {selectedTemplate && !showReactions && !isAnimating && (
-            <View style={styles.sentBubble}>
+          {hasFeedbacks && !showReactions && !isAnimating && (
+            <View style={styles.sentBubble} onLayout={onBubbleLayout}>
               <Text style={styles.sentLabel}>보낸 잔소리</Text>
-              <Image source={{ uri: selectedTemplate.emojiUrl }} style={styles.sentEmoji} />
+              {visibleFeedbacks.map((feedback, index) => {
+                const template = templateMap.get(feedback.templateId);
+                if (!template) {
+                  return null;
+                }
+                return <Image key={index} source={{ uri: template.emojiUrl }} style={styles.sentEmoji} />;
+              })}
+              {overflowCount > 0 && <Text style={styles.overflowCount}>+{overflowCount}</Text>}
             </View>
           )}
         </View>
@@ -202,7 +255,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    alignSelf: 'flex-start',
     gap: 8,
   },
   sentLabel: {
@@ -212,6 +264,10 @@ const styles = StyleSheet.create({
   sentEmoji: {
     width: 24,
     height: 24,
+  },
+  overflowCount: {
+    ...theme.TYPOGRAPHY.CAPTION1_BASIC,
+    color: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
 });
 
