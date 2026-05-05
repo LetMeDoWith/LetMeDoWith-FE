@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Clock } from 'components/common/icons/Clock';
 import { Thunder } from 'components/common/icons/Thunder';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
+import { ConfettiEffect } from 'components/common/ConfettiEffect';
 import { TASK_QUERY_KEY } from 'constants/queries';
 import { useFetchFeedbackTemplates } from 'hooks/queries/feedback/useFetchFeedbackTemplates';
+import { useFeedbackAnimation } from 'hooks/shared/useFeedbackAnimation';
 import { theme } from 'styles/theme';
 import { formatRemainingTime } from 'utils/date';
 import type { taskFeedbackTemplateSchemeType } from 'types/feedback/scheme/api';
@@ -26,61 +29,82 @@ const FeedNagItem = ({ badgeImageUrl, nickname, title, startTime, feedbackCount 
   const [showReactions, setShowReactions] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<taskFeedbackTemplateSchemeType | null>(null);
 
-  const handleReaction = (template: taskFeedbackTemplateSchemeType) => {
-    setSelectedTemplate(template);
-    setShowReactions(false);
-    // TODO: 피드백 전송 API 연동
-    queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS });
-  };
+  const { isAnimating, animatingTemplate, animationTrigger, contentAnimatedStyle, emojiAnimatedStyle, startAnimation } =
+    useFeedbackAnimation();
+
+  const handleReaction = useCallback(
+    (template: taskFeedbackTemplateSchemeType) => {
+      setSelectedTemplate(template);
+      setShowReactions(false);
+      startAnimation(template);
+
+      // TODO: 피드백 전송 API 연동
+      queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS });
+    },
+    [startAnimation, queryClient],
+  );
 
   const remainingTime = formatRemainingTime(startTime);
 
   return (
     <View style={styles.container}>
-      <View style={styles.topRow}>
-        <Image style={styles.image} source={{ uri: badgeImageUrl }} />
-        <Text style={styles.nickname}>{nickname}</Text>
-      </View>
-      <Text style={styles.taskDescription}>{title}</Text>
-      <View style={styles.bottomRow}>
-        <View style={styles.infoRow}>
-          {remainingTime ? (
-            <View style={styles.infoItem}>
-              <Clock width={12} height={12} fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
-              <Text style={styles.info}>{remainingTime} 남음</Text>
+      {isAnimating && (
+        <ConfettiEffect trigger={animationTrigger} delay={400} style={styles.animationOverlay}>
+          <Animated.Image
+            source={{ uri: animatingTemplate?.emojiUrl }}
+            style={[styles.animatingEmoji, emojiAnimatedStyle]}
+          />
+        </ConfettiEffect>
+      )}
+
+      <Animated.View style={contentAnimatedStyle}>
+        <View style={styles.contentInner}>
+          <View style={styles.topRow}>
+            <Image style={styles.image} source={{ uri: badgeImageUrl }} />
+            <Text style={styles.nickname}>{nickname}</Text>
+          </View>
+          <Text style={styles.taskDescription}>{title}</Text>
+          <View style={styles.bottomRow}>
+            <View style={styles.infoRow}>
+              {remainingTime ? (
+                <View style={styles.infoItem}>
+                  <Clock width={12} height={12} fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
+                  <Text style={styles.info}>{remainingTime} 남음</Text>
+                </View>
+              ) : null}
+              <View style={styles.infoItem}>
+                <Thunder width={12} height={12} fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
+                <Text style={styles.info}>{feedbackCount}</Text>
+              </View>
             </View>
-          ) : null}
-          <View style={styles.infoItem}>
-            <Thunder width={12} height={12} fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
-            <Text style={styles.info}>{feedbackCount}</Text>
+            <Pressable style={styles.toggleButton} onPress={() => setShowReactions(prev => !prev)}>
+              {showReactions ? (
+                <CancelIcon width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
+              ) : (
+                <PlusIcon width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
+              )}
+            </Pressable>
           </View>
-        </View>
-        <Pressable style={styles.toggleButton} onPress={() => setShowReactions(prev => !prev)}>
-          {showReactions ? (
-            <CancelIcon width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
-          ) : (
-            <PlusIcon width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
+          {showReactions && templates && (
+            <View style={styles.reactionBarWrapper}>
+              <View style={styles.reactionBar}>
+                {templates.map(template => (
+                  <Pressable key={template.id} style={styles.reactionButton} onPress={() => handleReaction(template)}>
+                    <Image source={{ uri: template.emojiUrl }} style={styles.reactionEmoji} />
+                    <Text style={styles.reactionMessage}>{template.message}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
           )}
-        </Pressable>
-      </View>
-      {showReactions && templates && (
-        <View style={styles.reactionBarWrapper}>
-          <View style={styles.reactionBar}>
-            {templates.map(template => (
-              <Pressable key={template.id} style={styles.reactionButton} onPress={() => handleReaction(template)}>
-                <Image source={{ uri: template.emojiUrl }} style={styles.reactionEmoji} />
-                <Text style={styles.reactionMessage}>{template.message}</Text>
-              </Pressable>
-            ))}
-          </View>
+          {selectedTemplate && !showReactions && !isAnimating && (
+            <View style={styles.sentBubble}>
+              <Text style={styles.sentLabel}>보낸 잔소리</Text>
+              <Image source={{ uri: selectedTemplate.emojiUrl }} style={styles.sentEmoji} />
+            </View>
+          )}
         </View>
-      )}
-      {selectedTemplate && !showReactions && (
-        <View style={styles.sentBubble}>
-          <Text style={styles.sentLabel}>보낸 잔소리</Text>
-          <Image source={{ uri: selectedTemplate.emojiUrl }} style={styles.sentEmoji} />
-        </View>
-      )}
+      </Animated.View>
     </View>
   );
 };
@@ -91,7 +115,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
     borderRadius: 12,
+  },
+  contentInner: {
     gap: 12,
+  },
+  animationOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  animatingEmoji: {
+    width: 80,
+    height: 80,
   },
   topRow: {
     flexDirection: 'row',
