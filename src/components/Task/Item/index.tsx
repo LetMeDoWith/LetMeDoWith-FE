@@ -74,8 +74,9 @@ const Item = ({
   const data = id && mode ? todoTaskData ?? dowithTaskData : null;
   const isRoutineTask = !isNil(data?.routineCondition);
 
-  // 현재 시간이 업데이트 하려는 Task가 두윗이고, 등록 시간보다 같거나 이후일 경우
-  const isInvalidUpdateDowithTask = !isTodoMode && dayjs(`${data?.date} ${data?.startTime}`).isSameOrBefore(dayjs());
+  // 현재 시간이 업데이트 하려는 Task가 두윗이고, 시작 시간으로부터 1시간을 초과했을 경우
+  const isInvalidUpdateDowithTask =
+    !isTodoMode && dayjs(`${data?.date} ${data?.startTime}`).add(1, 'hour').isBefore(dayjs());
   const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
 
   const { mutate: uploadDowithTaskSuccessImageUrlListMutate } = useUploadDowithTaskSuccessImageList(id);
