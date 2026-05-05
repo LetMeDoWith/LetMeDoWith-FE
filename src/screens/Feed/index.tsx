@@ -2,9 +2,8 @@ import { useCallback, useState } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { FeedNagList, FeedNagEmpty, SuccessTaskImageList } from 'components/Feed';
+import { FeedNagList, SuccessTaskImageList } from 'components/Feed';
 import { useScheduledRefetch } from 'hooks/shared/useScheduledRefetch';
-import { useFetchFeedbackAvailableDowithTasks } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasks';
 import { TASK_QUERY_KEY } from 'constants/queries';
 
 const Feed = () => {
@@ -12,9 +11,6 @@ const Feed = () => {
   useScheduledRefetch([TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS, TASK_QUERY_KEY.SUCCESS_DOWITH_TASKS]);
 
   const queryClient = useQueryClient();
-  const { data } = useFetchFeedbackAvailableDowithTasks();
-  const hasNagTasks = (data?.dowithTasks.length ?? 0) > 0;
-
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
@@ -28,14 +24,8 @@ const Feed = () => {
 
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-      {hasNagTasks ? (
-        <>
-          <FeedNagList />
-          <SuccessTaskImageList />
-        </>
-      ) : (
-        <FeedNagEmpty />
-      )}
+      <FeedNagList />
+      <SuccessTaskImageList />
     </ScrollView>
   );
 };
