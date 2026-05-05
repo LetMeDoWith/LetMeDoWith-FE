@@ -1,12 +1,7 @@
 import { z } from 'zod';
 
 import { BasePageResponseScheme, BaseResponseScheme } from 'schemes/shared/api';
-import {
-  CREATION_TYPE_ENUM,
-  TASK_ROUTINE_CYCLE_ENUM,
-  TASK_STATUS_ENUM,
-  DOWITH_TASK_STATUS_ENUM,
-} from 'schemes/task/enum';
+import { CREATION_TYPE_ENUM, TASK_ROUTINE_CYCLE_ENUM, TASK_STATUS_ENUM } from 'schemes/task/enum';
 
 const taskCategoryScheme = z.object({
   id: z.number().describe('조회한 Task Category의 id'),
@@ -150,7 +145,7 @@ const feedbackAvailableDowithTaskScheme = z.object({
   nickname: z.string().describe('작성자 닉네임'),
   badgeImageUrl: z.string().describe('뱃지 이미지 URL'),
   title: z.string().describe('Task 제목'),
-  status: DOWITH_TASK_STATUS_ENUM.describe('Task 상태'),
+  status: TASK_STATUS_ENUM.describe('Task 상태'),
   date: z.string().describe('Task 수행일자'),
   startTime: z.string().describe('Task 시작시간'),
   feedbackCount: z.number().describe('피드백 수'),

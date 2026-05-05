@@ -9,6 +9,7 @@ import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
 import { ConfettiEffect } from 'components/common/ConfettiEffect';
 import { useDialog } from 'components/common/Dialog/Provider';
+import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { useFetchFeedbackTemplates } from 'hooks/queries/feedback/useFetchFeedbackTemplates';
 import { useSendFeedback } from 'hooks/queries/feedback/useSendFeedback';
 import { useFeedbackAnimation } from 'hooks/shared/useFeedbackAnimation';
@@ -95,7 +96,7 @@ const FeedNagItem = ({
       return;
     }
 
-    if (status === 'COMPLETE') {
+    if (status === TASK_STATUS_ENUM.enum.SUCCESS) {
       showDialog({
         type: 'ALERT',
         title: '이미 완료된 두윗이에요!',
