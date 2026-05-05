@@ -41,4 +41,18 @@ const fetchFeedbackTemplates = async (
   }
 };
 
-export { fetchSentFeedbacks, fetchReceivedFeedbacks, fetchFeedbackTemplates };
+interface CreateDowithFeedbackRequest {
+  dowithTaskId: number;
+  taskFeedbackTemplateId: number;
+}
+
+const createDowithFeedback = async (params: CreateDowithFeedbackRequest) => {
+  try {
+    const result = await apiClient.post(FEEDBACK_API.BASE, params);
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export { fetchSentFeedbacks, fetchReceivedFeedbacks, fetchFeedbackTemplates, createDowithFeedback };

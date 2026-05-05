@@ -134,6 +134,11 @@ const unLikeDowithTaskResponseScheme = BaseResponseScheme.extend({
   }),
 });
 
+const myFeedbackScheme = z.object({
+  templateId: z.number().describe('피드백 템플릿 ID'),
+  createdAt: z.string().describe('피드백 생성 일시'),
+});
+
 const feedbackAvailableDowithTaskScheme = z.object({
   id: z.number().describe('Task ID'),
   memberId: z.string().describe('작성자 member ID'),
@@ -144,6 +149,7 @@ const feedbackAvailableDowithTaskScheme = z.object({
   date: z.string().describe('Task 수행일자'),
   startTime: z.string().describe('Task 시작시간'),
   feedbackCount: z.number().describe('피드백 수'),
+  myFeedbacks: z.array(myFeedbackScheme).describe('내가 보낸 피드백 목록'),
 });
 
 const fetchFeedbackAvailableDowithTasksResponseScheme = BasePageResponseScheme.extend({
@@ -179,6 +185,7 @@ export {
   uploadTaskSuccessImageUrlListRequestScheme,
   uploadTaskSuccessImageUrlListResponseScheme,
   updateDowithTaskStatusSuccessRequestScheme,
+  myFeedbackScheme,
   feedbackAvailableDowithTaskScheme,
   fetchFeedbackAvailableDowithTasksResponseScheme,
   successDowithTaskScheme,

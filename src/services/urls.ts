@@ -27,6 +27,7 @@ const TASK_API = {
 } as const;
 
 const FEEDBACK_API = {
+  BASE: 'v1/feedbacks',
   SEND: 'v1/feedbacks/send',
   RECEIVED: 'v1/feedbacks/received',
   TEMPLATES: 'v1/feedbacks/templates',
