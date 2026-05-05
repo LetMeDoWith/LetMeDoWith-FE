@@ -1,10 +1,11 @@
 import { z } from 'zod';
 
-import { BasePageResponseScheme } from 'schemes/shared/api';
+import { BasePageResponseScheme, BaseResponseScheme } from 'schemes/shared/api';
+import { LANGUAGE_CODE_VALUES } from 'constants/shared';
 
 const taskFeedbackTemplateScheme = z.object({
   id: z.number().describe('템플릿 ID'),
-  language: z.enum(['KR', 'US', 'JP', 'CN', 'UK']).describe('템플릿 언어'),
+  language: z.enum(LANGUAGE_CODE_VALUES).describe('템플릿 언어'),
   message: z.string().describe('템플릿 메시지'),
   emojiUrl: z.string().describe('템플릿 이모지 URL'),
 });
@@ -45,10 +46,17 @@ const fetchReceivedFeedbacksResponseScheme = BasePageResponseScheme.extend({
   }),
 });
 
+const fetchFeedbackTemplatesResponseScheme = BaseResponseScheme.extend({
+  data: z.object({
+    templates: z.array(taskFeedbackTemplateScheme),
+  }),
+});
+
 export {
   taskFeedbackTemplateScheme,
   sentFeedbackScheme,
   receivedFeedbackScheme,
   fetchSentFeedbacksResponseScheme,
   fetchReceivedFeedbacksResponseScheme,
+  fetchFeedbackTemplatesResponseScheme,
 };

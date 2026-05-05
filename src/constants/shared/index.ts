@@ -10,4 +10,17 @@ const SCREEN_NAME = {
 
 const APP_VERSION = version;
 
-export { SCREEN_NAME, APP_VERSION };
+const LANGUAGE_CODE = {
+  KR: 'KR',
+  US: 'US',
+  JP: 'JP',
+  CN: 'CN',
+  UK: 'UK',
+} as const;
+
+type LanguageCodeType = (typeof LANGUAGE_CODE)[keyof typeof LANGUAGE_CODE];
+
+const LANGUAGE_CODE_VALUES = Object.values(LANGUAGE_CODE) as [LanguageCodeType, ...LanguageCodeType[]];
+
+export { SCREEN_NAME, APP_VERSION, LANGUAGE_CODE, LANGUAGE_CODE_VALUES };
+export type { LanguageCodeType };

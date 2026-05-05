@@ -7,8 +7,10 @@ import { Thunder } from 'components/common/icons/Thunder';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
 import { TASK_QUERY_KEY } from 'constants/queries';
+import { useFetchFeedbackTemplates } from 'hooks/queries/feedback/useFetchFeedbackTemplates';
 import { theme } from 'styles/theme';
 import { formatRemainingTime } from 'utils/date';
+import type { taskFeedbackTemplateSchemeType } from 'types/feedback/scheme/api';
 
 interface Props {
   badgeImageUrl: string;
@@ -18,15 +20,14 @@ interface Props {
   feedbackCount: number;
 }
 
-const REACTION_EMOJIS = ['😆', '😡', '🤣', '👏'];
-
 const FeedNagItem = ({ badgeImageUrl, nickname, title, startTime, feedbackCount }: Props) => {
   const queryClient = useQueryClient();
+  const { data: templates } = useFetchFeedbackTemplates();
   const [showReactions, setShowReactions] = useState(false);
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<taskFeedbackTemplateSchemeType | null>(null);
 
-  const handleReaction = (emoji: string) => {
-    setSelectedEmoji(emoji);
+  const handleReaction = (template: taskFeedbackTemplateSchemeType) => {
+    setSelectedTemplate(template);
     setShowReactions(false);
     // TODO: 피드백 전송 API 연동
     queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS });
@@ -54,33 +55,30 @@ const FeedNagItem = ({ badgeImageUrl, nickname, title, startTime, feedbackCount 
             <Text style={styles.info}>{feedbackCount}</Text>
           </View>
         </View>
-        {selectedEmoji ? (
-          <Text style={styles.selectedEmoji}>{selectedEmoji}</Text>
-        ) : (
-          <Pressable style={styles.toggleButton} onPress={() => setShowReactions(prev => !prev)}>
-            {showReactions ? (
-              <CancelIcon width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
-            ) : (
-              <PlusIcon width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
-            )}
-          </Pressable>
-        )}
+        <Pressable style={styles.toggleButton} onPress={() => setShowReactions(prev => !prev)}>
+          {showReactions ? (
+            <CancelIcon width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
+          ) : (
+            <PlusIcon width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
+          )}
+        </Pressable>
       </View>
-      {showReactions && (
+      {showReactions && templates && (
         <View style={styles.reactionBarWrapper}>
           <View style={styles.reactionBar}>
-            {REACTION_EMOJIS.map(emoji => (
-              <Pressable key={emoji} style={styles.reactionButton} onPress={() => handleReaction(emoji)}>
-                <Text style={styles.reactionEmoji}>{emoji}</Text>
+            {templates.map(template => (
+              <Pressable key={template.id} style={styles.reactionButton} onPress={() => handleReaction(template)}>
+                <Image source={{ uri: template.emojiUrl }} style={styles.reactionEmoji} />
+                <Text style={styles.reactionMessage}>{template.message}</Text>
               </Pressable>
             ))}
           </View>
-          <Text style={styles.reactionLabel}>스티커로 잔소리하기</Text>
         </View>
       )}
-      {selectedEmoji && !showReactions && (
-        <View style={styles.confirmBubble}>
-          <Text style={styles.confirmText}>잔소리 발송 성공!</Text>
+      {selectedTemplate && !showReactions && (
+        <View style={styles.sentBubble}>
+          <Text style={styles.sentLabel}>보낸 잔소리</Text>
+          <Image source={{ uri: selectedTemplate.emojiUrl }} style={styles.sentEmoji} />
         </View>
       )}
     </View>
@@ -136,46 +134,48 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  selectedEmoji: {
-    fontSize: 18,
-  },
   reactionBarWrapper: {
     backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96,
     borderRadius: 12,
     padding: 12,
-    gap: 8,
-    alignItems: 'center',
-  },
-  reactionLabel: {
-    ...theme.TYPOGRAPHY.CAPTION1_BASIC,
-    color: theme.COLORS.GRAY_SCALE.GRAY_50,
   },
   reactionBar: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    gap: 12,
   },
   reactionButton: {
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
+    flex: 1,
     alignItems: 'center',
+    gap: 4,
   },
   reactionEmoji: {
-    fontSize: 22,
+    width: 48,
+    height: 48,
   },
-  confirmBubble: {
-    marginTop: 8,
-    marginLeft: 56,
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96,
+  reactionMessage: {
+    ...theme.TYPOGRAPHY.CAPTION1_BASIC,
+    color: theme.COLORS.GRAY_SCALE.GRAY_50,
+    textAlign: 'center',
+  },
+  sentBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_98,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 6,
     alignSelf: 'flex-start',
+    gap: 8,
   },
-  confirmText: {
+  sentLabel: {
     ...theme.TYPOGRAPHY.CAPTION1_BASIC,
-    color: theme.COLORS.GRAY_SCALE.GRAY_50,
+    color: theme.COLORS.GRAY_SCALE.GRAY_60,
+  },
+  sentEmoji: {
+    width: 24,
+    height: 24,
   },
 });
 

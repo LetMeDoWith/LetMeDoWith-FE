@@ -24,6 +24,7 @@ const TASK_QUERY_KEY = {
 const FEEDBACK_QUERY_KEY = {
   SEND: ['feedback', 'send'],
   RECEIVED: ['feedback', 'received'],
+  TEMPLATES: ['feedback', 'templates'],
 } as const;
 
 const NOTIFICATION_QUERY_KEY = {
