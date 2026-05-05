@@ -1,26 +1,30 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Image, type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
+import dayjs from 'dayjs';
 
 import { Clock } from 'components/common/icons/Clock';
 import { Thunder } from 'components/common/icons/Thunder';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
 import { ConfettiEffect } from 'components/common/ConfettiEffect';
+import { useDialog } from 'components/common/Dialog/Provider';
 import { useFetchFeedbackTemplates } from 'hooks/queries/feedback/useFetchFeedbackTemplates';
 import { useSendFeedback } from 'hooks/queries/feedback/useSendFeedback';
 import { useFeedbackAnimation } from 'hooks/shared/useFeedbackAnimation';
 import { theme } from 'styles/theme';
 import { formatRemainingTime } from 'utils/date';
 import type { taskFeedbackTemplateSchemeType } from 'types/feedback/scheme/api';
-import type { myFeedbackSchemeType } from 'types/task/scheme/api';
+import type { myFeedbackSchemeType, feedbackAvailableDowithTaskSchemeType } from 'types/task/scheme/api';
 
 interface Props {
   taskId: number;
   badgeImageUrl: string;
   nickname: string;
   title: string;
+  date: string;
   startTime: string;
+  status: feedbackAvailableDowithTaskSchemeType['status'];
   feedbackCount: number;
   myFeedbacks: myFeedbackSchemeType[];
 }
@@ -32,18 +36,25 @@ const SENT_EMOJI_GAP = 8;
 const OVERFLOW_TEXT_WIDTH = 40;
 const SENT_BUBBLE_PADDING_H = 12;
 
+/** 잔소리 재전송 쿨타임 (1분) */
+const COOLDOWN_MS = 60 * 1000;
+
 const FeedNagItem = ({
   taskId,
   badgeImageUrl,
   nickname,
   title,
+  date,
   startTime,
+  status,
   feedbackCount,
   myFeedbacks,
 }: Props) => {
   const { data: templates } = useFetchFeedbackTemplates();
   const { mutate: sendFeedback } = useSendFeedback();
+  const { showDialog, hideDialog } = useDialog();
   const [showReactions, setShowReactions] = useState(false);
+  const lastSentAtRef = useRef<number>(0);
 
   const { isAnimating, animatingTemplate, animationTrigger, contentAnimatedStyle, emojiAnimatedStyle, startAnimation } =
     useFeedbackAnimation();
@@ -54,11 +65,60 @@ const FeedNagItem = ({
     return map;
   }, [templates]);
 
+  const showCooldownDialog = useCallback(() => {
+    showDialog({
+      type: 'ALERT',
+      title: '잔소리 쿨타임 ⏳',
+      content: '잔소리도 쿨타임이 필요해요\n1분 후에 다시 발송할 수 있어요.',
+      handleAlertButton: hideDialog,
+    });
+  }, [showDialog, hideDialog]);
+
+  const isCooldown = useCallback(() => Date.now() - lastSentAtRef.current < COOLDOWN_MS, []);
+
+  const handlePressPlus = useCallback(() => {
+    if (showReactions) {
+      setShowReactions(false);
+      return;
+    }
+
+    const taskDateTime = dayjs(`${date} ${startTime}`);
+    const isExpired = taskDateTime.add(1, 'hour').isBefore(dayjs());
+
+    if (isExpired) {
+      showDialog({
+        type: 'ALERT',
+        title: '시간이 지난 두윗이에요!',
+        content: '잔소리를 고민하는 사이\n해당 두윗 시간이 지났어요.',
+        handleAlertButton: hideDialog,
+      });
+      return;
+    }
+
+    if (status === 'COMPLETE') {
+      showDialog({
+        type: 'ALERT',
+        title: '이미 완료된 두윗이에요!',
+        content: '잔소리를 고민하는 사이,\n해당 두윗러가 인증을 마쳤어요.',
+        handleAlertButton: hideDialog,
+      });
+      return;
+    }
+
+    if (isCooldown()) {
+      showCooldownDialog();
+      return;
+    }
+
+    setShowReactions(true);
+  }, [showReactions, date, startTime, status, isCooldown, showCooldownDialog, showDialog, hideDialog]);
+
   const handleReaction = useCallback(
     (template: taskFeedbackTemplateSchemeType) => {
       setShowReactions(false);
       startAnimation(template);
       sendFeedback({ taskId, templateId: template.id });
+      lastSentAtRef.current = Date.now();
     },
     [startAnimation, sendFeedback, taskId],
   );
@@ -123,7 +183,7 @@ const FeedNagItem = ({
                 <Text style={styles.info}>{feedbackCount}</Text>
               </View>
             </View>
-            <Pressable style={styles.toggleButton} onPress={() => setShowReactions(prev => !prev)}>
+            <Pressable style={styles.toggleButton} onPress={handlePressPlus}>
               {showReactions ? (
                 <CancelIcon width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
               ) : (

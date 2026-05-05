@@ -38,7 +38,9 @@ const FeedNagList = () => {
                 badgeImageUrl={item.badgeImageUrl}
                 nickname={item.nickname}
                 title={item.title}
+                date={item.date}
                 startTime={item.startTime}
+                status={item.status}
                 feedbackCount={item.feedbackCount}
                 myFeedbacks={item.myFeedbacks}
               />
