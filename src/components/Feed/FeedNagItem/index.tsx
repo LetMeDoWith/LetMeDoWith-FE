@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Image, type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import dayjs from 'dayjs';
@@ -37,9 +37,6 @@ const SENT_EMOJI_GAP = 8;
 const OVERFLOW_TEXT_WIDTH = 40;
 const SENT_BUBBLE_PADDING_H = 12;
 
-/** 잔소리 재전송 쿨타임 (1분) */
-const COOLDOWN_MS = 60 * 1000;
-
 const FeedNagItem = ({
   taskId,
   badgeImageUrl,
@@ -55,7 +52,6 @@ const FeedNagItem = ({
   const { mutate: sendFeedback } = useSendFeedback();
   const { showDialog, hideDialog } = useDialog();
   const [showReactions, setShowReactions] = useState(false);
-  const lastSentAtRef = useRef<number>(0);
 
   const { isAnimating, animatingTemplate, animationTrigger, contentAnimatedStyle, emojiAnimatedStyle, startAnimation } =
     useFeedbackAnimation();
@@ -65,17 +61,6 @@ const FeedNagItem = ({
     templates?.forEach(t => map.set(t.id, t));
     return map;
   }, [templates]);
-
-  const showCooldownDialog = useCallback(() => {
-    showDialog({
-      type: 'ALERT',
-      title: '잔소리 쿨타임 ⏳',
-      content: '잔소리도 쿨타임이 필요해요\n1분 후에 다시 발송할 수 있어요.',
-      handleAlertButton: hideDialog,
-    });
-  }, [showDialog, hideDialog]);
-
-  const isCooldown = useCallback(() => Date.now() - lastSentAtRef.current < COOLDOWN_MS, []);
 
   const handlePressPlus = useCallback(() => {
     if (showReactions) {
@@ -106,20 +91,14 @@ const FeedNagItem = ({
       return;
     }
 
-    if (isCooldown()) {
-      showCooldownDialog();
-      return;
-    }
-
     setShowReactions(true);
-  }, [showReactions, date, startTime, status, isCooldown, showCooldownDialog, showDialog, hideDialog]);
+  }, [showReactions, date, startTime, status, showDialog, hideDialog]);
 
   const handleReaction = useCallback(
     (template: taskFeedbackTemplateSchemeType) => {
       setShowReactions(false);
       startAnimation(template);
       sendFeedback({ taskId, templateId: template.id });
-      lastSentAtRef.current = Date.now();
     },
     [startAnimation, sendFeedback, taskId],
   );
