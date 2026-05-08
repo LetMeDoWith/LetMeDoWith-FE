@@ -5,7 +5,6 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { DoubleThunder } from 'components/common/icons/DoubleThunder';
 import { FeedNagItem } from 'components/Feed/FeedNagItem';
-import { FeedNagEmpty } from 'components/Feed/FeedNagEmpty';
 import { useFetchFeedbackAvailableDowithTasks } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasks';
 import type { RootStackParamList } from 'types/shared';
 import { theme } from 'styles/theme';
@@ -27,7 +26,6 @@ const FeedNagList = () => {
         <Text style={theme.TYPOGRAPHY.TITLE_2}>실시간 잔소리하기</Text>
       </View>
       {isLoading && <ActivityIndicator />}
-      {!isLoading && allTasks.length === 0 && <FeedNagEmpty />}
       {!isLoading && allTasks.length > 0 && (
         <>
           <View style={styles.list}>
