@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming } from 'react-native-reanimated';
 
@@ -6,6 +6,7 @@ import { theme } from 'styles/theme';
 import { LikeIcon } from 'components/common/icons/LikeIcon';
 import { useLikeDowithTask } from 'hooks/queries/task/useLikeDowithTask';
 import { useUnLikeDowithTask } from 'hooks/queries/task/useUnLikeDowithTask';
+import { throttle } from 'utils/timing';
 import type { successDowithTaskSchemeType } from 'types/task/scheme/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -23,18 +24,39 @@ const SuccessTaskImageDetailItem = ({
   const { mutate: likeDowithTask } = useLikeDowithTask();
   const { mutate: unLikeDowithTask } = useUnLikeDowithTask();
 
+  const [localIsLiked, setLocalIsLiked] = useState(isLiked);
+  const [localLikeCount, setLocalLikeCount] = useState(likeCount);
+  const localIsLikedRef = useRef(localIsLiked);
+  localIsLikedRef.current = localIsLiked;
+
+  useEffect(() => {
+    setLocalIsLiked(isLiked);
+    setLocalLikeCount(likeCount);
+  }, [isLiked, likeCount]);
+
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
-  const handleLike = () => {
-    if (isLiked) {
-      unLikeDowithTask(id);
-    } else {
-      scale.value = withSequence(withTiming(1.4, { duration: 150 }), withTiming(1, { duration: 150 }));
-      likeDowithTask(id);
-    }
-  };
+  const handleLike = useMemo(
+    () =>
+      throttle(() => {
+        if (localIsLikedRef.current) {
+          setLocalIsLiked(false);
+          setLocalLikeCount(prev => Math.max(0, prev - 1));
+          localIsLikedRef.current = false;
+          unLikeDowithTask(id);
+        } else {
+          scale.value = withSequence(withTiming(1.4, { duration: 150 }), withTiming(1, { duration: 150 }));
+          setLocalIsLiked(true);
+          setLocalLikeCount(prev => prev + 1);
+          localIsLikedRef.current = true;
+          likeDowithTask(id);
+        }
+      }, 500),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [id],
+  );
 
   return (
     <View style={styles.page}>
@@ -52,10 +74,12 @@ const SuccessTaskImageDetailItem = ({
           </View>
           <Pressable style={styles.likeButton} onPress={handleLike}>
             <Animated.View style={animatedStyle}>
-              <LikeIcon {...(isLiked && { fill: theme.COLORS.STATUS.RED_55, stroke: theme.COLORS.STATUS.RED_55 })} />
+              <LikeIcon
+                {...(localIsLiked && { fill: theme.COLORS.STATUS.RED_55, stroke: theme.COLORS.STATUS.RED_55 })}
+              />
             </Animated.View>
-            {likeCount > 0 && (
-              <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.DEFAULT.WHITE }]}>{likeCount}</Text>
+            {localLikeCount > 0 && (
+              <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.DEFAULT.WHITE }]}>{localLikeCount}</Text>
             )}
           </Pressable>
         </View>

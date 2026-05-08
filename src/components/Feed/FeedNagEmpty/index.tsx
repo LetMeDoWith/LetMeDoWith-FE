@@ -1,7 +1,8 @@
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { useFetchSuccessDowithTasks } from 'hooks/queries/task/useFetchSuccessDowithTasks';
+import { useSuccessTaskImageDetail } from 'hooks/shared/useSuccessTaskImageDetail';
 import { theme } from 'styles/theme';
 import type { successDowithTaskSchemeType } from 'types/task/scheme/api';
 
@@ -12,13 +13,14 @@ const CARD_WIDTH = 135;
 const CARD_HEIGHT = 180;
 const CARD_GAP = 16;
 
+const ROTATIONS = ['-3deg', '2deg', '-2deg', '3deg', '-1deg'];
+
 const FeedNagEmpty = () => {
   const { data: successTasks = [] } = useFetchSuccessDowithTasks();
-
-  const ROTATIONS = ['-3deg', '2deg', '-2deg', '3deg', '-1deg'];
+  const { openDetail, detailModal } = useSuccessTaskImageDetail(successTasks);
 
   const renderCard = ({ item, index }: { item: successDowithTaskSchemeType; index: number }) => (
-    <View style={[styles.cardWrapper, { marginRight: CARD_GAP }]}>
+    <Pressable style={[styles.cardWrapper, { marginRight: CARD_GAP }]} onPress={() => openDetail(index)}>
       <View style={[styles.card, { transform: [{ rotate: ROTATIONS[index % ROTATIONS.length] }] }]}>
         <Image source={{ uri: item.successImageUrl }} style={styles.cardImage} />
         <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.6)']} style={styles.cardOverlay}>
@@ -28,7 +30,7 @@ const FeedNagEmpty = () => {
           </View>
         </LinearGradient>
       </View>
-    </View>
+    </Pressable>
   );
 
   return (
@@ -56,6 +58,7 @@ const FeedNagEmpty = () => {
           />
         </View>
       )}
+      {detailModal}
     </View>
   );
 };

@@ -1,27 +1,26 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { BlueCamera } from 'components/common/icons/BlueCamera';
-import { SuccessTaskImageCard, SuccessTaskImageDetail } from 'components/Feed';
+import { SuccessTaskImageCard } from 'components/Feed';
 import { theme } from 'styles/theme';
 import { SUCCESS_TASK_IMAGE_ITEM_GAP, SUCCESS_TASK_IMAGE_ITEM_WIDTH } from 'constants/Feed';
 import { useFetchSuccessDowithTasks } from 'hooks/queries/task/useFetchSuccessDowithTasks';
+import { useSuccessTaskImageDetail } from 'hooks/shared/useSuccessTaskImageDetail';
 import type { successDowithTaskSchemeType } from 'types/task/scheme/api';
 
 const ItemSeparator = () => <View style={{ width: SUCCESS_TASK_IMAGE_ITEM_GAP }} />;
 
 const SuccessTaskImageList = () => {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const { data: successTasks = [] } = useFetchSuccessDowithTasks();
+  const { openDetail, detailModal } = useSuccessTaskImageDetail(successTasks);
 
   const renderItem = useCallback(
     ({ item, index }: { item: successDowithTaskSchemeType; index: number }) => (
-      <SuccessTaskImageCard {...item} onPress={() => setSelectedIndex(index)} />
+      <SuccessTaskImageCard {...item} onPress={() => openDetail(index)} />
     ),
-    [],
+    [openDetail],
   );
-
-  // TODO: 데이터 없을 시, fallback 처리
 
   return (
     <View style={styles.container}>
@@ -40,14 +39,7 @@ const SuccessTaskImageList = () => {
         renderItem={renderItem}
         keyExtractor={({ id }) => id.toString()}
       />
-      {selectedIndex !== null && (
-        <SuccessTaskImageDetail
-          visible
-          data={successTasks}
-          initialIndex={selectedIndex}
-          onClose={() => setSelectedIndex(null)}
-        />
-      )}
+      {detailModal}
     </View>
   );
 };
