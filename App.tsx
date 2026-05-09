@@ -25,7 +25,7 @@ import { ThemeContext } from 'hooks/shared/useTheme';
 import { theme } from 'styles/theme';
 import { Signup } from 'screens/Signup';
 import { useStore } from 'stores/index';
-import { DialogProvider } from 'components/common/Dialog/Provider';
+import { DialogProvider, useDialog } from 'components/common/Dialog/Provider';
 import { LoadingOverlay } from 'components/common/LoadingOverlay';
 import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
 import { initNotificationLayer } from 'utils/notification';
@@ -93,7 +93,7 @@ function AppContent() {
     isLoggedIn,
     isNeedSignUp,
     isHydrated,
-    authActions: { setIsNeedRefreshToken },
+    authActions: { setIsNeedRefreshToken, initAuthInfo },
   } = useStore(
     ({
       tokenInfo,
@@ -101,14 +101,14 @@ function AppContent() {
       isLoggedIn,
       isNeedSignUp,
       isHydrated,
-      authActions: { setIsNeedRefreshToken },
+      authActions: { setIsNeedRefreshToken, initAuthInfo },
     }) => ({
       tokenInfo,
       isNeedRefreshToken,
       isLoggedIn,
       isNeedSignUp,
       isHydrated,
-      authActions: { setIsNeedRefreshToken },
+      authActions: { setIsNeedRefreshToken, initAuthInfo },
     }),
   );
 
@@ -120,6 +120,7 @@ function AppContent() {
 
   const { mutate: mutateRefreshToken } = useRefreshTokenQuery();
   const { mutate: mutateNotificationToken } = useAddNotificationToken();
+  const { showDialog, hideDialog } = useDialog();
 
   const context = useContext(AppStateContext);
   if (!context) {
@@ -132,15 +133,19 @@ function AppContent() {
    * useAppState 훅을 사용하여 AppState 변경 감지
    */
   useAppState(state => {
-    if (state === 'active') {
-      // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우 토큰 재발급 상태로 수정
-      if (
-        tokenInfo.access?.token &&
-        dayjs().isAfter(tokenInfo.access?.expireAt) &&
-        tokenInfo.refresh?.token &&
-        dayjs().isBefore(tokenInfo.refresh?.expireAt)
-      ) {
+    if (state === 'active' && tokenInfo.access?.token && dayjs().isAfter(tokenInfo.access?.expireAt)) {
+      if (tokenInfo.refresh?.token && dayjs().isBefore(tokenInfo.refresh?.expireAt)) {
+        // 액세스 토큰 만료, refresh 토큰 유효 → 토큰 재발급
         setIsNeedRefreshToken(true);
+      } else {
+        // 액세스 토큰, refresh 토큰 모두 만료 → 로그아웃 처리
+        initAuthInfo();
+        showDialog({
+          type: 'ALERT',
+          title: '세션 만료',
+          content: '세션 정보가 만료되어\n로그인 페이지로 이동합니다.',
+          handleAlertButton: hideDialog,
+        });
       }
     }
   });
