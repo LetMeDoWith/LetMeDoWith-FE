@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   Alert,
   Image,
@@ -86,10 +86,13 @@ const Myinfo = ({ navigation: { goBack } }: SettingStackScreenProps<'MYINFO'>) =
   const selfDescription = watch('selfDescription');
   const profileImageUrl = watch('profileImageUrl');
 
-  const isButtonDisabled = useMemo(
-    () => !nickname || !isSuccessMutateValidNickname || !!errors.nickname,
-    [nickname, isSuccessMutateValidNickname, errors.nickname],
-  );
+  const isNicknameChanged = nickname !== (myDowithInfo?.nickname ?? '');
+  const isSelfDescriptionChanged = selfDescription !== (myDowithInfo?.selfDescription ?? '');
+  const isProfileImageChanged = profileImageUrl !== (myDowithInfo?.profileImageUrl ?? '');
+  const hasAnyChange = isNicknameChanged || isSelfDescriptionChanged || isProfileImageChanged;
+
+  const isButtonDisabled =
+    !nickname || !hasAnyChange || (isNicknameChanged && (!isSuccessMutateValidNickname || !!errors.nickname));
 
   const handleProfileImage = (type: 'SELECT' | 'DELETE') => async () => {
     const options = {
