@@ -28,6 +28,7 @@ type RootStackParamList = {
   };
   FEEDBACK: undefined;
   REALTIME_NAG: undefined;
+  MYINFO: undefined;
 };
 
 type RootStackScreenProps<T extends keyof RootStackParamList> = StackScreenProps<RootStackParamList, T>;

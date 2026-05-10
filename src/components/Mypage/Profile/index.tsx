@@ -22,7 +22,7 @@ const Profile = ({ data }: Props) => {
       ) : (
         <View style={styles.profileImage} />
       )}
-      <Pressable style={styles.nicknameRow} onPress={() => navigation.navigate('SETTING', { screen: 'MYINFO' })}>
+      <Pressable style={styles.nicknameRow} onPress={() => navigation.navigate('MYINFO')}>
         <Text style={styles.nickname}>{data.nickname}</Text>
         <EditIcon />
       </Pressable>
