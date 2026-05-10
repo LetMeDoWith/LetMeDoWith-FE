@@ -97,8 +97,7 @@ const FeedNagItem = ({
   const handleReaction = useCallback(
     (template: taskFeedbackTemplateSchemeType) => {
       setShowReactions(false);
-      startAnimation(template);
-      sendFeedback({ taskId, templateId: template.id });
+      sendFeedback({ taskId, templateId: template.id }, { onSuccess: () => startAnimation(template) });
     },
     [startAnimation, sendFeedback, taskId],
   );
