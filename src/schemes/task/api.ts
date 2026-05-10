@@ -143,7 +143,7 @@ const feedbackAvailableDowithTaskScheme = z.object({
   id: z.number().describe('Task ID'),
   memberId: z.string().describe('작성자 member ID'),
   nickname: z.string().describe('작성자 닉네임'),
-  badgeImageUrl: z.string().describe('뱃지 이미지 URL'),
+  profileImageUrl: z.string().describe('프로필 이미지 URL'),
   title: z.string().describe('Task 제목'),
   status: TASK_STATUS_ENUM.describe('Task 상태'),
   date: z.string().describe('Task 수행일자'),

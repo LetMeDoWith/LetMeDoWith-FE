@@ -33,7 +33,7 @@ const FeedNagList = () => {
               <FeedNagItem
                 key={item.id}
                 taskId={item.id}
-                badgeImageUrl={item.badgeImageUrl}
+                profileImageUrl={item.profileImageUrl}
                 nickname={item.nickname}
                 title={item.title}
                 date={item.date}

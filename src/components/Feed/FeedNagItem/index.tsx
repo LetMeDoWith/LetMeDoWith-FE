@@ -23,7 +23,7 @@ import type { myFeedbackSchemeType, feedbackAvailableDowithTaskSchemeType } from
 
 interface Props {
   taskId: number;
-  badgeImageUrl: string;
+  profileImageUrl: string;
   nickname: string;
   title: string;
   date: string;
@@ -42,7 +42,7 @@ const SENT_BUBBLE_PADDING_H = 12;
 
 const FeedNagItem = ({
   taskId,
-  badgeImageUrl,
+  profileImageUrl,
   nickname,
   title,
   date,
@@ -170,7 +170,7 @@ const FeedNagItem = ({
       <Animated.View style={contentAnimatedStyle}>
         <View style={styles.contentInner}>
           <View style={styles.topRow}>
-            <Image style={styles.image} source={{ uri: badgeImageUrl }} />
+            <Image style={styles.image} source={{ uri: profileImageUrl }} />
             <Text style={styles.nickname}>{nickname}</Text>
           </View>
           <Text style={styles.taskDescription}>{title}</Text>
