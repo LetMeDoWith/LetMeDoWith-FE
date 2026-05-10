@@ -12,7 +12,7 @@ const Feed = () => {
   useScheduledRefetch([TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS, TASK_QUERY_KEY.SUCCESS_DOWITH_TASKS]);
 
   const queryClient = useQueryClient();
-  const { data } = useFetchFeedbackAvailableDowithTasks();
+  const { data, isLoading } = useFetchFeedbackAvailableDowithTasks();
   const hasNagTasks = (data?.dowithTasks.length ?? 0) > 0;
   const [refreshing, setRefreshing] = useState(false);
 
@@ -27,14 +27,13 @@ const Feed = () => {
 
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-      {hasNagTasks ? (
+      {!isLoading && hasNagTasks && (
         <>
           <FeedNagList />
           <SuccessTaskImageList />
         </>
-      ) : (
-        <FeedNagEmpty />
       )}
+      {!isLoading && !hasNagTasks && <FeedNagEmpty />}
     </ScrollView>
   );
 };
