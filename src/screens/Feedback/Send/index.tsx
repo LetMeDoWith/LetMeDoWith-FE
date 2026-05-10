@@ -28,7 +28,7 @@ const SendFeedback = () => {
   const renderItem = ({ item, index }: { item: sentFeedbackSchemeType; index: number }) => (
     <SentComment
       profileImageUrl={item.senderProfileImageUrl}
-      message={item.taskFeedbackTemplate.message}
+      message={item.taskFeedbackTemplate.name}
       nickname={item.senderNickname}
       dowithTaskTitle={item.dowithTaskTitle}
       dowithTaskStatus={item.dowithTaskStatus}
