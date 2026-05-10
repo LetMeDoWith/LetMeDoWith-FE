@@ -15,17 +15,16 @@ const useUpdateMember = (
   const queryClient = useQueryClient();
 
   return useMutation<EmptyDataResponseSchemeType, AxiosError, updateMemberRequestSchemeType>({
+    ...options,
     mutationFn: payload => updateMember(payload),
     onSuccess: async (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: MEMBER_QUERY_KEY.MY_DOWITH });
       await options?.onSuccess?.(data, variables, context);
     },
     onError: (error, variables, context) => {
-      // 기본 에러 처리
       console.error('회원정보 수정 실패:', error);
       options?.onError?.(error, variables, context);
     },
-    ...options,
   });
 };
 
