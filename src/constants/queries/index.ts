@@ -7,6 +7,7 @@ const MEMBER_QUERY_KEY = {
   VALID_NICKNAME: ['member', 'valid', 'nickname'],
   SIGN_UP: ['member', 'signup'],
   DELETE_ACCOUNT: ['member', 'delete'],
+  MY_DOWITH: ['member', 'my-dowith'],
 } as const;
 
 const TASK_QUERY_KEY = {

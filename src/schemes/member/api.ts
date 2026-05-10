@@ -49,6 +49,16 @@ const profileImageUploadPresignedUrlResponseScheme = BaseResponseScheme.extend({
   }),
 });
 
+const myDowithInfoResponseScheme = BaseResponseScheme.extend({
+  data: z.object({
+    memberId: z.string().describe('회원 ID'),
+    nickname: z.string().describe('닉네임'),
+    selfDescription: z.string().describe('자기소개'),
+    profileImageUrl: z.string().describe('프로필 이미지 URL'),
+    successDowithCount: z.number().describe('성공한 두윗 수'),
+  }),
+});
+
 export {
   validNicknameRequestScheme,
   validNicknameResponseScheme,
@@ -58,4 +68,5 @@ export {
   notificationSettingsRequestScheme,
   profileImageUploadPresignedUrlRequestScheme,
   profileImageUploadPresignedUrlResponseScheme,
+  myDowithInfoResponseScheme,
 };

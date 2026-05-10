@@ -10,6 +10,7 @@ import type {
   validNicknameResponseSchemeType,
   profileImageUploadPresignedUrlRequestSchemeType,
   profileImageUploadPresignedUrlResponseSchemeType,
+  myDowithInfoResponseSchemeType,
 } from 'types/member/scheme/api';
 
 const validNickname = async (payload: validNicknameRequestSchemeType): Promise<validNicknameResponseSchemeType> => {
@@ -73,6 +74,15 @@ const fetchProfileImageUploadPresignedUrl = async (
   }
 };
 
+const fetchMyDowithInfo = async (): Promise<myDowithInfoResponseSchemeType> => {
+  try {
+    const result = await apiClient.get<myDowithInfoResponseSchemeType>(MEMBER_API.MY_DOWITH);
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 export {
   validNickname,
   signUp,
@@ -80,4 +90,5 @@ export {
   deleteAccount,
   updateNotificationSettings,
   fetchProfileImageUploadPresignedUrl,
+  fetchMyDowithInfo,
 };

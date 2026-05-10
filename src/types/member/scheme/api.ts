@@ -9,6 +9,7 @@ import {
   validNicknameResponseScheme,
   profileImageUploadPresignedUrlRequestScheme,
   profileImageUploadPresignedUrlResponseScheme,
+  myDowithInfoResponseScheme,
 } from 'schemes/member/api';
 
 type validNicknameRequestSchemeType = z.infer<typeof validNicknameRequestScheme>;
@@ -19,6 +20,7 @@ type updateMemberRequestSchemeType = z.infer<typeof updateMemberRequestScheme>;
 type notificationSettingsRequestSchemeType = z.infer<typeof notificationSettingsRequestScheme>;
 type profileImageUploadPresignedUrlRequestSchemeType = z.infer<typeof profileImageUploadPresignedUrlRequestScheme>;
 type profileImageUploadPresignedUrlResponseSchemeType = z.infer<typeof profileImageUploadPresignedUrlResponseScheme>;
+type myDowithInfoResponseSchemeType = z.infer<typeof myDowithInfoResponseScheme>;
 
 export type {
   validNicknameRequestSchemeType,
@@ -29,4 +31,5 @@ export type {
   notificationSettingsRequestSchemeType,
   profileImageUploadPresignedUrlRequestSchemeType,
   profileImageUploadPresignedUrlResponseSchemeType,
+  myDowithInfoResponseSchemeType,
 };
