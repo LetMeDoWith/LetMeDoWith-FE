@@ -35,7 +35,7 @@ import { useUploadImage } from 'hooks/shared/useUploadImage';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>) => {
+const Myinfo = ({ navigation: { goBack } }: SettingStackScreenProps<'MYINFO'>) => {
   const uploadImageBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { showDialog, hideDialog } = useDialog();
   const { data: myDowithInfo } = useFetchMyDowithInfo();
@@ -76,7 +76,7 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
 
   const { mutate: mutateUpdateMember } = useUpdateMember({
     onSuccess: () => {
-      navigate('DEFAULT');
+      goBack();
       clearErrors();
       resetMutateValidNickname();
     },
