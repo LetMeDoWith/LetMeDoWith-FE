@@ -22,6 +22,7 @@ const ErrorStatusCodeEnum = z.enum([
   'E230',
   'E231',
   'E246',
+  'E250',
   'E300',
   'E301',
   'E302',

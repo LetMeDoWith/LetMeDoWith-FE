@@ -10,6 +10,7 @@ import { CancelIcon } from 'components/common/icons/CancelIcon';
 import { ConfettiEffect } from 'components/common/ConfettiEffect';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
+import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
 import { useFetchFeedbackTemplates } from 'hooks/queries/feedback/useFetchFeedbackTemplates';
 import { useSendFeedback } from 'hooks/queries/feedback/useSendFeedback';
 import { useFeedbackAnimation } from 'hooks/shared/useFeedbackAnimation';
@@ -97,9 +98,24 @@ const FeedNagItem = ({
   const handleReaction = useCallback(
     (template: taskFeedbackTemplateSchemeType) => {
       setShowReactions(false);
-      sendFeedback({ taskId, templateId: template.id }, { onSuccess: () => startAnimation(template) });
+      sendFeedback(
+        { taskId, templateId: template.id },
+        {
+          onSuccess: () => startAnimation(template),
+          onError: e => {
+            if (e.response?.data?.statusCode === ErrorStatusCodeEnum.enum.E250) {
+              showDialog({
+                type: 'ALERT',
+                title: '잔소리 쿨타임 ⏳',
+                content: '잔소리도 쿨타임이 필요해요.\n1분 후에 다시 발송할 수 있어요.',
+                handleAlertButton: hideDialog,
+              });
+            }
+          },
+        },
+      );
     },
-    [startAnimation, sendFeedback, taskId],
+    [startAnimation, sendFeedback, taskId, showDialog, hideDialog],
   );
 
   const [bubbleWidth, setBubbleWidth] = useState(0);
