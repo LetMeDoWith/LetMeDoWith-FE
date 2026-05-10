@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Image, type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
 import { Clock } from 'components/common/icons/Clock';
@@ -11,6 +12,7 @@ import { ConfettiEffect } from 'components/common/ConfettiEffect';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
+import { TASK_QUERY_KEY } from 'constants/queries';
 import { useFetchFeedbackTemplates } from 'hooks/queries/feedback/useFetchFeedbackTemplates';
 import { useSendFeedback } from 'hooks/queries/feedback/useSendFeedback';
 import { useFeedbackAnimation } from 'hooks/shared/useFeedbackAnimation';
@@ -49,6 +51,7 @@ const FeedNagItem = ({
   feedbackCount,
   myFeedbacks,
 }: Props) => {
+  const queryClient = useQueryClient();
   const { data: templates } = useFetchFeedbackTemplates();
   const { mutate: sendFeedback } = useSendFeedback();
   const { showDialog, hideDialog } = useDialog();
@@ -77,7 +80,10 @@ const FeedNagItem = ({
         type: 'ALERT',
         title: '시간이 지난 두윗이에요!',
         content: '잔소리를 고민하는 사이\n해당 두윗 시간이 지났어요.',
-        handleAlertButton: hideDialog,
+        handleAlertButton: () => {
+          hideDialog();
+          queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS });
+        },
       });
       return;
     }
@@ -87,13 +93,16 @@ const FeedNagItem = ({
         type: 'ALERT',
         title: '이미 완료된 두윗이에요!',
         content: '잔소리를 고민하는 사이,\n해당 두윗러가 인증을 마쳤어요.',
-        handleAlertButton: hideDialog,
+        handleAlertButton: () => {
+          hideDialog();
+          queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS });
+        },
       });
       return;
     }
 
     setShowReactions(true);
-  }, [showReactions, date, startTime, status, showDialog, hideDialog]);
+  }, [showReactions, date, startTime, status, queryClient, showDialog, hideDialog]);
 
   const handleReaction = useCallback(
     (template: taskFeedbackTemplateSchemeType) => {
