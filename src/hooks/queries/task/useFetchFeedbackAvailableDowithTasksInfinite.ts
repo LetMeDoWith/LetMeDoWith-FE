@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
@@ -10,7 +10,7 @@ const PAGE_SIZE = 10;
 const useFetchFeedbackAvailableDowithTasksInfinite = () =>
   useInfiniteQuery<
     fetchFeedbackAvailableDowithTasksResponseSchemeType,
-    AxiosError,
+    ApiError,
     InfiniteData<fetchFeedbackAvailableDowithTasksResponseSchemeType, number>,
     readonly string[],
     number

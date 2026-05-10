@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 import { useQuery } from '@tanstack/react-query';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
@@ -15,7 +15,7 @@ type FeedbackAvailableDowithTasksResult = {
 };
 
 const useFetchFeedbackAvailableDowithTasks = (params?: PageRequestSchemeType) =>
-  useQuery<fetchFeedbackAvailableDowithTasksResponseSchemeType, AxiosError, FeedbackAvailableDowithTasksResult>({
+  useQuery<fetchFeedbackAvailableDowithTasksResponseSchemeType, ApiError, FeedbackAvailableDowithTasksResult>({
     queryKey: [...TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS, params?.page, params?.size],
     queryFn: () => fetchFeedbackAvailableDowithTasks(params),
     select: data => ({

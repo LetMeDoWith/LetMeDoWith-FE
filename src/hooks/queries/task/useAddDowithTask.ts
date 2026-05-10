@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
@@ -12,7 +12,7 @@ const useAddDowithTask = () => {
   const queryClient = useQueryClient();
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList, 'TASK_FORM'>>();
 
-  return useMutation<undefined, AxiosError, addTaskRequestSchemeType>({
+  return useMutation<undefined, ApiError, addTaskRequestSchemeType>({
     mutationKey: TASK_QUERY_KEY.ADD_DOWITH,
     mutationFn: payload => addDowithTask(payload),
     onSuccess: () => {

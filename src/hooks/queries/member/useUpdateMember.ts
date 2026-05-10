@@ -1,5 +1,5 @@
 import { useMutation, UseMutationOptions, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 
 import { MEMBER_QUERY_KEY } from 'constants/queries';
 import { updateMember } from 'services/rest/member';
@@ -8,13 +8,13 @@ import type { updateMemberRequestSchemeType } from 'types/member/scheme/api';
 
 const useUpdateMember = (
   options?: Omit<
-    UseMutationOptions<EmptyDataResponseSchemeType, AxiosError, updateMemberRequestSchemeType>,
+    UseMutationOptions<EmptyDataResponseSchemeType, ApiError, updateMemberRequestSchemeType>,
     'mutationFn'
   >,
 ) => {
   const queryClient = useQueryClient();
 
-  return useMutation<EmptyDataResponseSchemeType, AxiosError, updateMemberRequestSchemeType>({
+  return useMutation<EmptyDataResponseSchemeType, ApiError, updateMemberRequestSchemeType>({
     ...options,
     mutationFn: payload => updateMember(payload),
     onSuccess: async (data, variables, context) => {

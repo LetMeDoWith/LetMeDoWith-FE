@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 import { useQuery } from '@tanstack/react-query';
 
 import { FEEDBACK_QUERY_KEY } from 'constants/queries';
@@ -12,7 +12,7 @@ type SentFeedbacksResult = {
 };
 
 const useFetchSendFeedbacks = (params?: PageRequestSchemeType) =>
-  useQuery<fetchSentFeedbacksResponseSchemeType, AxiosError, SentFeedbacksResult>({
+  useQuery<fetchSentFeedbacksResponseSchemeType, ApiError, SentFeedbacksResult>({
     queryKey: [...FEEDBACK_QUERY_KEY.SEND, params?.page, params?.size],
     queryFn: () => fetchSentFeedbacks(params),
     select: data => ({

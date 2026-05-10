@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
 import { updateTaskRoutine } from 'services/rest/task';
@@ -11,7 +11,7 @@ const useUpdateTaskRoutine = ({ navigation, mode, id }: { navigation: any; mode:
   // TODO: props로 받아지는 navigation 관련된 타입 모두 구체화 필요
   const navigate = navigation?.navigate;
 
-  return useMutation<string, AxiosError, updateTaskRoutineRequestSchemeType>({
+  return useMutation<string, ApiError, updateTaskRoutineRequestSchemeType>({
     mutationKey: TASK_QUERY_KEY.UPDATE_ROUTINE,
     mutationFn: payload => updateTaskRoutine({ mode, id, payload }),
     onSuccess: () => {

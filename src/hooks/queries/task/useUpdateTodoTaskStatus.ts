@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
 import { updateStatusTodoTask } from 'services/rest/task';
@@ -14,7 +14,7 @@ interface Props {
 const useUpdateTodoTaskStatus = ({ year, month }: Props) => {
   const queryClient = useQueryClient();
 
-  return useMutation<updateTodoTaskStatusResponseSchemeType, AxiosError, { id: number; status: TaskStatusEnumType }>({
+  return useMutation<updateTodoTaskStatusResponseSchemeType, ApiError, { id: number; status: TaskStatusEnumType }>({
     mutationKey: TASK_QUERY_KEY.UPDATE_TODO_STATUS,
     mutationFn: payload => updateStatusTodoTask(payload),
     onSuccess: () => {

@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 import { useQuery } from '@tanstack/react-query';
 
 import { FEEDBACK_QUERY_KEY } from 'constants/queries';
@@ -10,7 +10,7 @@ import type {
 } from 'types/feedback/scheme/api';
 
 const useFetchFeedbackTemplates = () =>
-  useQuery<fetchFeedbackTemplatesResponseSchemeType, AxiosError, taskFeedbackTemplateSchemeType[]>({
+  useQuery<fetchFeedbackTemplatesResponseSchemeType, ApiError, taskFeedbackTemplateSchemeType[]>({
     queryKey: FEEDBACK_QUERY_KEY.TEMPLATES,
     queryFn: () => fetchFeedbackTemplates(LANGUAGE_CODE.KR),
     select: data => data.data.templates,

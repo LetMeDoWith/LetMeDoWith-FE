@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 
 import { signUp } from 'services/rest/member';
 import { MEMBER_QUERY_KEY } from 'constants/queries';
@@ -15,7 +15,7 @@ const useSignUp = () => {
     }),
   );
 
-  return useMutation<signUpResponseSchemeType, AxiosError, signUpRequestSchemeType>({
+  return useMutation<signUpResponseSchemeType, ApiError, signUpRequestSchemeType>({
     mutationKey: MEMBER_QUERY_KEY.SIGN_UP,
     mutationFn: payload => signUp(payload),
     onSuccess: ({ data }) => {

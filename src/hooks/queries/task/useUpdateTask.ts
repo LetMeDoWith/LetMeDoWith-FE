@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
@@ -26,7 +26,7 @@ const useUpdateTask = ({
   const isTodoMode = mode === 'TODO';
   const isEditType = type === 'EDIT';
 
-  return useMutation<string, AxiosError, { payload?: updateTaskRequestSchemeType; withRoutineTask: boolean }>({
+  return useMutation<string, ApiError, { payload?: updateTaskRequestSchemeType; withRoutineTask: boolean }>({
     mutationKey: [...TASK_QUERY_KEY.UPDATE, isTodoMode ? 'todo' : 'dowith'],
     mutationFn: ({ payload, withRoutineTask }) =>
       updateTask({ type, id, mode: isTodoMode ? 'TODO' : 'DOWITH', withRoutineTask, payload }),

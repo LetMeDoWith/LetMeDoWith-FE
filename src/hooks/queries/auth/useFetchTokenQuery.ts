@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 
 import type { fetchTokenRequestSchemeType, fetchTokenResponseSchemeType } from 'types/auth/scheme/api';
 import { fetchToken } from 'services/rest/auth';
@@ -20,7 +20,7 @@ const useFetchTokenQuery = () => {
     }),
   );
 
-  return useMutation<fetchTokenResponseSchemeType, AxiosError, fetchTokenRequestSchemeType>({
+  return useMutation<fetchTokenResponseSchemeType, ApiError, fetchTokenRequestSchemeType>({
     mutationKey: AUTH_QUERY_KEY.FETCH_TOKEN,
     mutationFn: payload => fetchToken(payload),
     onSuccess: ({ data }) => {

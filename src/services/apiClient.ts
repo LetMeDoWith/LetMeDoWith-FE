@@ -1,7 +1,10 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import UserAgent from 'react-native-user-agent';
 import Config from 'react-native-config';
 import { useStore } from 'stores/index';
+import type { BaseResponseSchemeType } from 'types/shared/scheme/api';
+
+type ApiError = AxiosError<BaseResponseSchemeType>;
 
 const BASE_URL = `https://${Config.DEV_API_URL}/api/`;
 
@@ -25,3 +28,4 @@ apiClient.interceptors.response.use(response => {
 });
 
 export { apiClient };
+export type { ApiError };

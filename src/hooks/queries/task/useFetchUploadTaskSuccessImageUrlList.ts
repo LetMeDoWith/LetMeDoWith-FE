@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import type { ApiError } from 'services/apiClient';
 import { Asset } from 'react-native-image-picker';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
@@ -16,7 +16,7 @@ const useUploadDowithTaskSuccessImageList = (id: number) => {
     return { presignedUrl: presignedUrls[0], publicImageUrl: publicImageUrls[0] };
   });
 
-  return useMutation<void, AxiosError, uploadTaskSuccessImageUrlListRequestSchemeType & { photo: Asset }>({
+  return useMutation<void, ApiError, uploadTaskSuccessImageUrlListRequestSchemeType & { photo: Asset }>({
     mutationFn: async ({ imageFileNames, photo }) => {
       if (!photo.uri) {
         return;
