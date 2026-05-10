@@ -6,7 +6,8 @@ import { LANGUAGE_CODE_VALUES } from 'constants/shared';
 const taskFeedbackTemplateScheme = z.object({
   id: z.number().describe('템플릿 ID'),
   language: z.enum(LANGUAGE_CODE_VALUES).describe('템플릿 언어'),
-  message: z.string().describe('템플릿 메시지'),
+  name: z.string().describe('템플릿 이름'),
+  message: z.string().describe('템플릿 메시지(푸시 알림용 - 서버에서 사용)'),
   emojiUrl: z.string().describe('템플릿 이모지 URL'),
 });
 

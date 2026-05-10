@@ -177,7 +177,7 @@ const FeedNagItem = ({
                 {templates.map(template => (
                   <Pressable key={template.id} style={styles.reactionButton} onPress={() => handleReaction(template)}>
                     <Image source={{ uri: template.emojiUrl }} style={styles.reactionEmoji} />
-                    <Text style={styles.reactionMessage}>{template.message}</Text>
+                    <Text style={styles.reactionMessage}>{template.name}</Text>
                   </Pressable>
                 ))}
               </View>
