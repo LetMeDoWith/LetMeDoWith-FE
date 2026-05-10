@@ -14,6 +14,7 @@ apiClient.interceptors.request.use(config => {
 
   config.headers = config.headers || {};
   config.headers['User-Agent'] = UserAgent.getUserAgent();
+  config.headers['X-Time-Zone'] = 'Asia/Seoul';
   config.headers.Authorization = `Bearer ${signup?.token ?? access?.token}`;
 
   return config;
