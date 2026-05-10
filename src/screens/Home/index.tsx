@@ -19,6 +19,7 @@ import { FeedbackNotification } from 'components/common/icons/FeedbackNotificati
 import { CustomCalendarHeader } from 'components/Task';
 import { TaskStatusMarking } from 'components/common/icons/TaskStatusMarking';
 import { useFetchTaskList } from 'hooks/queries/task/useFetchTaskList';
+import { useFetchMyDowithInfo } from 'hooks/queries/member/useFetchMyDowithInfo';
 import { useScheduledRefetch } from 'hooks/shared/useScheduledRefetch';
 import { TASK_QUERY_KEY } from 'constants/queries';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
@@ -45,6 +46,7 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
   const yearMonth = useMemo(() => ({ year, month }), [year, month]);
 
   const { data: taskList } = useFetchTaskList(yearMonth);
+  const { data: myDowithInfo } = useFetchMyDowithInfo();
   const selectedDateTaskList = taskList
     ? {
         dowithTasks: taskList.dowithTasks.filter(task => task.date === selectedDate),
@@ -287,18 +289,19 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
             </View>
             <View style={styles.profileContent}>
               <Pressable onPress={handleBadge}>
-                <Image
-                  style={styles.badgeImage}
-                  source={{
-                    uri: 'https://ichef.bbci.co.uk/news/1536/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg.webp',
-                  }}
-                />
+                {myDowithInfo?.profileImageUrl ? (
+                  <Image style={styles.badgeImage} source={{ uri: myDowithInfo.profileImageUrl }} />
+                ) : (
+                  <View style={styles.badgeImage} />
+                )}
               </Pressable>
               <View style={styles.titleWrap}>
-                <Text style={styles.title}>고단한 감자</Text>
-                <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>
-                  안녕하세요 갓생감자입니다
-                </Text>
+                <Text style={styles.title}>{myDowithInfo?.nickname ?? ''}</Text>
+                {myDowithInfo?.selfDescription && (
+                  <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>
+                    {myDowithInfo.selfDescription}
+                  </Text>
+                )}
               </View>
             </View>
           </View>
