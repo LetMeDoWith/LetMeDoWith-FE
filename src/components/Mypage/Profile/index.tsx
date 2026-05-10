@@ -1,72 +1,83 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Divider } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
+import { EditIcon } from 'components/common/icons/EditIcon';
 import { theme } from 'styles/theme';
+import type { RootStackParamList } from 'types/shared';
+import type { myDowithInfoResponseSchemeType } from 'types/member/scheme/api';
 
-const Profile = () => (
-  <View style={styles.container}>
-    <Pressable
-      onPress={() => {
-        console.log('click');
-      }}
-    >
-      <Image
-        style={styles.image}
-        source={{
-          uri: 'https://ichef.bbci.co.uk/news/1536/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg.webp',
-        }}
-      />
-    </Pressable>
-    <View style={styles.nicknameWrap}>
-      <Text style={styles.nickname}>닉네임</Text>
-      <Divider style={styles.divider} />
-    </View>
-    <View style={styles.followWrap}>
-      <View style={[styles.followWrap, styles.followDetailWrap]}>
-        <Text>팔로잉</Text>
-        <Text>10K</Text>
-      </View>
-      <View style={[styles.followWrap, styles.followDetailWrap]}>
-        <Text>팔로워</Text>
-        <Text>0</Text>
+interface Props {
+  data: myDowithInfoResponseSchemeType['data'];
+}
+
+const Profile = ({ data }: Props) => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
+  return (
+    <View style={styles.container}>
+      <Image style={styles.profileImage} source={{ uri: data.profileImageUrl }} />
+      <Pressable style={styles.nicknameRow} onPress={() => navigation.navigate('SETTING', { screen: 'MYINFO' })}>
+        <Text style={styles.nickname}>{data.nickname}</Text>
+        <EditIcon />
+      </Pressable>
+      <Text style={styles.selfDescription}>{data.selfDescription}</Text>
+      <View style={styles.statBadge}>
+        <Text style={styles.statLabel}>성공한 두윗</Text>
+        <Text style={styles.statCount}>
+          <Text style={styles.statCountHighlight}>{data.successDowithCount}</Text> 개
+        </Text>
       </View>
     </View>
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 31,
-    paddingBottom: 26,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
     alignItems: 'center',
   },
-  image: {
-    width: 50,
-    height: 50,
+  profileImage: {
+    width: 107,
+    height: 107,
+    borderRadius: 35,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_92,
   },
-  nicknameWrap: {
-    marginTop: 24,
-  },
-  followWrap: {
-    marginTop: 12,
+  nicknameRow: {
     flexDirection: 'row',
-    gap: 21,
-  },
-  followDetailWrap: {
-    gap: 7,
     alignItems: 'center',
+    gap: 4,
+    marginTop: 16,
   },
   nickname: {
-    fontSize: 18,
-    fontWeight: '800',
+    ...theme.TYPOGRAPHY.TITLE_1,
   },
-  divider: {
-    marginTop: 6,
-    height: 3,
-    backgroundColor: theme.COLORS.PRIMARY.RED_60,
-    borderRadius: 5,
+  selfDescription: {
+    ...theme.TYPOGRAPHY.BODY_2,
+    color: theme.COLORS.GRAY_SCALE.GRAY_50,
+    marginTop: 2,
+  },
+  statBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 41,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_98,
+  },
+  statLabel: {
+    ...theme.TYPOGRAPHY.BODY_2,
+    color: theme.COLORS.GRAY_SCALE.GRAY_50,
+  },
+  statCount: {
+    ...theme.TYPOGRAPHY.SUB_TITLE,
+  },
+  statCountHighlight: {
+    ...theme.TYPOGRAPHY.SUB_TITLE,
+    color: theme.COLORS.SECONDARY.BLUE_50,
   },
 });
 

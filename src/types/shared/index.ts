@@ -18,7 +18,7 @@ type HomeTabParamList = {
 
 type RootStackParamList = {
   HOME: NavigatorScreenParams<HomeTabParamList> | undefined;
-  SETTING: undefined;
+  SETTING: NavigatorScreenParams<SettingStackParamList> | undefined;
   TASK_FORM: {
     screen: 'COMMON' | 'ROUTINE';
     date: string;
