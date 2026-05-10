@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, FlatList, StyleSheet, View } from 'react-native';
 import { NavigationContainer, DefaultTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
@@ -40,6 +40,18 @@ const DevToolsRoot = ENABLE_DEVTOOLS ? require('components/__dev__/DevToolsRoot'
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(customParseFormat);
+
+(ScrollView as any).defaultProps = {
+  ...(ScrollView as any).defaultProps,
+  showsVerticalScrollIndicator: false,
+  showsHorizontalScrollIndicator: false,
+};
+
+(FlatList as any).defaultProps = {
+  ...(FlatList as any).defaultProps,
+  showsVerticalScrollIndicator: false,
+  showsHorizontalScrollIndicator: false,
+};
 
 /**
  * React Query의 전역 에러 핸들러
