@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 const formatRemainingTime = (startTime: string): string => {
   const now = dayjs();
   const target = dayjs().format('YYYY-MM-DD') + ' ' + startTime;
-  const diff = dayjs(target).diff(now, 'minute');
+  const diff = dayjs(target).add(1, 'hour').diff(now, 'minute');
 
   if (diff <= 0) {
     return '';
