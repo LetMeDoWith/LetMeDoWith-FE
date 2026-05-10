@@ -24,6 +24,7 @@ import { useValidNickname } from 'hooks/queries/member/useValidNickname';
 import { StatusCodeEnum } from 'schemes/shared/enum';
 import { Camera } from 'components/common/icons/Camera';
 import { useUpdateMember } from 'hooks/queries/member/useUpdateMember';
+import { useFetchMyDowithInfo } from 'hooks/queries/member/useFetchMyDowithInfo';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { BottomSheet } from 'components/common/BottomSheet';
 import { Gallery } from 'components/common/icons/Gallery';
@@ -37,6 +38,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>) => {
   const uploadImageBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { showDialog, hideDialog } = useDialog();
+  const { data: myDowithInfo } = useFetchMyDowithInfo();
   const {
     mutate: mutateValidNickname,
     isSuccess: isSuccessMutateValidNickname,
@@ -57,6 +59,13 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
       selfDescription: '',
       profileImageUrl: '',
     },
+    values: myDowithInfo
+      ? {
+          nickname: myDowithInfo.nickname,
+          selfDescription: myDowithInfo.selfDescription ?? '',
+          profileImageUrl: myDowithInfo.profileImageUrl ?? '',
+        }
+      : undefined,
     mode: 'onBlur',
   });
 
@@ -273,7 +282,7 @@ const Myinfo = ({ navigation: { navigate } }: SettingStackScreenProps<'MYINFO'>)
                         자기소개(선택)
                       </Text>
                       <Text style={[theme.TYPOGRAPHY.CAPTION1_BASIC, { color: theme.COLORS.GRAY_SCALE.GRAY_60 }]}>
-                        {selfDescription.length}/20
+                        {selfDescription?.length ?? 0}/20
                       </Text>
                     </View>
                     <TextInput

@@ -17,12 +17,16 @@ const Profile = ({ data }: Props) => {
 
   return (
     <View style={styles.container}>
-      <Image style={styles.profileImage} source={{ uri: data.profileImageUrl }} />
+      {data.profileImageUrl ? (
+        <Image style={styles.profileImage} source={{ uri: data.profileImageUrl }} />
+      ) : (
+        <View style={styles.profileImage} />
+      )}
       <Pressable style={styles.nicknameRow} onPress={() => navigation.navigate('SETTING', { screen: 'MYINFO' })}>
         <Text style={styles.nickname}>{data.nickname}</Text>
         <EditIcon />
       </Pressable>
-      <Text style={styles.selfDescription}>{data.selfDescription}</Text>
+      {data.selfDescription && <Text style={styles.selfDescription}>{data.selfDescription}</Text>}
       <View style={styles.statBadge}>
         <Text style={styles.statLabel}>성공한 두윗</Text>
         <Text style={styles.statCount}>

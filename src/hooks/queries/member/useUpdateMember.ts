@@ -1,7 +1,7 @@
-import { Alert } from 'react-native';
-import { useMutation, UseMutationOptions } from '@tanstack/react-query';
+import { useMutation, UseMutationOptions, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
+import { MEMBER_QUERY_KEY } from 'constants/queries';
 import { updateMember } from 'services/rest/member';
 import type { EmptyDataResponseSchemeType } from 'types/shared/scheme/api';
 import type { updateMemberRequestSchemeType } from 'types/member/scheme/api';
@@ -12,13 +12,12 @@ const useUpdateMember = (
     'mutationFn'
   >,
 ) => {
+  const queryClient = useQueryClient();
+
   return useMutation<EmptyDataResponseSchemeType, AxiosError, updateMemberRequestSchemeType>({
     mutationFn: payload => updateMember(payload),
     onSuccess: async (data, variables, context) => {
-      console.log('회원정보 수정 성공!: ', data);
-      Alert.alert('회원 정보 수정을 성공하였습니다.');
-      // TODO: 회원정보 조회 API 쿼리 무효화 적용
-
+      queryClient.invalidateQueries({ queryKey: MEMBER_QUERY_KEY.MY_DOWITH });
       await options?.onSuccess?.(data, variables, context);
     },
     onError: (error, variables, context) => {
