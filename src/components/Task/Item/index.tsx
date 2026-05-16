@@ -17,7 +17,7 @@ import { TaskDelete } from 'components/common/icons/TaskDelete';
 import type { TaskStatusEnumType } from 'types/task/scheme/enum';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { TaskWait } from 'components/common/icons/TaskWait';
-import { FeedBackIcon } from 'components/common/icons/FeedBackIcon';
+import { Thunder } from 'components/common/icons/Thunder';
 import { TaskFail } from 'components/common/icons/TaskFail';
 import { UploadImage } from 'components/common/icons/UploadImage';
 import { isNil } from 'utils/index';
@@ -31,6 +31,7 @@ import { Gallery } from 'components/common/icons/Gallery';
 import { RoutineArrow } from 'components/common/icons/RoutineArrow';
 import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
 import { isAos } from 'utils/device';
+import { ReceivedFeedbackBottomSheet } from 'components/Task/BottomSheet';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -64,6 +65,7 @@ const Item = ({
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { showDialog, hideDialog } = useDialog();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const feedbackBottomSheetRef = useRef<BottomSheetModal>(null);
   const isTodoMode = mode === 'TODO';
 
   const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
@@ -375,7 +377,10 @@ const Item = ({
               />
             )}
             {!successImageUrls && !isNil(feedBackCount) && (
-              <FeedBackIcon count={feedBackCount as number} status={status} />
+              <Pressable style={styles.feedbackChip} onPress={() => feedbackBottomSheetRef.current?.present()}>
+                <Thunder width={16} height={16} fill={theme.COLORS.PRIMARY.RED_60} />
+                <Text style={styles.feedbackChipText}>{feedBackCount}</Text>
+              </Pressable>
             )}
             <Pressable onPress={handleBottomSheet} disabled={isInvalidUpdateDowithTask || isDisabled}>
               <EtcDots disabled={isInvalidUpdateDowithTask || isDisabled} />
@@ -391,6 +396,7 @@ const Item = ({
       >
         <View style={styles.modalContainer}>{renderBottomSheetContent()}</View>
       </BottomSheet>
+      <ReceivedFeedbackBottomSheet ref={feedbackBottomSheetRef} dowithTaskId={id} />
     </>
   );
 };
@@ -432,6 +438,19 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   modalContentText: theme.TYPOGRAPHY.BODY_1,
+  feedbackChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
+  },
+  feedbackChipText: {
+    ...theme.TYPOGRAPHY.CAPTION1_BASIC,
+  },
 });
 
 export { Item };

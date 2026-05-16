@@ -20,18 +20,32 @@ interface Props {
   title: string;
   snapPoints: string[];
   description?: string;
+  enablePanDownToClose?: boolean;
+  useScrollView?: boolean;
   buttonConfig?: {
     title: string;
     isDisabled: boolean;
   };
   handleCloseButton?: () => void;
   handleButtonSubmit?: () => void;
+  onChange?: (isOpen: boolean) => void;
   onDismiss?: () => void;
 }
 
 const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>>((props, ref) => {
-  const { title, description, buttonConfig, handleCloseButton, handleButtonSubmit, onDismiss, snapPoints, children } =
-    props;
+  const {
+    title,
+    description,
+    enablePanDownToClose = false,
+    useScrollView = true,
+    buttonConfig,
+    handleCloseButton,
+    handleButtonSubmit,
+    onChange: onChangeCallback,
+    onDismiss,
+    snapPoints,
+    children,
+  } = props;
 
   const innerRef = useRef<BottomSheetModalMethods>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -50,9 +64,14 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     [],
   );
 
-  const handleSheetChanges = useCallback((index: number) => {
-    setIsOpen(index >= 0);
-  }, []);
+  const handleSheetChanges = useCallback(
+    (index: number) => {
+      const open = index >= 0;
+      setIsOpen(open);
+      onChangeCallback?.(open);
+    },
+    [onChangeCallback],
+  );
 
   // AOS 뒤로가기 버튼 클릭 시, 바텀 시트 닫힘 처리
   useEffect(() => {
@@ -92,12 +111,21 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     <BottomSheetModal
       ref={innerRef}
       snapPoints={snapPoints}
+      enablePanDownToClose={enablePanDownToClose}
       backdropComponent={renderBackdrop}
-      handleComponent={null}
+      handleComponent={
+        enablePanDownToClose
+          ? () => (
+              <View style={styles.handleContainer}>
+                <View style={styles.handle} />
+              </View>
+            )
+          : null
+      }
       onChange={handleSheetChanges}
       onDismiss={onDismiss}
     >
-      <View style={styles.container}>
+      <View style={[styles.container, enablePanDownToClose && styles.containerWithHandle]}>
         <BottomSheetView style={styles.header}>
           <View style={styles.headerTitleWrap}>
             <Text style={styles.title}>{title}</Text>
@@ -109,7 +137,11 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
             <Text style={[styles.description, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>{description}</Text>
           )}
         </BottomSheetView>
-        <BottomSheetScrollView showsVerticalScrollIndicator={false}>{children}</BottomSheetScrollView>
+        {useScrollView ? (
+          <BottomSheetScrollView showsVerticalScrollIndicator={false}>{children}</BottomSheetScrollView>
+        ) : (
+          children
+        )}
         {buttonConfig && (
           <Pressable
             style={[
@@ -138,6 +170,21 @@ const styles = StyleSheet.create({
     paddingBottom: 41,
     height: '100%',
     justifyContent: 'space-between',
+  },
+  containerWithHandle: {
+    paddingTop: 0,
+    paddingBottom: 0,
+  },
+  handleContainer: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  handle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
   },
   header: { gap: 4 },
   headerTitleWrap: {
