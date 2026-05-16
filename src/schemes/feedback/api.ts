@@ -53,6 +53,41 @@ const fetchFeedbackTemplatesResponseScheme = BaseResponseScheme.extend({
   }),
 });
 
+const feedbackAggregateItemScheme = z.object({
+  feedbackTemplateId: z.number().describe('피드백 템플릿 ID'),
+  count: z.number().describe('해당 템플릿 잔소리 수'),
+});
+
+const fetchFeedbackAggregatesResponseScheme = BaseResponseScheme.extend({
+  data: z.object({
+    aggregates: z.array(feedbackAggregateItemScheme),
+  }),
+});
+
+const dowithTaskFeedbackTemplateScheme = z.object({
+  id: z.number().describe('템플릿 ID'),
+  language: z.enum(LANGUAGE_CODE_VALUES).describe('템플릿 언어'),
+  name: z.string().describe('템플릿 이름'),
+  emojiUrl: z.string().describe('템플릿 이모지 URL'),
+});
+
+const dowithTaskFeedbackScheme = z.object({
+  id: z.number().describe('피드백 ID'),
+  dowithTaskId: z.number().describe('두윗 Task ID'),
+  dowithTaskTitle: z.string().describe('두윗 Task 제목'),
+  senderId: z.string().describe('보낸 사람 member ID'),
+  senderNickname: z.string().describe('보낸 사람 닉네임'),
+  senderProfileImageUrl: z.string().describe('보낸 사람 프로필 이미지 URL'),
+  isChecked: z.boolean().describe('피드백 확인 여부'),
+  taskFeedbackTemplate: dowithTaskFeedbackTemplateScheme,
+});
+
+const fetchDowithTaskFeedbacksResponseScheme = BasePageResponseScheme.extend({
+  data: z.object({
+    feedbacks: z.array(dowithTaskFeedbackScheme),
+  }),
+});
+
 export {
   taskFeedbackTemplateScheme,
   sentFeedbackScheme,
@@ -60,4 +95,8 @@ export {
   fetchSentFeedbacksResponseScheme,
   fetchReceivedFeedbacksResponseScheme,
   fetchFeedbackTemplatesResponseScheme,
+  feedbackAggregateItemScheme,
+  fetchFeedbackAggregatesResponseScheme,
+  dowithTaskFeedbackScheme,
+  fetchDowithTaskFeedbacksResponseScheme,
 };

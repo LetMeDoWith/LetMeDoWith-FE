@@ -5,6 +5,8 @@ import type {
   fetchSentFeedbacksResponseSchemeType,
   fetchReceivedFeedbacksResponseSchemeType,
   fetchFeedbackTemplatesResponseSchemeType,
+  fetchFeedbackAggregatesResponseSchemeType,
+  fetchDowithTaskFeedbacksResponseSchemeType,
 } from 'types/feedback/scheme/api';
 import type { LanguageCodeType } from 'constants/shared';
 
@@ -55,4 +57,43 @@ const createDowithFeedback = async (params: CreateDowithFeedbackRequest) => {
   }
 };
 
-export { fetchSentFeedbacks, fetchReceivedFeedbacks, fetchFeedbackTemplates, createDowithFeedback };
+const fetchDowithTaskFeedbackAggregates = async (
+  dowithTaskId: number,
+): Promise<fetchFeedbackAggregatesResponseSchemeType> => {
+  try {
+    const result = await apiClient.get<fetchFeedbackAggregatesResponseSchemeType>(
+      `${FEEDBACK_API.DOWITH_TASK_FEEDBACKS}/${dowithTaskId}/aggregate`,
+    );
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+interface FetchDowithTaskFeedbacksParams extends PageRequestSchemeType {
+  feedbackTemplateId?: number;
+}
+
+const fetchDowithTaskFeedbacks = async (
+  dowithTaskId: number,
+  params?: FetchDowithTaskFeedbacksParams,
+): Promise<fetchDowithTaskFeedbacksResponseSchemeType> => {
+  try {
+    const result = await apiClient.get<fetchDowithTaskFeedbacksResponseSchemeType>(
+      `${FEEDBACK_API.DOWITH_TASK_FEEDBACKS}/${dowithTaskId}`,
+      { params },
+    );
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export {
+  fetchSentFeedbacks,
+  fetchReceivedFeedbacks,
+  fetchFeedbackTemplates,
+  createDowithFeedback,
+  fetchDowithTaskFeedbackAggregates,
+  fetchDowithTaskFeedbacks,
+};

@@ -7,6 +7,10 @@ import {
   fetchSentFeedbacksResponseScheme,
   fetchReceivedFeedbacksResponseScheme,
   fetchFeedbackTemplatesResponseScheme,
+  feedbackAggregateItemScheme,
+  fetchFeedbackAggregatesResponseScheme,
+  dowithTaskFeedbackScheme,
+  fetchDowithTaskFeedbacksResponseScheme,
 } from 'schemes/feedback/api';
 
 type taskFeedbackTemplateSchemeType = z.infer<typeof taskFeedbackTemplateScheme>;
@@ -15,6 +19,10 @@ type receivedFeedbackSchemeType = z.infer<typeof receivedFeedbackScheme>;
 type fetchSentFeedbacksResponseSchemeType = z.infer<typeof fetchSentFeedbacksResponseScheme>;
 type fetchReceivedFeedbacksResponseSchemeType = z.infer<typeof fetchReceivedFeedbacksResponseScheme>;
 type fetchFeedbackTemplatesResponseSchemeType = z.infer<typeof fetchFeedbackTemplatesResponseScheme>;
+type feedbackAggregateItemSchemeType = z.infer<typeof feedbackAggregateItemScheme>;
+type fetchFeedbackAggregatesResponseSchemeType = z.infer<typeof fetchFeedbackAggregatesResponseScheme>;
+type dowithTaskFeedbackSchemeType = z.infer<typeof dowithTaskFeedbackScheme>;
+type fetchDowithTaskFeedbacksResponseSchemeType = z.infer<typeof fetchDowithTaskFeedbacksResponseScheme>;
 
 export type {
   taskFeedbackTemplateSchemeType,
@@ -23,4 +31,8 @@ export type {
   fetchSentFeedbacksResponseSchemeType,
   fetchReceivedFeedbacksResponseSchemeType,
   fetchFeedbackTemplatesResponseSchemeType,
+  feedbackAggregateItemSchemeType,
+  fetchFeedbackAggregatesResponseSchemeType,
+  dowithTaskFeedbackSchemeType,
+  fetchDowithTaskFeedbacksResponseSchemeType,
 };
