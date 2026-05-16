@@ -377,7 +377,16 @@ const Item = ({
               />
             )}
             {!successImageUrls && !isNil(feedBackCount) && (
-              <Pressable style={styles.feedbackChip} onPress={() => feedbackBottomSheetRef.current?.present()}>
+              <Pressable
+                style={styles.feedbackChip}
+                onPress={() => {
+                  if (isDisabled || successImageUrls) {
+                    navigate('RECEIVED_FEEDBACK', { dowithTaskId: id });
+                  } else {
+                    feedbackBottomSheetRef.current?.present();
+                  }
+                }}
+              >
                 <Thunder width={16} height={16} fill={theme.COLORS.PRIMARY.RED_60} />
                 <Text style={styles.feedbackChipText}>{feedBackCount}</Text>
               </Pressable>
