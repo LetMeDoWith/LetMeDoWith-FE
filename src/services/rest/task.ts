@@ -20,6 +20,7 @@ import type {
   updateDowithTaskStatusSuccessRequestSchemeType,
   uploadTaskSuccessImageUrlListRequestSchemeType,
   uploadTaskSuccessImageUrlListResponseSchemeType,
+  fetchDowithTaskLikersResponseSchemeType,
 } from 'types/task/scheme/api';
 import type { TaskStatusEnumType } from 'types/task/scheme/enum';
 import type { TaskModeType } from 'types/shared';
@@ -266,6 +267,19 @@ const unLikeDowithTask = async (dowithTaskId: number): Promise<unLikeDowithTaskR
   }
 };
 
+const fetchDowithTaskLikers = async (
+  dowithTaskId: number,
+  params?: PageRequestSchemeType,
+): Promise<fetchDowithTaskLikersResponseSchemeType> => {
+  try {
+    const url = TASK_API.LIKE_DOWITH.replace(':id', String(dowithTaskId));
+    const result = await apiClient.get<fetchDowithTaskLikersResponseSchemeType>(url, { params });
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
 export {
   fetchTaskCategoryList,
   fetchTaskList,
@@ -283,4 +297,5 @@ export {
   fetchSuccessDowithTasks,
   likeDowithTask,
   unLikeDowithTask,
+  fetchDowithTaskLikers,
 };

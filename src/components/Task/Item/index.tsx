@@ -422,8 +422,6 @@ const Item = ({
           visible={cheerModalVisible}
           dowithTaskId={id}
           successImageUrl={successImageUrls[0]}
-          feedbackCount={feedBackCount as number}
-          likeCount={0}
           onClose={() => setCheerModalVisible(false)}
         />
       )}

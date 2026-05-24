@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -6,8 +6,10 @@ import { Thunder } from 'components/common/icons/Thunder';
 import { LikeIcon } from 'components/common/icons/LikeIcon';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
 import { ReceivedFeedbackContent } from 'components/Feedback/ReceivedFeedbackContent';
-import { useFetchSuccessDowithTasks } from 'hooks/queries/task/useFetchSuccessDowithTasks';
+import { useFetchDowithTaskFeedbackAggregates } from 'hooks/queries/feedback/useFetchDowithTaskFeedbackAggregates';
+import { useFetchDowithTaskLikers } from 'hooks/queries/task/useFetchDowithTaskLikers';
 import { theme } from 'styles/theme';
+import type { dowithTaskLikerSchemeType } from 'types/task/scheme/api';
 
 type Tab = 'FEEDBACK' | 'LIKE';
 
@@ -15,20 +17,44 @@ interface Props {
   visible: boolean;
   dowithTaskId: number;
   successImageUrl: string;
-  feedbackCount: number;
-  likeCount: number;
   onClose: () => void;
 }
 
-const CheerCollectionModal = ({ visible, dowithTaskId, successImageUrl, feedbackCount, likeCount, onClose }: Props) => {
+const CheerCollectionModal = ({ visible, dowithTaskId, successImageUrl, onClose }: Props) => {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<Tab>('FEEDBACK');
 
-  // TODO: 좋아요 목록 API 연동
-  const { data: successTasks = [] } = useFetchSuccessDowithTasks();
-  const likeUsers = useMemo(
-    () => successTasks.filter(t => t.id === dowithTaskId).flatMap(() => []),
-    [successTasks, dowithTaskId],
+  const { data: aggregates } = useFetchDowithTaskFeedbackAggregates(dowithTaskId, visible);
+  const {
+    data: likersPages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useFetchDowithTaskLikers(dowithTaskId, visible && activeTab === 'LIKE');
+
+  const feedbackCount = aggregates?.reduce((sum, item) => sum + item.count, 0) ?? 0;
+  const likeCount = likersPages?.pages[0]?.totalCount ?? 0;
+
+  const likers = useMemo(() => likersPages?.pages.flatMap(page => page.data.likers) ?? [], [likersPages]);
+
+  const handleLikersEndReached = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  const renderLikerItem = useCallback(
+    ({ item }: { item: dowithTaskLikerSchemeType }) => (
+      <View style={styles.likeRow}>
+        {item.profileImageUrl ? (
+          <Image source={{ uri: item.profileImageUrl }} style={styles.likeImage} />
+        ) : (
+          <View style={styles.likeImage} />
+        )}
+        <Text style={styles.likeNickname}>{item.nickname}</Text>
+      </View>
+    ),
+    [],
   );
 
   return (
@@ -72,19 +98,15 @@ const CheerCollectionModal = ({ visible, dowithTaskId, successImageUrl, feedback
           </Pressable>
         </View>
         <View style={[styles.tabContent, activeTab !== 'FEEDBACK' && styles.hidden]}>
-          <ReceivedFeedbackContent dowithTaskId={dowithTaskId} enabled={visible} />
+          <ReceivedFeedbackContent dowithTaskId={dowithTaskId} enabled={visible} showTotalCount={false} />
         </View>
-        {/* TODO: 좋아요 목록 API 연동 후 실제 데이터로 교체 */}
         <View style={[styles.tabContent, activeTab !== 'LIKE' && styles.hidden]}>
           <FlatList
-            data={likeUsers}
-            renderItem={({ item }) => (
-              <View style={styles.likeRow}>
-                <View style={styles.likeImage} />
-                <Text style={styles.likeNickname}>{item}</Text>
-              </View>
-            )}
-            keyExtractor={(_, index) => index.toString()}
+            data={likers}
+            renderItem={renderLikerItem}
+            keyExtractor={item => item.dowithTaskLikeId.toString()}
+            onEndReached={handleLikersEndReached}
+            onEndReachedThreshold={0.5}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
           />
@@ -114,6 +136,7 @@ const styles = StyleSheet.create({
   },
   tabContent: {
     flex: 1,
+    marginTop: 20,
   },
   hidden: {
     display: 'none',

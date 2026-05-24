@@ -28,6 +28,8 @@ import {
   likeDowithTaskResponseScheme,
   unLikeDowithTaskResponseScheme,
   fetchSuccessDowithTasksResponseScheme,
+  dowithTaskLikerScheme,
+  fetchDowithTaskLikersResponseScheme,
 } from 'schemes/task/api';
 
 type taskCategorySchemeType = z.infer<typeof taskCategoryScheme>;
@@ -59,6 +61,8 @@ type successDowithTaskSchemeType = z.infer<typeof successDowithTaskScheme>;
 type likeDowithTaskResponseSchemeType = z.infer<typeof likeDowithTaskResponseScheme>;
 type unLikeDowithTaskResponseSchemeType = z.infer<typeof unLikeDowithTaskResponseScheme>;
 type fetchSuccessDowithTasksResponseSchemeType = z.infer<typeof fetchSuccessDowithTasksResponseScheme>;
+type dowithTaskLikerSchemeType = z.infer<typeof dowithTaskLikerScheme>;
+type fetchDowithTaskLikersResponseSchemeType = z.infer<typeof fetchDowithTaskLikersResponseScheme>;
 
 export type {
   taskCategorySchemeType,
@@ -88,4 +92,6 @@ export type {
   likeDowithTaskResponseSchemeType,
   unLikeDowithTaskResponseSchemeType,
   fetchSuccessDowithTasksResponseSchemeType,
+  dowithTaskLikerSchemeType,
+  fetchDowithTaskLikersResponseSchemeType,
 };

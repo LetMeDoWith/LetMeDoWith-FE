@@ -20,6 +20,7 @@ const TASK_QUERY_KEY = {
   UPDATE_ROUTINE: ['task', 'update', 'routine'],
   SUCCESS_DOWITH_TASKS: ['task', 'success', 'dowith'],
   FEEDBACK_AVAILABLE_DOWITH_TASKS: ['task', 'feedback-available', 'dowith'],
+  DOWITH_TASK_LIKERS: ['task', 'dowith', 'likers'],
 } as const;
 
 const FEEDBACK_QUERY_KEY = {

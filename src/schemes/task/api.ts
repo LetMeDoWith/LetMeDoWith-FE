@@ -164,6 +164,19 @@ const fetchSuccessDowithTasksResponseScheme = BasePageResponseScheme.extend({
   }),
 });
 
+const dowithTaskLikerScheme = z.object({
+  dowithTaskLikeId: z.number().describe('좋아요 ID'),
+  memberId: z.string().describe('회원 ID'),
+  nickname: z.string().describe('닉네임'),
+  profileImageUrl: z.string().describe('프로필 이미지 URL'),
+});
+
+const fetchDowithTaskLikersResponseScheme = BasePageResponseScheme.extend({
+  data: z.object({
+    likers: z.array(dowithTaskLikerScheme),
+  }),
+});
+
 export {
   taskCategoryScheme,
   fetchTaskCategoryListResponseScheme,
@@ -192,4 +205,6 @@ export {
   likeDowithTaskResponseScheme,
   unLikeDowithTaskResponseScheme,
   fetchSuccessDowithTasksResponseScheme,
+  dowithTaskLikerScheme,
+  fetchDowithTaskLikersResponseScheme,
 };
