@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Alert, Dimensions, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Dimensions, Image, Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -70,6 +70,7 @@ const Item = ({
   const feedbackBottomSheetRef = useRef<BottomSheetModal>(null);
   const [receivedModalVisible, setReceivedModalVisible] = useState(false);
   const [cheerModalVisible, setCheerModalVisible] = useState(false);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
   const isTodoMode = mode === 'TODO';
 
   const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
@@ -371,14 +372,16 @@ const Item = ({
         <View style={styles.rightContainer}>
           <View style={styles.rightContent}>
             {successImageUrls && successImageUrls.length > 0 && (
-              <Image
-                borderRadius={4}
-                width={24}
-                height={24}
-                source={{
-                  uri: successImageUrls[0],
-                }}
-              />
+              <Pressable onPress={() => setImageModalVisible(true)}>
+                <Image
+                  borderRadius={4}
+                  width={24}
+                  height={24}
+                  source={{
+                    uri: successImageUrls[0],
+                  }}
+                />
+              </Pressable>
             )}
             {!isNil(feedBackCount) && (
               <Pressable
@@ -424,6 +427,18 @@ const Item = ({
           successImageUrl={successImageUrls[0]}
           onClose={() => setCheerModalVisible(false)}
         />
+      )}
+      {successImageUrls && (
+        <Modal
+          visible={imageModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setImageModalVisible(false)}
+        >
+          <Pressable style={styles.imageModalOverlay} onPress={() => setImageModalVisible(false)}>
+            <Image source={{ uri: successImageUrls[0] }} style={styles.imageModalImage} resizeMode="contain" />
+          </Pressable>
+        </Modal>
       )}
     </>
   );
@@ -478,6 +493,16 @@ const styles = StyleSheet.create({
   },
   feedbackChipText: {
     ...theme.TYPOGRAPHY.CAPTION1_BASIC,
+  },
+  imageModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageModalImage: {
+    width: '100%',
+    height: '80%',
   },
 });
 
