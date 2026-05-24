@@ -14,6 +14,7 @@ const useFetchFeedbackTemplates = () =>
     queryKey: FEEDBACK_QUERY_KEY.TEMPLATES,
     queryFn: () => fetchFeedbackTemplates(LANGUAGE_CODE.KR),
     select: data => data.data.templates,
+    staleTime: Infinity,
   });
 
 export { useFetchFeedbackTemplates };
