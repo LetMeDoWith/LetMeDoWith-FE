@@ -8,7 +8,6 @@ import { FeedbackStackNavigator } from 'components/navigators/Stack/Feedback';
 import { TaskForm } from 'screens/Home/Task';
 import { RealtimeNag } from 'screens/Feed/RealtimeNag';
 import { Myinfo } from 'screens/Mypage/Setting/Myinfo';
-import { ReceivedFeedbackScreen } from 'screens/Feedback/ReceivedFeedback';
 import type { RootStackParamList } from 'types/shared';
 
 const HomeStackNavigator = () => {
@@ -30,7 +29,6 @@ const HomeStackNavigator = () => {
       <Screen name="FEEDBACK" component={FeedbackStackNavigator} options={{ headerShown: false }} />
       <Screen name="REALTIME_NAG" component={RealtimeNag} options={{ headerTitle: '실시간 잔소리하기' }} />
       <Screen name="MYINFO" component={Myinfo} options={{ headerTitle: '내 정보 관리' }} />
-      <Screen name="RECEIVED_FEEDBACK" component={ReceivedFeedbackScreen} options={{ headerTitle: '받은 잔소리' }} />
     </Navigator>
   );
 };

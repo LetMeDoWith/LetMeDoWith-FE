@@ -29,7 +29,6 @@ type RootStackParamList = {
   FEEDBACK: undefined;
   REALTIME_NAG: undefined;
   MYINFO: undefined;
-  RECEIVED_FEEDBACK: { dowithTaskId: number };
 };
 
 type RootStackScreenProps<T extends keyof RootStackParamList> = StackScreenProps<RootStackParamList, T>;

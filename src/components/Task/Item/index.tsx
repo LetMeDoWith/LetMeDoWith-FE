@@ -32,6 +32,8 @@ import { RoutineArrow } from 'components/common/icons/RoutineArrow';
 import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
 import { isAos } from 'utils/device';
 import { ReceivedFeedbackBottomSheet } from 'components/Task/BottomSheet';
+import { ReceivedFeedbackModal } from 'components/Feedback/Modal/ReceivedFeedbackModal';
+import { CheerCollectionModal } from 'components/Feedback/Modal/CheerCollectionModal';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -66,6 +68,8 @@ const Item = ({
   const { showDialog, hideDialog } = useDialog();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const feedbackBottomSheetRef = useRef<BottomSheetModal>(null);
+  const [receivedModalVisible, setReceivedModalVisible] = useState(false);
+  const [cheerModalVisible, setCheerModalVisible] = useState(false);
   const isTodoMode = mode === 'TODO';
 
   const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
@@ -79,7 +83,7 @@ const Item = ({
   // 현재 시간이 업데이트 하려는 Task가 두윗이고, 시작 시간으로부터 1시간을 초과했을 경우
   const isInvalidUpdateDowithTask =
     !isTodoMode && dayjs(`${data?.date} ${data?.startTime}`).add(1, 'hour').isBefore(dayjs());
-  const isDisabled = status === TASK_STATUS_ENUM.enum.FAIL;
+  const isFailed = status === TASK_STATUS_ENUM.enum.FAIL;
 
   const { mutate: uploadDowithTaskSuccessImageUrlListMutate } = useUploadDowithTaskSuccessImageList(id);
   const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
@@ -322,18 +326,18 @@ const Item = ({
     <>
       <View style={styles.container}>
         <View style={styles.leftContainer}>
-          <Pressable onPress={handleTaskStatus(mode, id, status)} disabled={isInvalidUpdateDowithTask || isDisabled}>
+          <Pressable onPress={handleTaskStatus(mode, id, status)} disabled={isInvalidUpdateDowithTask || isFailed}>
             {renderTaskStatusIcon(mode, status)}
           </Pressable>
           <View style={styles.leftContent}>
-            <Text style={[styles.title, isDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>{title}</Text>
+            <Text style={[styles.title, isFailed && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>{title}</Text>
             {(startTime || taskCategoryName) && (
               <View style={styles.option}>
                 {startTime && (
                   <Text
                     style={[
                       styles.optionText,
-                      { color: isDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60 },
+                      { color: isFailed ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60 },
                     ]}
                   >
                     {dayjs(startTime, 'HH:mm:ss').format('HH:mm')}
@@ -343,7 +347,7 @@ const Item = ({
                   <Text
                     style={[
                       styles.optionText,
-                      { color: isDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60 },
+                      { color: isFailed ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60 },
                     ]}
                   >
                     •
@@ -353,7 +357,7 @@ const Item = ({
                   <Text
                     style={[
                       styles.optionText,
-                      { color: isDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60 },
+                      { color: isFailed ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60 },
                     ]}
                   >
                     {taskCategoryName}
@@ -376,12 +380,14 @@ const Item = ({
                 }}
               />
             )}
-            {!successImageUrls && !isNil(feedBackCount) && (
+            {!isNil(feedBackCount) && (
               <Pressable
                 style={styles.feedbackChip}
                 onPress={() => {
-                  if (isDisabled || successImageUrls) {
-                    navigate('RECEIVED_FEEDBACK', { dowithTaskId: id });
+                  if (successImageUrls) {
+                    setCheerModalVisible(true);
+                  } else if (isFailed) {
+                    setReceivedModalVisible(true);
                   } else {
                     feedbackBottomSheetRef.current?.present();
                   }
@@ -391,8 +397,8 @@ const Item = ({
                 <Text style={styles.feedbackChipText}>{feedBackCount}</Text>
               </Pressable>
             )}
-            <Pressable onPress={handleBottomSheet} disabled={isInvalidUpdateDowithTask || isDisabled}>
-              <EtcDots disabled={isInvalidUpdateDowithTask || isDisabled} />
+            <Pressable onPress={handleBottomSheet} disabled={isInvalidUpdateDowithTask || isFailed}>
+              <EtcDots disabled={isInvalidUpdateDowithTask || isFailed} />
             </Pressable>
           </View>
         </View>
@@ -406,6 +412,21 @@ const Item = ({
         <View style={styles.modalContainer}>{renderBottomSheetContent()}</View>
       </BottomSheet>
       <ReceivedFeedbackBottomSheet ref={feedbackBottomSheetRef} dowithTaskId={id} />
+      <ReceivedFeedbackModal
+        visible={receivedModalVisible}
+        dowithTaskId={id}
+        onClose={() => setReceivedModalVisible(false)}
+      />
+      {successImageUrls && (
+        <CheerCollectionModal
+          visible={cheerModalVisible}
+          dowithTaskId={id}
+          successImageUrl={successImageUrls[0]}
+          feedbackCount={feedBackCount as number}
+          likeCount={0}
+          onClose={() => setCheerModalVisible(false)}
+        />
+      )}
     </>
   );
 };
