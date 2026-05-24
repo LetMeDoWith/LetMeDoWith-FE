@@ -2,10 +2,9 @@ import type { ApiError } from 'services/apiClient';
 import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
+import { DEFAULT_PAGE_SIZE } from 'constants/shared';
 import { fetchFeedbackAvailableDowithTasks } from 'services/rest/task';
 import type { fetchFeedbackAvailableDowithTasksResponseSchemeType } from 'types/task/scheme/api';
-
-const PAGE_SIZE = 10;
 
 const useFetchFeedbackAvailableDowithTasksInfinite = () =>
   useInfiniteQuery<
@@ -16,7 +15,7 @@ const useFetchFeedbackAvailableDowithTasksInfinite = () =>
     number
   >({
     queryKey: [...TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS, 'infinite'],
-    queryFn: ({ pageParam }) => fetchFeedbackAvailableDowithTasks({ page: pageParam, size: PAGE_SIZE }),
+    queryFn: ({ pageParam }) => fetchFeedbackAvailableDowithTasks({ page: pageParam, size: DEFAULT_PAGE_SIZE }),
     getNextPageParam: lastPage => {
       const currentPage = lastPage.page;
       const totalPage = lastPage.totalPage;

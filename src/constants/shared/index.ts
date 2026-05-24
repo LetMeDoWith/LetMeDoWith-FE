@@ -22,5 +22,7 @@ type LanguageCodeType = (typeof LANGUAGE_CODE)[keyof typeof LANGUAGE_CODE];
 
 const LANGUAGE_CODE_VALUES = Object.values(LANGUAGE_CODE) as [LanguageCodeType, ...LanguageCodeType[]];
 
-export { SCREEN_NAME, APP_VERSION, LANGUAGE_CODE, LANGUAGE_CODE_VALUES };
+const DEFAULT_PAGE_SIZE = 20;
+
+export { SCREEN_NAME, APP_VERSION, LANGUAGE_CODE, LANGUAGE_CODE_VALUES, DEFAULT_PAGE_SIZE };
 export type { LanguageCodeType };

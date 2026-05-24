@@ -2,10 +2,9 @@ import type { ApiError } from 'services/apiClient';
 import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 
 import { FEEDBACK_QUERY_KEY } from 'constants/queries';
+import { DEFAULT_PAGE_SIZE } from 'constants/shared';
 import { fetchDowithTaskFeedbacks } from 'services/rest/feedback';
 import type { fetchDowithTaskFeedbacksResponseSchemeType } from 'types/feedback/scheme/api';
-
-const PAGE_SIZE = 20;
 
 const useFetchDowithTaskFeedbacks = (dowithTaskId: number, feedbackTemplateId: number | null) =>
   useInfiniteQuery<
@@ -20,7 +19,7 @@ const useFetchDowithTaskFeedbacks = (dowithTaskId: number, feedbackTemplateId: n
       fetchDowithTaskFeedbacks(dowithTaskId, {
         feedbackTemplateId: feedbackTemplateId!,
         page: pageParam,
-        size: PAGE_SIZE,
+        size: DEFAULT_PAGE_SIZE,
       }),
     getNextPageParam: lastPage => {
       const currentPage = lastPage.page;
