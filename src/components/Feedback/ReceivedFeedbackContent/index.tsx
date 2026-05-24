@@ -11,6 +11,7 @@ import type { dowithTaskFeedbackSchemeType } from 'types/feedback/scheme/api';
 interface Props {
   dowithTaskId: number;
   enabled?: boolean;
+  showTotalCount?: boolean;
   ListComponent?: ComponentType<FlatListProps<dowithTaskFeedbackSchemeType>>;
   headerComponent?: ReactElement;
 }
@@ -18,6 +19,7 @@ interface Props {
 const ReceivedFeedbackContent = ({
   dowithTaskId,
   enabled = true,
+  showTotalCount = true,
   ListComponent = FlatList,
   headerComponent,
 }: Props) => {
@@ -73,10 +75,12 @@ const ReceivedFeedbackContent = ({
   const ListHeader = (
     <View>
       {headerComponent}
-      <View style={styles.totalCountRow}>
-        <Thunder width={14} height={14} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
-        <Text style={styles.totalCountText}>총 {totalCount.toLocaleString('ko-KR')}개</Text>
-      </View>
+      {showTotalCount && (
+        <View style={styles.totalCountRow}>
+          <Thunder width={14} height={14} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
+          <Text style={styles.totalCountText}>총 {totalCount.toLocaleString('ko-KR')}개</Text>
+        </View>
+      )}
       <View style={styles.tabContainer}>
         {aggregates?.map(item => {
           const template = templateMap.get(item.feedbackTemplateId);
@@ -124,6 +128,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     marginTop: 20,
+    marginBottom: 8,
   },
   totalCountText: {
     ...theme.TYPOGRAPHY.BODY_2,
@@ -131,7 +136,6 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    marginTop: 16,
     gap: 8,
   },
   tab: {
