@@ -37,6 +37,7 @@ const FEEDBACK_API = {
 
 const NOTIFICATION_API = {
   ADD_TOKEN: 'v1/notifications/tokens',
-};
+  LIST: 'v1/notifications',
+} as const;
 
 export { AUTH_API, MEMBER_API, TASK_API, FEEDBACK_API, NOTIFICATION_API };

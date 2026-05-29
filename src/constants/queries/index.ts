@@ -33,6 +33,7 @@ const FEEDBACK_QUERY_KEY = {
 
 const NOTIFICATION_QUERY_KEY = {
   ADD_TOKEN: ['notification', 'add', 'token'],
-};
+  LIST: ['notification', 'list'],
+} as const;
 
 export { AUTH_QUERY_KEY, MEMBER_QUERY_KEY, TASK_QUERY_KEY, FEEDBACK_QUERY_KEY, NOTIFICATION_QUERY_KEY };
