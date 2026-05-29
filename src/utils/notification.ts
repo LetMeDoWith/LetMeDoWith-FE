@@ -8,6 +8,7 @@ import { useStore } from 'stores/index';
 import { updateNotificationSettings as mutateNotificationSettings } from 'services/rest/member';
 
 let initialized = false;
+let initializing = false;
 let channelCreated = false;
 let unsubOnMessage: (() => void) | null = null;
 let unsubOnTokenRefresh: (() => void) | null = null;
@@ -153,11 +154,13 @@ const initNotificationLayer = async (options?: {
 }) => {
   console.log('🚀 [initNotificationLayer] 시작');
 
-  // 이미 초기화되어 있으면 스킵
-  if (initialized) {
-    console.log('⚠️ [initNotificationLayer] 이미 초기화됨, 스킵');
+  // 이미 초기화되어 있거나 진행 중이면 스킵
+  if (initialized || initializing) {
+    console.log('⚠️ [initNotificationLayer] 이미 초기화됨 또는 진행중, 스킵');
     return;
   }
+
+  initializing = true;
 
   const onMessage = options?.onForegroundMessage ?? (async () => {});
   const onTokenChanged = options?.onTokenChanged ?? (async () => {});
@@ -171,6 +174,7 @@ const initNotificationLayer = async (options?: {
   // 이미 알림 설정이 거부된 경우
   if (currentSetting.authorizationStatus === AuthorizationStatus.DENIED) {
     console.log('❌ [initNotificationLayer] 권한이 이미 거부됨');
+    initializing = false;
 
     // 권한 watcher 등록
     if (!unsubAppState) {
@@ -187,6 +191,7 @@ const initNotificationLayer = async (options?: {
 
   if (!authorized) {
     console.log('❌ [initNotificationLayer] 권한 거부됨');
+    initializing = false;
     await syncNotificationSettings(false);
 
     // watcher 등록 전에 체크 (이미 구독 중이면 중복 등록 방지)
@@ -238,6 +243,7 @@ const initNotificationLayer = async (options?: {
   });
 
   initialized = true;
+  initializing = false;
   console.log('🎉 [initNotificationLayer] 초기화 완료!');
 
   // 기존 watcher를 제거하고, 권한 변경 감시 watcher를 재등록
@@ -283,7 +289,7 @@ const ensurePermissionWatcher = (options?: Parameters<typeof initNotificationLay
 
     const authorized = await checkSystemPermission();
 
-    if (authorized && !initialized) {
+    if (authorized && !initialized && !initializing) {
       // denied → granted: 재초기화
       console.log('✅ [ensurePermissionWatcher] 권한 허용됨, 초기화 재시도');
       await initNotificationLayer(options);
@@ -327,6 +333,7 @@ const disposeNotificationLayer = () => {
   }
 
   initialized = false;
+  initializing = false;
   channelCreated = false;
 
   console.log('✅ [disposeNotificationLayer] 완료');
