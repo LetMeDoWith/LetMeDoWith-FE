@@ -18,6 +18,7 @@ const SettingStackNavigator = () => {
       initialRouteName="DEFAULT"
       screenOptions={{
         headerTitleAlign: 'center',
+        headerTitleStyle: { ...theme.TYPOGRAPHY.TITLE_1 },
         headerBackTitleVisible: false,
         headerTintColor: theme.COLORS.DEFAULT.BLACK,
         headerShadowVisible: false,

@@ -12,8 +12,10 @@ const FeedbackStackNavigator = () => {
       screenOptions={{
         headerTitle: '잔소리 내역',
         headerTitleAlign: 'center',
+        headerTitleStyle: { ...theme.TYPOGRAPHY.TITLE_1 },
         headerBackTitleVisible: false,
         headerTintColor: theme.COLORS.DEFAULT.BLACK,
+        headerShadowVisible: false,
         cardStyle: { backgroundColor: theme.COLORS.DEFAULT.WHITE },
       }}
     >
