@@ -46,4 +46,17 @@ const formatTimeAgo = (dateString: string): string => {
   return target.format('YYYY.MM.DD');
 };
 
-export { formatRemainingTime, formatTimeAgo };
+const formatNotificationDate = (dateString: string): string => {
+  const now = dayjs();
+  const target = dayjs(dateString);
+  const isToday = now.format('YYYY-MM-DD') === target.format('YYYY-MM-DD');
+
+  if (isToday) {
+    return formatTimeAgo(dateString);
+  }
+
+  const isThisYear = now.year() === target.year();
+  return isThisYear ? target.format('M월 D일') : target.format('YYYY년 M월 D일');
+};
+
+export { formatRemainingTime, formatTimeAgo, formatNotificationDate };

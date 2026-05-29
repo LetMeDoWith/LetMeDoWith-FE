@@ -1,6 +1,6 @@
 import React from 'react';
+import { Pressable, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { IconButton } from 'react-native-paper';
 
 import useTheme from 'hooks/shared/useTheme';
 import { Feed } from 'screens/Feed';
@@ -9,6 +9,8 @@ import { Mypage } from 'screens/Mypage';
 import { HomeIcon } from 'components/common/icons/HomeIcon';
 import { FeedIcon } from 'components/common/icons/FeedIcon';
 import { MypageIcon } from 'components/common/icons/MypageIcon';
+import { Notification } from 'components/common/icons/Notification';
+import { SettingsIcon } from 'components/common/icons/SettingsIcon';
 import { theme } from 'styles/theme';
 import type { HomeTabParamList, RootStackScreenProps } from 'types/shared';
 
@@ -23,7 +25,10 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
       initialRouteName="MYTODO"
       screenOptions={{
         headerTitleAlign: 'center',
+        headerTitleStyle: { ...theme.TYPOGRAPHY.TITLE_1 },
+        headerShadowVisible: false,
         tabBarActiveTintColor: GRAY_SCALE.GRAY_20,
+        tabBarStyle: { borderTopWidth: 0, elevation: 0 },
         tabBarLabelStyle: {
           fontSize: 11,
           lineHeight: 14,
@@ -66,7 +71,8 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
         name="MYPAGE"
         component={Mypage}
         options={{
-          headerTitle: '내정보',
+          headerTitle: '마이두윗',
+          headerTitleAlign: 'left',
           tabBarLabel: '마이두윗',
           tabBarIcon: ({ focused }) => (
             <MypageIcon
@@ -75,14 +81,14 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
             />
           ),
           headerRight: () => (
-            <IconButton
-              icon="cog-outline"
-              iconColor={theme.COLORS.DEFAULT.BLACK}
-              size={18}
-              onPress={() => {
-                navigation.navigate('SETTING');
-              }}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginRight: 20 }}>
+              <Pressable onPress={() => navigation.navigate('NOTIFICATION_LIST')} hitSlop={8}>
+                <Notification width={24} height={24} />
+              </Pressable>
+              <Pressable onPress={() => navigation.navigate('SETTING')} hitSlop={8}>
+                <SettingsIcon width={24} height={24} />
+              </Pressable>
+            </View>
           ),
         }}
       />

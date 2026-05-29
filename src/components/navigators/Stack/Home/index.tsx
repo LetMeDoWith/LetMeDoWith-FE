@@ -8,6 +8,7 @@ import { FeedbackStackNavigator } from 'components/navigators/Stack/Feedback';
 import { TaskForm } from 'screens/Home/Task';
 import { RealtimeNag } from 'screens/Feed/RealtimeNag';
 import { Myinfo } from 'screens/Mypage/Setting/Myinfo';
+import { NotificationScreen } from 'screens/Notification';
 import type { RootStackParamList } from 'types/shared';
 
 const HomeStackNavigator = () => {
@@ -18,8 +19,10 @@ const HomeStackNavigator = () => {
       initialRouteName="HOME"
       screenOptions={{
         headerTitleAlign: 'center',
+        headerTitleStyle: { ...theme.TYPOGRAPHY.TITLE_1 },
         headerBackTitleVisible: false,
         headerTintColor: theme.COLORS.DEFAULT.BLACK,
+        headerShadowVisible: false,
         cardStyle: { backgroundColor: theme.COLORS.DEFAULT.WHITE },
       }}
     >
@@ -29,6 +32,7 @@ const HomeStackNavigator = () => {
       <Screen name="FEEDBACK" component={FeedbackStackNavigator} options={{ headerShown: false }} />
       <Screen name="REALTIME_NAG" component={RealtimeNag} options={{ headerTitle: '실시간 잔소리하기' }} />
       <Screen name="MYINFO" component={Myinfo} options={{ headerTitle: '내 정보 관리' }} />
+      <Screen name="NOTIFICATION_LIST" component={NotificationScreen} options={{ headerTitle: '알림' }} />
     </Navigator>
   );
 };
