@@ -40,7 +40,7 @@ const theme = {
       GRAY_10: '#18191B',
     },
     SUB: {
-      PINK_60: '#FF3377',
+      PINK_60: '#FF383C',
       BLUE_60: '#3399FF',
     },
   },
