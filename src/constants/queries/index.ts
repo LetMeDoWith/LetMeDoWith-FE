@@ -36,4 +36,16 @@ const NOTIFICATION_QUERY_KEY = {
   LIST: ['notification', 'list'],
 } as const;
 
-export { AUTH_QUERY_KEY, MEMBER_QUERY_KEY, TASK_QUERY_KEY, FEEDBACK_QUERY_KEY, NOTIFICATION_QUERY_KEY };
+const NOTICE_QUERY_KEY = {
+  LIST: ['notice', 'list'],
+  DETAIL: ['notice', 'detail'],
+} as const;
+
+export {
+  AUTH_QUERY_KEY,
+  MEMBER_QUERY_KEY,
+  TASK_QUERY_KEY,
+  FEEDBACK_QUERY_KEY,
+  NOTIFICATION_QUERY_KEY,
+  NOTICE_QUERY_KEY,
+};

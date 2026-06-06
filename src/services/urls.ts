@@ -40,4 +40,9 @@ const NOTIFICATION_API = {
   LIST: 'v1/notifications',
 } as const;
 
-export { AUTH_API, MEMBER_API, TASK_API, FEEDBACK_API, NOTIFICATION_API };
+const NOTICE_API = {
+  LIST: 'v1/notices',
+  DETAIL: 'v1/notices/:id',
+} as const;
+
+export { AUTH_API, MEMBER_API, TASK_API, FEEDBACK_API, NOTIFICATION_API, NOTICE_API };
