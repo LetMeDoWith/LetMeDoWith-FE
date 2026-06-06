@@ -30,6 +30,7 @@ import { LoadingOverlay } from 'components/common/LoadingOverlay';
 import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
 import { initNotificationLayer } from 'utils/notification';
 import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotificationToken';
+import { linking } from 'utils/deepLink';
 import { AppStateProvider, AppStateContext, useAppState } from 'hooks/shared/useAppState';
 
 export const navigationRef = createNavigationContainerRef();
@@ -229,7 +230,7 @@ function AppContent() {
         <SafeAreaProvider>
           <KeyboardProvider>
             <BottomSheetModalProvider>
-              <NavigationContainer ref={navigationRef} theme={DefaultTheme}>
+              <NavigationContainer ref={navigationRef} linking={linking} theme={DefaultTheme}>
                 {isNeedSignUp ? <Signup /> : <HomeStackNavigator />}
               </NavigationContainer>
             </BottomSheetModalProvider>

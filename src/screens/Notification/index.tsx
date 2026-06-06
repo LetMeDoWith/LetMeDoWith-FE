@@ -13,6 +13,7 @@ import { useAppState } from 'hooks/shared/useAppState';
 import { useStore } from 'stores/index';
 import { checkSystemPermission } from 'utils/notification';
 import { formatNotificationDate } from 'utils/date';
+import { navigateByDeepLink } from 'utils/deepLink';
 import { theme } from 'styles/theme';
 import type { notificationSchemeType } from 'types/notification/scheme/api';
 
@@ -20,7 +21,7 @@ const Tab = createMaterialTopTabNavigator();
 
 interface NotificationItemProps extends notificationSchemeType {
   type: 'NORMAL' | 'EVENT';
-  onPress: (id: number) => void;
+  onPress: (id: number, deepLink: string | null) => void;
 }
 
 const NotificationItem = ({
@@ -28,12 +29,16 @@ const NotificationItem = ({
   title,
   body,
   image,
+  deepLink,
   isConfirmed,
   createdAt,
   type,
   onPress,
 }: NotificationItemProps) => (
-  <Pressable style={[styles.item, isConfirmed && styles.itemConfirmed]} onPress={() => onPress(notificationId)}>
+  <Pressable
+    style={[styles.item, isConfirmed && styles.itemConfirmed]}
+    onPress={() => onPress(notificationId, deepLink)}
+  >
     {type === 'NORMAL' &&
       (image ? <Image source={{ uri: image }} style={styles.itemImage} /> : <View style={styles.itemImage} />)}
     <View style={styles.itemContent}>
@@ -66,8 +71,12 @@ const NotificationList = ({ type }: { type: 'NORMAL' | 'EVENT' }) => {
     }
   };
 
-  const handlePress = (notificationId: number) => {
+  const handlePress = (notificationId: number, deepLink: string | null) => {
     confirmNotification(notificationId);
+
+    if (deepLink) {
+      navigateByDeepLink(deepLink);
+    }
   };
 
   return (
