@@ -24,6 +24,9 @@ const useFetchNotifications = (type: NotificationType) =>
       return currentPage + 1 < totalPage ? currentPage + 1 : undefined;
     },
     initialPageParam: 0,
+    // 5분간 캐시 유지 (헤더 → 알림 스크린 진입 시 중복 요청 방지)
+    // 알림 확인(confirm) 시 invalidateQueries로 즉시 갱신
+    staleTime: 5 * 60 * 1000,
   });
 
 export { useFetchNotifications };

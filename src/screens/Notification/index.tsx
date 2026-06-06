@@ -52,29 +52,29 @@ const NotificationList = ({ type }: { type: 'NORMAL' | 'EVENT' }) => {
 
   const notifications = useMemo(() => data?.pages.flatMap(page => page.data.notifications) ?? [], [data]);
 
-  const handleEndReached = useCallback(() => {
+  if (notifications.length === 0) {
+    return (
+      <View style={styles.emptyListContainer}>
+        <Text style={styles.emptyListText}>아직 받은 알림이 없어요.</Text>
+      </View>
+    );
+  }
+
+  const handleEndReached = () => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  };
 
-  const handlePress = useCallback(
-    (notificationId: number) => {
-      confirmNotification(notificationId);
-    },
-    [confirmNotification],
-  );
-
-  const renderItem = useCallback(
-    ({ item }: { item: notificationSchemeType }) => <NotificationItem {...item} type={type} onPress={handlePress} />,
-    [type, handlePress],
-  );
+  const handlePress = (notificationId: number) => {
+    confirmNotification(notificationId);
+  };
 
   return (
     <View style={styles.listContainer}>
       <FlatList
         data={notifications}
-        renderItem={renderItem}
+        renderItem={({ item }) => <NotificationItem {...item} type={type} onPress={handlePress} />}
         keyExtractor={item => item.notificationId.toString()}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
@@ -175,25 +175,43 @@ const EventTab = () => {
   return <NotificationList type="EVENT" />;
 };
 
+const TabLabel = ({ label, hasUnread, color }: { label: string; hasUnread: boolean; color: string }) => (
+  <View style={styles.tabLabelContainer}>
+    <Text style={[styles.tabLabelText, { color }]}>{label}</Text>
+    {hasUnread && <View style={styles.redDot} />}
+  </View>
+);
+
 const NotificationScreen = () => {
   const insets = useSafeAreaInsets();
+  const { data: normalData } = useFetchNotifications('NORMAL');
+  const { data: eventData } = useFetchNotifications('EVENT');
+
+  const hasUnreadNormal = normalData?.pages.some(page => page.data.notifications.some(n => !n.isConfirmed)) ?? false;
+  const hasUnreadEvent = eventData?.pages.some(page => page.data.notifications.some(n => !n.isConfirmed)) ?? false;
+
+  const renderNormalLabel = useCallback(
+    ({ color }: { color: string }) => <TabLabel label="알림" hasUnread={hasUnreadNormal} color={color} />,
+    [hasUnreadNormal],
+  );
+
+  const renderEventLabel = useCallback(
+    ({ color }: { color: string }) => <TabLabel label="혜택/이벤트" hasUnread={hasUnreadEvent} color={color} />,
+    [hasUnreadEvent],
+  );
 
   return (
     <View style={styles.screenContainer}>
       <Tab.Navigator
         sceneContainerStyle={{ backgroundColor: theme.COLORS.DEFAULT.WHITE }}
         screenOptions={{
-          tabBarLabelStyle: {
-            fontWeight: theme.TYPOGRAPHY.TITLE_3.fontWeight,
-            fontSize: theme.TYPOGRAPHY.TITLE_3.fontSize,
-          },
           tabBarActiveTintColor: theme.COLORS.DEFAULT.BLACK,
           tabBarInactiveTintColor: theme.COLORS.GRAY_SCALE.GRAY_60,
           tabBarIndicatorStyle: { backgroundColor: theme.COLORS.DEFAULT.BLACK },
         }}
       >
-        <Tab.Screen name="NOTIFICATION" component={NotificationTab} options={{ tabBarLabel: '알림' }} />
-        <Tab.Screen name="EVENT" component={EventTab} options={{ tabBarLabel: '혜택/이벤트' }} />
+        <Tab.Screen name="NOTIFICATION" component={NotificationTab} options={{ tabBarLabel: renderNormalLabel }} />
+        <Tab.Screen name="EVENT" component={EventTab} options={{ tabBarLabel: renderEventLabel }} />
       </Tab.Navigator>
       <Text style={[styles.footerText, { paddingBottom: insets.bottom + 20 }]}>
         최근 30일 동안의 알림만 확인할 수 있어요.
@@ -210,6 +228,32 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
   },
+  emptyListContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyListText: {
+    ...theme.TYPOGRAPHY.BODY_1,
+    color: theme.COLORS.GRAY_SCALE.GRAY_50,
+  },
+  tabLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tabLabelText: {
+    fontWeight: theme.TYPOGRAPHY.TITLE_3.fontWeight,
+    fontSize: theme.TYPOGRAPHY.TITLE_3.fontSize,
+  },
+  redDot: {
+    position: 'absolute',
+    top: -2,
+    right: -6,
+    width: 4,
+    height: 4,
+    borderRadius: 3,
+    backgroundColor: theme.COLORS.PRIMARY.RED_60,
+  },
   listContent: {
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -222,7 +266,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_96,
   },
   itemConfirmed: {
-    opacity: 0.3,
+    opacity: 0.4,
   },
   itemImage: {
     width: 40,
@@ -234,7 +278,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemTitle: {
-    ...theme.TYPOGRAPHY.BODY_1,
+    ...theme.TYPOGRAPHY.TITLE_3,
   },
   itemBody: {
     ...theme.TYPOGRAPHY.BODY_2,

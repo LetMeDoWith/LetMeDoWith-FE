@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import useTheme from 'hooks/shared/useTheme';
@@ -10,9 +10,31 @@ import { HomeIcon } from 'components/common/icons/HomeIcon';
 import { FeedIcon } from 'components/common/icons/FeedIcon';
 import { MypageIcon } from 'components/common/icons/MypageIcon';
 import { Notification } from 'components/common/icons/Notification';
+import { NotificationOn } from 'components/common/icons/NotificationOn';
 import { SettingsIcon } from 'components/common/icons/SettingsIcon';
+import { useFetchNotifications } from 'hooks/queries/notification/useFetchNotifications';
 import { theme } from 'styles/theme';
 import type { HomeTabParamList, RootStackScreenProps } from 'types/shared';
+
+const MypageHeaderRight = ({ onNotification, onSetting }: { onNotification: () => void; onSetting: () => void }) => {
+  const { data: normalData } = useFetchNotifications('NORMAL');
+  const { data: eventData } = useFetchNotifications('EVENT');
+
+  const hasUnread =
+    (normalData?.pages.some(page => page.data.notifications.some(n => !n.isConfirmed)) ?? false) ||
+    (eventData?.pages.some(page => page.data.notifications.some(n => !n.isConfirmed)) ?? false);
+
+  return (
+    <View style={styles.headerRight}>
+      <Pressable onPress={onNotification} hitSlop={8}>
+        {hasUnread ? <NotificationOn width={24} height={24} /> : <Notification width={24} height={24} />}
+      </Pressable>
+      <Pressable onPress={onSetting} hitSlop={8}>
+        <SettingsIcon width={24} height={24} />
+      </Pressable>
+    </View>
+  );
+};
 
 const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
   const { Navigator, Screen } = createBottomTabNavigator<HomeTabParamList>();
@@ -81,19 +103,24 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
             />
           ),
           headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginRight: 20 }}>
-              <Pressable onPress={() => navigation.navigate('NOTIFICATION_LIST')} hitSlop={8}>
-                <Notification width={24} height={24} />
-              </Pressable>
-              <Pressable onPress={() => navigation.navigate('SETTING')} hitSlop={8}>
-                <SettingsIcon width={24} height={24} />
-              </Pressable>
-            </View>
+            <MypageHeaderRight
+              onNotification={() => navigation.navigate('NOTIFICATION_LIST')}
+              onSetting={() => navigation.navigate('SETTING')}
+            />
           ),
         }}
       />
     </Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginRight: 20,
+  },
+});
 
 export { BottomTabNavigator };
