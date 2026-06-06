@@ -28,4 +28,13 @@ const fetchNotifications = async (params: FetchNotificationsParams): Promise<fet
   }
 };
 
-export { addNotificationToken, fetchNotifications };
+const confirmNotification = async (notificationId: number) => {
+  try {
+    const result = await apiClient.post(`${NOTIFICATION_API.LIST}/${notificationId}/confirm`);
+    return result.data;
+  } catch (e) {
+    throw e;
+  }
+};
+
+export { addNotificationToken, fetchNotifications, confirmNotification };

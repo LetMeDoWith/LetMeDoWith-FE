@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 
 import { useDialog } from 'components/common/Dialog/Provider';
 import { useFetchNotifications } from 'hooks/queries/notification/useFetchNotifications';
+import { useConfirmNotification } from 'hooks/queries/notification/useConfirmNotification';
 import { useFetchMyDowithInfo } from 'hooks/queries/member/useFetchMyDowithInfo';
 import { useNotificationSettings } from 'hooks/queries/member/useNotificationSettings';
 import { useAppState } from 'hooks/shared/useAppState';
@@ -19,10 +20,20 @@ const Tab = createMaterialTopTabNavigator();
 
 interface NotificationItemProps extends notificationSchemeType {
   type: 'NORMAL' | 'EVENT';
+  onPress: (id: number) => void;
 }
 
-const NotificationItem = ({ title, body, image, isConfirmed, createdAt, type }: NotificationItemProps) => (
-  <View style={[styles.item, isConfirmed && styles.itemConfirmed]}>
+const NotificationItem = ({
+  notificationId,
+  title,
+  body,
+  image,
+  isConfirmed,
+  createdAt,
+  type,
+  onPress,
+}: NotificationItemProps) => (
+  <Pressable style={[styles.item, isConfirmed && styles.itemConfirmed]} onPress={() => onPress(notificationId)}>
     {type === 'NORMAL' &&
       (image ? <Image source={{ uri: image }} style={styles.itemImage} /> : <View style={styles.itemImage} />)}
     <View style={styles.itemContent}>
@@ -32,11 +43,12 @@ const NotificationItem = ({ title, body, image, isConfirmed, createdAt, type }: 
       </Text>
       <Text style={styles.itemDate}>{formatNotificationDate(createdAt)}</Text>
     </View>
-  </View>
+  </Pressable>
 );
 
 const NotificationList = ({ type }: { type: 'NORMAL' | 'EVENT' }) => {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchNotifications(type);
+  const { mutate: confirmNotification } = useConfirmNotification();
 
   const notifications = useMemo(() => data?.pages.flatMap(page => page.data.notifications) ?? [], [data]);
 
@@ -46,9 +58,16 @@ const NotificationList = ({ type }: { type: 'NORMAL' | 'EVENT' }) => {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  const handlePress = useCallback(
+    (notificationId: number) => {
+      confirmNotification(notificationId);
+    },
+    [confirmNotification],
+  );
+
   const renderItem = useCallback(
-    ({ item }: { item: notificationSchemeType }) => <NotificationItem {...item} type={type} />,
-    [type],
+    ({ item }: { item: notificationSchemeType }) => <NotificationItem {...item} type={type} onPress={handlePress} />,
+    [type, handlePress],
   );
 
   return (
