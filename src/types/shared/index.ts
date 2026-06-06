@@ -73,9 +73,7 @@ type SettingStackParamList = {
   NOTIFICATION: undefined;
   NOTICE: undefined;
   NOTICE_DETAIL: {
-    type: NoticeType;
-    title: string;
-    date: string;
+    noticeId: number;
   };
   POLICY: undefined;
   ACCOUNT: undefined;

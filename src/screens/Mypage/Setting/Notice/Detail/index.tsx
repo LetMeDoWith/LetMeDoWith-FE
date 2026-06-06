@@ -1,26 +1,62 @@
 import React from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import dayjs from 'dayjs';
 
-import { Item } from 'components/Mypage/Setting/Notice';
+import { useFetchNoticeDetail } from 'hooks/queries/notice/useFetchNoticeDetail';
 import { theme } from 'styles/theme';
 import type { SettingStackScreenProps } from 'types/shared';
 
 const NoticeDetail = ({ route: { params } }: SettingStackScreenProps<'NOTICE_DETAIL'>) => {
-  const { type, title, date } = params;
+  const { data } = useFetchNoticeDetail(params.noticeId);
+
+  if (!data) {
+    return null;
+  }
+
+  const { title, content, type, createdAt } = data.data;
 
   return (
-    <View style={styles.container}>
-      <Item type={type} title={title} date={date} />
-      <Text>공지사항 & 이벤트 테스트 내용입니다</Text>
-    </View>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.type}>[{type === 'NOTICE' ? '공지' : '이벤트'}]</Text>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.date}>{dayjs(createdAt).format('YYYY.MM.DD')}</Text>
+      </View>
+      <View style={styles.divider} />
+      <Text style={styles.content}>{content}</Text>
+    </ScrollView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
-    height: Dimensions.get('window').height,
-    paddingHorizontal: 24,
-    gap: 26,
+    flex: 1,
+    paddingHorizontal: 20,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
+  },
+  header: {
+    gap: 8,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  type: {
+    ...theme.TYPOGRAPHY.BODY_2,
+    color: theme.COLORS.GRAY_SCALE.GRAY_50,
+  },
+  title: {
+    ...theme.TYPOGRAPHY.TITLE_2,
+  },
+  date: {
+    ...theme.TYPOGRAPHY.CAPTION1_BASIC,
+    color: theme.COLORS.GRAY_SCALE.GRAY_60,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_92,
+  },
+  content: {
+    ...theme.TYPOGRAPHY.BODY_2,
+    paddingVertical: 16,
   },
 });
 

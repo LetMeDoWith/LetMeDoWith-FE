@@ -1,34 +1,36 @@
 import React, { useCallback } from 'react';
-import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import dayjs from 'dayjs';
 
 import { theme } from 'styles/theme';
 import type { NoticeType, SettingStackScreenProps } from 'types/shared';
 
 interface Props extends Partial<Pick<SettingStackScreenProps<'NOTICE'>, 'navigation'>> {
+  id: number;
   type: NoticeType;
   title: string;
   date: string;
 }
 
-const Item = ({ type, title, date, navigation }: Props) => {
+const Item = ({ id, type, title, date, navigation }: Props) => {
   const onPress = useCallback(() => {
     if (!navigation) {
       return;
     }
 
-    navigation.navigate('NOTICE_DETAIL', { type, title, date });
-  }, [date, navigation, title, type]);
+    navigation.navigate('NOTICE_DETAIL', { noticeId: id });
+  }, [id, navigation]);
 
   return (
     <Pressable style={styles.container} onPress={onPress}>
       <View style={styles.contentType}>
-        <Text>[{type === 'NOTICE' ? '공지' : '이벤트'}]</Text>
+        <Text style={styles.typeText}>[{type === 'NOTICE' ? '공지' : '이벤트'}]</Text>
       </View>
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={2}>
           {title}
         </Text>
-        <Text>{date}</Text>
+        <Text style={styles.date}>{dayjs(date).format('YYYY.MM.DD')}</Text>
       </View>
     </Pressable>
   );
@@ -40,18 +42,24 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 11,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.COLORS.GRAY_SCALE.GRAY_92,
   },
   contentType: {
     flex: 1,
   },
+  typeText: {
+    ...theme.TYPOGRAPHY.BODY_2,
+    color: theme.COLORS.GRAY_SCALE.GRAY_50,
+  },
   content: {
-    gap: 14,
+    gap: 8,
     flex: 4,
   },
   title: {
-    width: Dimensions.get('window').width / 1.5,
+    ...theme.TYPOGRAPHY.BODY_1,
+  },
+  date: {
+    ...theme.TYPOGRAPHY.CAPTION1_BASIC,
+    color: theme.COLORS.GRAY_SCALE.GRAY_50,
   },
 });
 
