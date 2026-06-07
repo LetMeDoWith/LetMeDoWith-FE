@@ -1,17 +1,20 @@
 import { AppStateStatus } from 'react-native';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-import notifee, { AndroidImportance, AuthorizationStatus } from '@notifee/react-native';
+import notifee, { AndroidImportance, AuthorizationStatus, EventType } from '@notifee/react-native';
 import { AndroidVisibility } from '@notifee/react-native/src/types/NotificationAndroid';
 
 import { isAos } from 'utils/device';
 import { useStore } from 'stores/index';
 import { updateNotificationSettings as mutateNotificationSettings } from 'services/rest/member';
+import { navigateByDeepLink } from 'utils/deepLink';
 
 let initialized = false;
 let initializing = false;
 let channelCreated = false;
 let unsubOnMessage: (() => void) | null = null;
 let unsubOnTokenRefresh: (() => void) | null = null;
+let unsubNotifeeEvent: (() => void) | null = null;
+let unsubOnNotificationOpened: (() => void) | null = null;
 let unsubAppState: (() => void) | null = null;
 
 const CHANNEL_ID = 'default';
@@ -118,6 +121,16 @@ const displayNotification = async (message: FirebaseMessagingTypes.RemoteMessage
     });
   } catch (error) {
     console.error('❌ 알림 표시 실패:', error);
+  }
+};
+
+/**
+ * FCM/Notifee 알림 데이터에서 딥링크를 추출하여 네비게이션 수행
+ */
+const handleDeepLinkFromData = (data?: { [key: string]: unknown }) => {
+  const deepLink = data?.deepLink;
+  if (typeof deepLink === 'string') {
+    navigateByDeepLink(deepLink);
   }
 };
 
@@ -242,6 +255,27 @@ const initNotificationLayer = async (options?: {
     await onTokenChanged(newToken);
   });
 
+  // 알림 클릭 시 딥링크 처리 (포그라운드 - notifee 로컬 알림 클릭)
+  unsubNotifeeEvent = notifee.onForegroundEvent(({ type, detail }) => {
+    if (type === EventType.PRESS) {
+      handleDeepLinkFromData(detail.notification?.data);
+    }
+  });
+
+  // 알림 클릭 시 딥링크 처리 (백그라운드 - FCM 알림 클릭으로 앱 복귀)
+  unsubOnNotificationOpened = messaging().onNotificationOpenedApp(message => {
+    handleDeepLinkFromData(message.data);
+  });
+
+  // 알림 클릭 시 딥링크 처리 (앱 종료 상태 - FCM 알림 클릭으로 앱 실행)
+  messaging()
+    .getInitialNotification()
+    .then(message => {
+      if (message) {
+        handleDeepLinkFromData(message.data);
+      }
+    });
+
   initialized = true;
   initializing = false;
   console.log('🎉 [initNotificationLayer] 초기화 완료!');
@@ -302,6 +336,10 @@ const ensurePermissionWatcher = (options?: Parameters<typeof initNotificationLay
       unsubOnMessage = null;
       unsubOnTokenRefresh?.();
       unsubOnTokenRefresh = null;
+      unsubNotifeeEvent?.();
+      unsubNotifeeEvent = null;
+      unsubOnNotificationOpened?.();
+      unsubOnNotificationOpened = null;
       initialized = false;
       channelCreated = false;
     }
@@ -324,6 +362,10 @@ const disposeNotificationLayer = () => {
   unsubOnMessage = null;
   unsubOnTokenRefresh?.();
   unsubOnTokenRefresh = null;
+  unsubNotifeeEvent?.();
+  unsubNotifeeEvent = null;
+  unsubOnNotificationOpened?.();
+  unsubOnNotificationOpened = null;
 
   // AppState 구독 해제
   if (unsubAppState) {
