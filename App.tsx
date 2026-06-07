@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import { Alert, ScrollView, FlatList, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NavigationContainer, DefaultTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
@@ -42,6 +42,17 @@ const DevToolsRoot = ENABLE_DEVTOOLS ? require('components/__dev__/DevToolsRoot'
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(customParseFormat);
+
+// OS 폰트 크기 설정 무시 (앱 내 고정 폰트 크기 사용)
+(Text as any).defaultProps = {
+  ...(Text as any).defaultProps,
+  allowFontScaling: false,
+};
+
+(TextInput as any).defaultProps = {
+  ...(TextInput as any).defaultProps,
+  allowFontScaling: false,
+};
 
 (ScrollView as any).defaultProps = {
   ...(ScrollView as any).defaultProps,
