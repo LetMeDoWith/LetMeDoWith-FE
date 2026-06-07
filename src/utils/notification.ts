@@ -88,11 +88,25 @@ const createNotificationChannel = async () => {
 };
 
 /**
+ * FCM 메시지에서 이미지 URL 추출
+ * - Android: notification.android.imageUrl
+ * - iOS: data.fcm_options.image
+ * - 공통: notification.image
+ */
+const extractImageUrl = (message: FirebaseMessagingTypes.RemoteMessage): string | undefined => {
+  const androidImage = message.notification?.android?.imageUrl;
+  const fcmOptions = message.data?.fcm_options as { image?: string } | undefined;
+  const fcmOptionsImage = fcmOptions?.image;
+
+  return androidImage || fcmOptionsImage || message.notification?.image;
+};
+
+/**
  * Foreground/Background에서 수신한 FCM 메시지를 notifee를 사용하여 로컬 알림으로 표시
  */
 const displayNotification = async (message: FirebaseMessagingTypes.RemoteMessage) => {
   try {
-    const imageUrl = message.notification?.image || (message.data?.imageUrl as string | undefined);
+    const imageUrl = extractImageUrl(message);
 
     await notifee.displayNotification({
       title: message.notification?.title || '새 알림',
@@ -112,6 +126,7 @@ const displayNotification = async (message: FirebaseMessagingTypes.RemoteMessage
         timestamp: Date.now(),
         showTimestamp: true,
       },
+      // TODO: iOS 이미지 attachment는 notifee 동기 다운로드 이슈로 추후 대응
       ...(imageUrl && {
         ios: {
           attachments: [{ url: imageUrl }],
