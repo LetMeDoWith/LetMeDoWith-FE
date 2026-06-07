@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,7 +42,7 @@ const NotificationItem = ({
     onPress={() => onPress(notificationId, deepLink)}
   >
     {type === 'NORMAL' &&
-      (image ? <Image source={{ uri: image }} style={styles.itemImage} /> : <View style={styles.itemImage} />)}
+      (image ? <FastImage source={{ uri: image }} style={styles.itemImage} /> : <View style={styles.itemImage} />)}
     <View style={styles.itemContent}>
       <Text style={styles.itemTitle}>{title}</Text>
       <Text style={styles.itemBody} numberOfLines={2}>

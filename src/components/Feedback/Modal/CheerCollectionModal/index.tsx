@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Thunder } from 'components/common/icons/Thunder';
@@ -47,7 +48,7 @@ const CheerCollectionModal = ({ visible, dowithTaskId, successImageUrl, onClose 
     ({ item }: { item: dowithTaskLikerSchemeType }) => (
       <View style={styles.likeRow}>
         {item.profileImageUrl ? (
-          <Image source={{ uri: item.profileImageUrl }} style={styles.likeImage} />
+          <FastImage source={{ uri: item.profileImageUrl }} style={styles.likeImage} />
         ) : (
           <View style={styles.likeImage} />
         )}
@@ -66,7 +67,11 @@ const CheerCollectionModal = ({ visible, dowithTaskId, successImageUrl, onClose 
             <CancelIcon />
           </Pressable>
         </View>
-        <Image source={{ uri: successImageUrl }} style={styles.successImage} resizeMode="cover" />
+        <FastImage
+          source={{ uri: successImageUrl }}
+          style={styles.successImage}
+          resizeMode={FastImage.resizeMode.cover}
+        />
         <View style={styles.tabRow}>
           <Pressable
             style={[styles.tabButton, activeTab === 'FEEDBACK' && styles.tabButtonActive]}

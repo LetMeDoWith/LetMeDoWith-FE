@@ -1,5 +1,6 @@
 import { type ComponentType, type ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, type FlatListProps, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, type FlatListProps, Pressable, StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 
 import { Thunder } from 'components/common/icons/Thunder';
 import { useFetchDowithTaskFeedbackAggregates } from 'hooks/queries/feedback/useFetchDowithTaskFeedbackAggregates';
@@ -60,7 +61,7 @@ const ReceivedFeedbackContent = ({
     ({ item }: { item: dowithTaskFeedbackSchemeType }) => (
       <View style={styles.senderRow}>
         {item.senderProfileImageUrl ? (
-          <Image source={{ uri: item.senderProfileImageUrl }} style={styles.senderImage} />
+          <FastImage source={{ uri: item.senderProfileImageUrl }} style={styles.senderImage} />
         ) : (
           <View style={styles.senderImage} />
         )}
@@ -91,7 +92,7 @@ const ReceivedFeedbackContent = ({
               style={[styles.tab, isSelected && styles.tabSelected]}
               onPress={() => setSelectedTemplateId(item.feedbackTemplateId)}
             >
-              {template?.emojiUrl && <Image source={{ uri: template.emojiUrl }} style={styles.tabEmoji} />}
+              {template?.emojiUrl && <FastImage source={{ uri: template.emojiUrl }} style={styles.tabEmoji} />}
               <Text style={[styles.tabCount, isSelected && styles.tabCountSelected]}>{item.count}</Text>
             </Pressable>
           );

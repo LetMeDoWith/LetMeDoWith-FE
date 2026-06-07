@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { theme } from 'styles/theme';
@@ -17,13 +18,13 @@ interface Props {
 
 const SuccessTaskImageCard = ({ successImageUrl, title, profileImageUrl, nickname, onPress }: Props) => (
   <Pressable style={styles.card} onPress={onPress}>
-    <Image source={{ uri: successImageUrl }} style={styles.successImage} />
+    <FastImage source={{ uri: successImageUrl }} style={styles.successImage} />
     <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.8)']} style={styles.overlay}>
       <Text style={styles.title} numberOfLines={1}>
         {title}
       </Text>
       <View style={styles.profileRow}>
-        <Image source={{ uri: profileImageUrl }} style={styles.profileImage} />
+        <FastImage source={{ uri: profileImageUrl }} style={styles.profileImage} />
         <Text style={[theme.TYPOGRAPHY.CAPTION_2, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>{nickname}</Text>
       </View>
     </LinearGradient>

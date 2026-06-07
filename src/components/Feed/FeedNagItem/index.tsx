@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Image, type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import { type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import Animated from 'react-native-reanimated';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -170,7 +171,7 @@ const FeedNagItem = ({
       <Animated.View style={contentAnimatedStyle}>
         <View style={styles.contentInner}>
           <View style={styles.topRow}>
-            <Image style={styles.image} source={{ uri: profileImageUrl }} />
+            <FastImage style={styles.image} source={{ uri: profileImageUrl }} />
             <Text style={styles.nickname}>{nickname}</Text>
           </View>
           <Text style={styles.taskDescription}>{title}</Text>
@@ -200,7 +201,7 @@ const FeedNagItem = ({
               <View style={styles.reactionBar}>
                 {templates.map(template => (
                   <Pressable key={template.id} style={styles.reactionButton} onPress={() => handleReaction(template)}>
-                    <Image source={{ uri: template.emojiUrl }} style={styles.reactionEmoji} />
+                    <FastImage source={{ uri: template.emojiUrl }} style={styles.reactionEmoji} />
                     <Text style={styles.reactionMessage}>{template.name}</Text>
                   </Pressable>
                 ))}
@@ -215,7 +216,7 @@ const FeedNagItem = ({
                 if (!template) {
                   return null;
                 }
-                return <Image key={index} source={{ uri: template.emojiUrl }} style={styles.sentEmoji} />;
+                return <FastImage key={index} source={{ uri: template.emojiUrl }} style={styles.sentEmoji} />;
               })}
               {overflowCount > 0 && <Text style={styles.overflowCount}>+{overflowCount}</Text>}
             </View>

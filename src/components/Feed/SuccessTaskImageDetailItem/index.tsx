@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming } from 'react-native-reanimated';
 
 import { theme } from 'styles/theme';
@@ -61,7 +62,7 @@ const SuccessTaskImageDetailItem = ({
   return (
     <View style={styles.page}>
       <View style={styles.imageWrapper}>
-        <Image source={{ uri: successImageUrl }} style={styles.image} resizeMode="cover" />
+        <FastImage source={{ uri: successImageUrl }} style={styles.image} resizeMode={FastImage.resizeMode.cover} />
       </View>
       <View style={styles.infoSection}>
         <Text style={[theme.TYPOGRAPHY.TITLE_1, { color: theme.COLORS.DEFAULT.WHITE }]} numberOfLines={1}>
@@ -69,7 +70,7 @@ const SuccessTaskImageDetailItem = ({
         </Text>
         <View style={styles.bottomRow}>
           <View style={styles.profileRow}>
-            <Image source={{ uri: profileImageUrl }} style={styles.profileImage} />
+            <FastImage source={{ uri: profileImageUrl }} style={styles.profileImage} />
             <Text style={styles.userName}>{nickname}</Text>
           </View>
           <Pressable style={styles.likeButton} onPress={handleLike}>

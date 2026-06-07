@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 
 import { theme } from 'styles/theme';
 
@@ -31,7 +32,7 @@ const SentComment = ({
 
   return (
     <View style={[styles.container, isLast && styles.noBorder]}>
-      <Image style={styles.image} source={{ uri: profileImageUrl }} />
+      <FastImage style={styles.image} source={{ uri: profileImageUrl }} />
       <View style={styles.content}>
         <Text style={styles.message}>{message}</Text>
         <Text style={styles.nickname}>{nickname}님</Text>

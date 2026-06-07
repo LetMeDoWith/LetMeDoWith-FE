@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
@@ -18,7 +19,7 @@ const Profile = ({ data }: Props) => {
   return (
     <View style={styles.container}>
       {data.profileImageUrl ? (
-        <Image style={styles.profileImage} source={{ uri: data.profileImageUrl }} />
+        <FastImage style={styles.profileImage} source={{ uri: data.profileImageUrl }} />
       ) : (
         <View style={styles.profileImage} />
       )}

@@ -1,4 +1,5 @@
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { useFetchSuccessDowithTasks } from 'hooks/queries/task/useFetchSuccessDowithTasks';
@@ -22,10 +23,10 @@ const FeedNagEmpty = () => {
   const renderCard = ({ item, index }: { item: successDowithTaskSchemeType; index: number }) => (
     <Pressable style={[styles.cardWrapper, { marginRight: CARD_GAP }]} onPress={() => openDetail(index)}>
       <View style={[styles.card, { transform: [{ rotate: ROTATIONS[index % ROTATIONS.length] }] }]}>
-        <Image source={{ uri: item.successImageUrl }} style={styles.cardImage} />
+        <FastImage source={{ uri: item.successImageUrl }} style={styles.cardImage} />
         <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.6)']} style={styles.cardOverlay}>
           <View style={styles.cardProfileRow}>
-            <Image source={{ uri: item.profileImageUrl }} style={styles.cardProfileImage} />
+            <FastImage source={{ uri: item.profileImageUrl }} style={styles.cardProfileImage} />
             <Text style={styles.cardNickname}>{item.nickname}</Text>
           </View>
         </LinearGradient>

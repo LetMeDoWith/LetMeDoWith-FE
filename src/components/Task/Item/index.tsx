@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { Alert, Dimensions, Image, Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Dimensions, Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -375,10 +376,8 @@ const Item = ({
           <View style={styles.rightContent}>
             {successImageUrls && successImageUrls.length > 0 && (
               <Pressable onPress={() => setImageModalVisible(true)}>
-                <Image
-                  borderRadius={4}
-                  width={24}
-                  height={24}
+                <FastImage
+                  style={{ width: 24, height: 24, borderRadius: 4 }}
                   source={{
                     uri: successImageUrls[0],
                   }}
@@ -438,7 +437,11 @@ const Item = ({
           onRequestClose={() => setImageModalVisible(false)}
         >
           <Pressable style={styles.imageModalOverlay} onPress={() => setImageModalVisible(false)}>
-            <Image source={{ uri: successImageUrls[0] }} style={styles.imageModalImage} resizeMode="contain" />
+            <FastImage
+              source={{ uri: successImageUrls[0] }}
+              style={styles.imageModalImage}
+              resizeMode={FastImage.resizeMode.contain}
+            />
           </Pressable>
         </Modal>
       )}

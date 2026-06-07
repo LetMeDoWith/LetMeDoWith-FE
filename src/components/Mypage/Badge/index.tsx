@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { IconButton } from 'react-native-paper';
 
 import { theme } from 'styles/theme';
@@ -22,11 +23,8 @@ const Badge = ({ uri, name, isRepresentative, onPress }: Props) => (
             <Text style={styles.representativeText}>대표</Text>
           </View>
         )}
-        <Image
-          style={isRepresentative && styles.representativeImage}
-          borderRadius={50}
-          width={size}
-          height={size}
+        <FastImage
+          style={[{ width: size, height: size, borderRadius: 50 }, isRepresentative && styles.representativeImage]}
           source={{
             uri,
           }}

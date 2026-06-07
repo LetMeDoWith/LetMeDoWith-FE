@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import dayjs from 'dayjs';
 import { Divider } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -290,7 +291,7 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
             <View style={styles.profileContent}>
               <Pressable onPress={handleBadge}>
                 {myDowithInfo?.profileImageUrl ? (
-                  <Image style={styles.badgeImage} source={{ uri: myDowithInfo.profileImageUrl }} />
+                  <FastImage style={styles.badgeImage} source={{ uri: myDowithInfo.profileImageUrl }} />
                 ) : (
                   <View style={styles.badgeImage} />
                 )}
