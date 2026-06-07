@@ -31,6 +31,7 @@ import { useRefreshTokenQuery } from 'hooks/queries/auth/useRefreshTokenQuery';
 import { initNotificationLayer } from 'utils/notification';
 import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotificationToken';
 import { linking } from 'utils/deepLink';
+import { NOTIFICATION_QUERY_KEY } from 'constants/queries';
 import { AppStateProvider, AppStateContext, useAppState } from 'hooks/shared/useAppState';
 
 export const navigationRef = createNavigationContainerRef();
@@ -198,6 +199,10 @@ function AppContent() {
       console.log('🚀 알림 레이어 초기화 시작');
 
       initNotificationLayer({
+        // 포그라운드 메시지 수신 시 알림 목록 실시간 갱신
+        onForegroundMessage: async () => {
+          queryClient.invalidateQueries({ queryKey: NOTIFICATION_QUERY_KEY.LIST });
+        },
         // 토큰 변경 시 서버 동기화
         onTokenChanged: async newToken => {
           console.log('onTokenChanged: ', newToken);
