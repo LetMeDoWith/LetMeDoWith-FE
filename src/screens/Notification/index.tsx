@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
 
@@ -52,8 +53,14 @@ const NotificationItem = ({
 );
 
 const NotificationList = ({ type }: { type: 'NORMAL' | 'EVENT' }) => {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchNotifications(type);
+  const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchNotifications(type);
   const { mutate: confirmNotification } = useConfirmNotification();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   const notifications = useMemo(() => data?.pages.flatMap(page => page.data.notifications) ?? [], [data]);
 
