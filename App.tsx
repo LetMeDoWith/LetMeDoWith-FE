@@ -32,6 +32,7 @@ import { initNotificationLayer } from 'utils/notification';
 import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotificationToken';
 import { linking } from 'utils/deepLink';
 import { NOTIFICATION_QUERY_KEY } from 'constants/queries';
+import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
 import { AppStateProvider, AppStateContext, useAppState } from 'hooks/shared/useAppState';
 
 export const navigationRef = createNavigationContainerRef();
@@ -80,13 +81,9 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
       authActions: { setIsNeedRefreshToken },
     } = useStore.getState();
 
-    // 액세스 토큰이 만료 되고, refresh 토큰이 만료되지 않았을 경우 토큰 재발급 상태로 수정
-    if (
-      tokenInfo.access?.token &&
-      dayjs().isAfter(tokenInfo.access?.expireAt) &&
-      tokenInfo.refresh?.token &&
-      dayjs().isBefore(tokenInfo.refresh?.expireAt)
-    ) {
+    // 만료된 토큰 에러 → 리프레시 토큰이 유효하면 토큰 재발급 시도
+    const isTokenExpiredError = errorData.statusCode === ErrorStatusCodeEnum.enum.E302;
+    if (isTokenExpiredError && tokenInfo.refresh?.token && dayjs().isBefore(tokenInfo.refresh?.expireAt)) {
       setIsNeedRefreshToken(true);
       return;
     }
