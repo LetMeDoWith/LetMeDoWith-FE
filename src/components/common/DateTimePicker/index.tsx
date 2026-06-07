@@ -43,10 +43,16 @@ const DateTimePicker = forwardRef<BottomSheetModalMethods, Props>((props, ref) =
 
   // 피커가 열릴 때 현재 시간 기준으로 초기값 및 minimumDate 갱신
   const handleOpen = (isOpen: boolean) => {
-    if (isOpen && minimumDate) {
+    if (!isOpen) {
+      return;
+    }
+
+    if (minimumDate) {
       const newInitial = getInitialDate();
       setSelectedDate(newInitial);
       setCurrentMinimumDate(newInitial);
+    } else {
+      setCurrentMinimumDate(undefined);
     }
   };
 
