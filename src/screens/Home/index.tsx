@@ -235,25 +235,20 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
     const isStatusMarkingVisible = todoTasks.length > 0 || dowithTasks.length > 0;
 
     return (
-      <View style={styles.dayWrap}>
-        <TouchableOpacity
-          style={[styles.calendarDay, date?.dateString === selectedDate && styles.selectedDay]}
-          onPress={handleDayPress(date)}
-        >
-          <View>
-            <Text
-              style={[
-                theme.TYPOGRAPHY.CAPTION_2,
-                date?.dateString === selectedDate && styles.selectedDayText,
-                state === 'disabled' && { color: theme.COLORS.GRAY_SCALE.GRAY_80 },
-              ]}
-            >
-              {date?.day}
-            </Text>
-          </View>
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.dayWrap} onPress={handleDayPress(date)}>
+        <View style={[styles.calendarDay, date?.dateString === selectedDate && styles.selectedDay]}>
+          <Text
+            style={[
+              theme.TYPOGRAPHY.CAPTION_2,
+              date?.dateString === selectedDate && styles.selectedDayText,
+              state === 'disabled' && { color: theme.COLORS.GRAY_SCALE.GRAY_80 },
+            ]}
+          >
+            {date?.day}
+          </Text>
+        </View>
         {isStatusMarkingVisible && <TaskStatusMarking status={getTaskStatus(targetDayTaskList)} />}
-      </View>
+      </TouchableOpacity>
     );
   };
 
