@@ -38,7 +38,17 @@ const DateTimePicker = forwardRef<BottomSheetModalMethods, Props>((props, ref) =
   };
 
   const [selectedDate, setSelectedDate] = useState<Date>(getInitialDate());
+  const [currentMinimumDate, setCurrentMinimumDate] = useState(minimumDate);
   const [isDisabled, setIsDisabled] = useState(false);
+
+  // 피커가 열릴 때 현재 시간 기준으로 초기값 및 minimumDate 갱신
+  const handleOpen = (isOpen: boolean) => {
+    if (isOpen && minimumDate) {
+      const newInitial = getInitialDate();
+      setSelectedDate(newInitial);
+      setCurrentMinimumDate(newInitial);
+    }
+  };
 
   const handleSubmit = () => {
     onConfirm(selectedDate);
@@ -50,11 +60,8 @@ const DateTimePicker = forwardRef<BottomSheetModalMethods, Props>((props, ref) =
     const selected = dayjs(selectedDate);
 
     // 최소 Date를 설정했을 경우
-    if (minimumDate) {
-      const minimum = dayjs(minimumDate);
-
-      // 선택한 시간이 최소 시간보다 이전이면 비활성화
-      if (selected.isBefore(minimum)) {
+    if (currentMinimumDate) {
+      if (selected.isBefore(dayjs(currentMinimumDate))) {
         disabled = true;
       }
     }
@@ -69,7 +76,7 @@ const DateTimePicker = forwardRef<BottomSheetModalMethods, Props>((props, ref) =
     }
 
     setIsDisabled(disabled);
-  }, [selectedDate, minimumDate, maximumDate, mode]);
+  }, [selectedDate, currentMinimumDate, maximumDate, mode]);
 
   useImperativeHandle(ref, () => innerRef.current!);
 
@@ -81,6 +88,7 @@ const DateTimePicker = forwardRef<BottomSheetModalMethods, Props>((props, ref) =
       buttonConfig={{ title: '저장하기', isDisabled }}
       snapPoints={['46%']}
       handleButtonSubmit={handleSubmit}
+      onChange={handleOpen}
     >
       <View style={styles.content}>
         <DatePicker
@@ -88,7 +96,7 @@ const DateTimePicker = forwardRef<BottomSheetModalMethods, Props>((props, ref) =
           mode={mode}
           locale="ko-KR"
           date={selectedDate}
-          minimumDate={minimumDate}
+          minimumDate={currentMinimumDate}
           maximumDate={maximumDate}
           minuteInterval={minuteInterval}
           onDateChange={date => {
