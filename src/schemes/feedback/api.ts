@@ -33,6 +33,7 @@ const receivedFeedbackScheme = z.object({
   isChecked: z.boolean().describe('피드백 확인 여부'),
   receivedAt: z.string().describe('피드백 수신 일시'),
   dowithTaskTitle: z.string().describe('두윗 Task 제목'),
+  parsedMessage: z.string().describe('닉네임 치환된 잔소리 메시지'),
   taskFeedbackTemplate: taskFeedbackTemplateScheme,
 });
 

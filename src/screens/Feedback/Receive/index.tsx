@@ -28,7 +28,7 @@ const ReceiveFeedback = () => {
   const renderItem = ({ item, index }: { item: receivedFeedbackSchemeType; index: number }) => (
     <ReceivedComment
       profileImageUrl={item.senderProfileImageUrl}
-      message={item.taskFeedbackTemplate.name}
+      message={item.parsedMessage}
       nickname={item.senderNickname}
       dowithTaskTitle={item.dowithTaskTitle}
       receivedAt={item.receivedAt}
