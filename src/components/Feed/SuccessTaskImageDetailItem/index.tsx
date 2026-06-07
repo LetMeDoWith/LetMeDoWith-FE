@@ -46,13 +46,25 @@ const SuccessTaskImageDetailItem = ({
           setLocalIsLiked(false);
           setLocalLikeCount(prev => Math.max(0, prev - 1));
           localIsLikedRef.current = false;
-          unLikeDowithTask(id);
+          unLikeDowithTask(id, {
+            onError: () => {
+              setLocalIsLiked(true);
+              setLocalLikeCount(prev => prev + 1);
+              localIsLikedRef.current = true;
+            },
+          });
         } else {
           scale.value = withSequence(withTiming(1.4, { duration: 150 }), withTiming(1, { duration: 150 }));
           setLocalIsLiked(true);
           setLocalLikeCount(prev => prev + 1);
           localIsLikedRef.current = true;
-          likeDowithTask(id);
+          likeDowithTask(id, {
+            onError: () => {
+              setLocalIsLiked(false);
+              setLocalLikeCount(prev => Math.max(0, prev - 1));
+              localIsLikedRef.current = false;
+            },
+          });
         }
       }, 500),
     // eslint-disable-next-line react-hooks/exhaustive-deps

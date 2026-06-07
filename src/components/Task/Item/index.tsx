@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
@@ -73,6 +73,11 @@ const Item = ({
   const [cheerModalVisible, setCheerModalVisible] = useState(false);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const isTodoMode = mode === 'TODO';
+  const [localStatus, setLocalStatus] = useState(status);
+
+  useEffect(() => {
+    setLocalStatus(status);
+  }, [status]);
 
   const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
   const { data: dowithTaskData } = useFetchDowithTask({ dowithTaskId: id }, { enabled: !isTodoMode && id !== -1 });
@@ -85,7 +90,7 @@ const Item = ({
   // 현재 시간이 업데이트 하려는 Task가 두윗이고, 시작 시간으로부터 1시간을 초과했을 경우
   const isInvalidUpdateDowithTask =
     !isTodoMode && dayjs(`${data?.date} ${data?.startTime}`).add(1, 'hour').isBefore(dayjs());
-  const isFailed = status === TASK_STATUS_ENUM.enum.FAIL;
+  const isFailed = localStatus === TASK_STATUS_ENUM.enum.FAIL;
 
   const { mutate: uploadDowithTaskSuccessImageUrlListMutate } = useUploadDowithTaskSuccessImageList(id);
   const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
@@ -273,11 +278,13 @@ const Item = ({
     setShowUploadImageBottomSheet(false);
 
     // 투두 Task 상태가 실패면 무시
-    if (status === 'FAIL') {
+    if (localStatus === 'FAIL') {
       return;
     }
 
-    completeTodoTaskStatusMutate({ id, status });
+    const prevStatus = localStatus;
+    setLocalStatus(localStatus === 'WAIT' ? 'SUCCESS' : 'WAIT');
+    completeTodoTaskStatusMutate({ id, status: localStatus }, { onError: () => setLocalStatus(prevStatus) });
   };
 
   const handleTask =
@@ -329,10 +336,10 @@ const Item = ({
       <View style={styles.container}>
         <Pressable
           style={styles.leftContainer}
-          onPress={handleTaskStatus(mode, id, status)}
+          onPress={handleTaskStatus(mode, id, localStatus)}
           disabled={isInvalidUpdateDowithTask || isFailed}
         >
-          {renderTaskStatusIcon(mode, status)}
+          {renderTaskStatusIcon(mode, localStatus)}
           <View style={styles.leftContent}>
             <Text style={[styles.title, isFailed && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>{title}</Text>
             {(startTime || taskCategoryName) && (
