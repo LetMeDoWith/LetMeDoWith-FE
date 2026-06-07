@@ -326,10 +326,12 @@ const Item = ({
   return (
     <>
       <View style={styles.container}>
-        <View style={styles.leftContainer}>
-          <Pressable onPress={handleTaskStatus(mode, id, status)} disabled={isInvalidUpdateDowithTask || isFailed}>
-            {renderTaskStatusIcon(mode, status)}
-          </Pressable>
+        <Pressable
+          style={styles.leftContainer}
+          onPress={handleTaskStatus(mode, id, status)}
+          disabled={isInvalidUpdateDowithTask || isFailed}
+        >
+          {renderTaskStatusIcon(mode, status)}
           <View style={styles.leftContent}>
             <Text style={[styles.title, isFailed && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>{title}</Text>
             {(startTime || taskCategoryName) && (
@@ -368,7 +370,7 @@ const Item = ({
               </View>
             )}
           </View>
-        </View>
+        </Pressable>
         <View style={styles.rightContainer}>
           <View style={styles.rightContent}>
             {successImageUrls && successImageUrls.length > 0 && (
