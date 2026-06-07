@@ -18,7 +18,7 @@ const Item = ({ id, type, title, date, navigation }: Props) => {
       return;
     }
 
-    navigation.navigate('NOTICE_DETAIL', { noticeId: id });
+    navigation.navigate('NOTICE_DETAIL', { id });
   }, [id, navigation]);
 
   return (
