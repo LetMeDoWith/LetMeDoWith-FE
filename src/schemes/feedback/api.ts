@@ -14,12 +14,13 @@ const taskFeedbackTemplateScheme = z.object({
 const sentFeedbackScheme = z.object({
   id: z.number().describe('피드백 ID'),
   dowithTaskId: z.number().describe('두윗 Task ID'),
-  senderId: z.string().describe('보낸 사람 member ID'),
-  senderNickname: z.string().describe('보낸 사람 닉네임'),
-  senderProfileImageUrl: z.string().describe('보낸 사람 프로필 이미지 URL'),
+  dowithTaskTitle: z.string().describe('두윗 Task 제목'),
+  receiverId: z.string().describe('받는 사람 member ID'),
+  receiverNickname: z.string().describe('받는 사람 닉네임'),
+  receiverProfileImageUrl: z.string().describe('받는 사람 프로필 이미지 URL'),
   isChecked: z.boolean().describe('피드백 확인 여부'),
   dowithTaskStatus: z.enum(['WAIT', 'SUCCESS', 'FAIL']).describe('두윗 Task 달성 상태'),
-  dowithTaskTitle: z.string().describe('두윗 Task 제목'),
+  parsedMessage: z.string().describe('닉네임 치환된 잔소리 메시지'),
   taskFeedbackTemplate: taskFeedbackTemplateScheme,
 });
 

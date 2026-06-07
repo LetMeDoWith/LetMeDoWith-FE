@@ -27,9 +27,9 @@ const SendFeedback = () => {
 
   const renderItem = ({ item, index }: { item: sentFeedbackSchemeType; index: number }) => (
     <SentComment
-      profileImageUrl={item.senderProfileImageUrl}
-      message={item.taskFeedbackTemplate.name}
-      nickname={item.senderNickname}
+      profileImageUrl={item.receiverProfileImageUrl}
+      message={item.parsedMessage}
+      nickname={item.receiverNickname}
       dowithTaskTitle={item.dowithTaskTitle}
       dowithTaskStatus={item.dowithTaskStatus}
       isLast={index === feedbacks.length - 1}
