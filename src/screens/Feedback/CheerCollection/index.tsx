@@ -57,8 +57,8 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
     [],
   );
 
-  return (
-    <View style={styles.container}>
+  const listHeader = (
+    <>
       <FastImage
         source={{ uri: successImageUrl }}
         style={styles.successImage}
@@ -94,8 +94,18 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
           </Text>
         </Pressable>
       </View>
+    </>
+  );
+
+  return (
+    <View style={styles.container}>
       <View style={[styles.tabContent, activeTab !== 'FEEDBACK' && styles.hidden]}>
-        <ReceivedFeedbackContent dowithTaskId={dowithTaskId} showTotalCount={false} />
+        <ReceivedFeedbackContent
+          dowithTaskId={dowithTaskId}
+          showTotalCount={false}
+          headerComponent={listHeader}
+          contentContainerStyle={styles.listContent}
+        />
       </View>
       <View style={[styles.tabContent, activeTab !== 'LIKE' && styles.hidden]}>
         <FlatList
@@ -105,6 +115,7 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
           onEndReached={handleLikersEndReached}
           onEndReachedThreshold={0.5}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={listHeader}
           contentContainerStyle={styles.listContent}
         />
       </View>
@@ -115,12 +126,10 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
   },
   tabContent: {
     flex: 1,
-    marginTop: 20,
   },
   hidden: {
     display: 'none',
@@ -133,6 +142,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginTop: 16,
+    marginBottom: 20,
   },
   tabButton: {
     flexDirection: 'row',
@@ -156,6 +166,7 @@ const styles = StyleSheet.create({
     color: theme.COLORS.DEFAULT.WHITE,
   },
   listContent: {
+    paddingHorizontal: 20,
     paddingBottom: 20,
   },
   likeRow: {
