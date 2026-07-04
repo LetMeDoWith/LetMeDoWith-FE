@@ -270,7 +270,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
 
       console.log(payload);
       if (isEditMode) {
-        // 루틴이 설정되어 있는 투두 Task 일 때
+        // 루틴이 설정되어 있는 Task는 "모두/이번만 수정" 선택 다이얼로그를 띄운다
         if (isRoutineTask) {
           showDialog({
             title: `루틴 ${isTodoMode ? '투두' : '두윗'} 수정하기`,
@@ -280,6 +280,9 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
             handleLeftButton: handleButton({ withRoutineTask: true }),
             handleRightButton: handleButton({ withRoutineTask: false }),
           });
+        } else {
+          // 일반(비루틴) Task는 바로 수정 반영
+          handleButton({ withRoutineTask: false })();
         }
         return;
       }
