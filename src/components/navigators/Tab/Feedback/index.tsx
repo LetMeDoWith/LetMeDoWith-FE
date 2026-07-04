@@ -13,7 +13,7 @@ const FeedbackTopTabNavigator = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const handlePressNag = () => {
-    navigation.navigate('HOME', { screen: 'FEED' });
+    navigation.navigate('REALTIME_NAG');
   };
 
   return (
