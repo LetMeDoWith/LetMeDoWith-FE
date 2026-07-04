@@ -8,7 +8,6 @@ import { CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
 import { Positions } from 'react-native-calendars/src/expandableCalendar';
 import type { DateData } from 'react-native-calendars/src/types';
 import type { DayProps } from 'react-native-calendars/src/calendar/day';
-import { Shadow } from 'react-native-shadow-2';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { theme } from 'styles/theme';
@@ -266,14 +265,13 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
 
   return (
     <>
-      <View style={{ height: top }} />
+      <View style={{ height: top, backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_98 }} />
       <View style={styles.container}>
         <LinearGradient
-          colors={[theme.COLORS.DEFAULT.WHITE, theme.COLORS.GRAY_SCALE.GRAY_96, theme.COLORS.STATUS.GREEN_90]}
-          locations={[0, 0.8, 1]}
+          colors={[theme.COLORS.GRAY_SCALE.GRAY_98, theme.COLORS.GRAY_SCALE.GRAY_96]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
-          style={{ paddingHorizontal: 20 }}
+          style={styles.profileWrap}
         >
           <View style={styles.profile}>
             <View style={styles.iconWrap}>
@@ -302,57 +300,47 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
             </View>
           </View>
         </LinearGradient>
-        <Shadow
-          startColor="rgba(0, 0, 0, 0.05)"
-          distance={10}
-          offset={[0, -4]}
-          containerStyle={{
-            borderTopStartRadius: 20,
-            borderTopRightRadius: 20,
-          }}
-        >
-          <View style={styles.contentWrap}>
-            <View style={{ flex: 1 }}>
-              <CalendarProvider style={styles.calendarWrap} date={currentDate}>
-                <ExpandableCalendar
-                  key={isWeekView ? 'isWeekView' : 'monthView'}
-                  initialPosition={isWeekView ? Positions.CLOSED : Positions.OPEN}
-                  markedDates={{
-                    [selectedDate]: { selected: true },
-                  }}
-                  firstDay={FIRST_DAY}
-                  dayComponent={renderDayComponent}
-                  renderHeader={renderCustomHeader}
-                  closeOnDayPress={false}
-                  allowShadow={false}
-                  hideArrows
-                  hideKnob
-                  disablePan
-                />
-                <View style={{ marginBottom: getCalendarMarginBottom() }} />
-                <View style={{ flex: 1, marginHorizontal: 20 }}>
-                  <Divider style={styles.divider} />
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{selectedDateKoreanString}</Text>
-                    <TouchableOpacity style={{ paddingLeft: 8, paddingBottom: 8 }} onPress={handlePressPlusIcon}>
-                      <PlusIcon />
-                    </TouchableOpacity>
-                  </View>
-                  {selectedDateTaskList ? (
-                    <View style={{ flex: 1, marginTop: 16 }}>
-                      <ListContainerView
-                        year={year}
-                        month={month}
-                        taskList={selectedDateTaskList}
-                        selectedDate={selectedDate}
-                      />
-                    </View>
-                  ) : null}
+        <View style={styles.contentWrap}>
+          <View style={{ flex: 1 }}>
+            <CalendarProvider style={styles.calendarWrap} date={currentDate}>
+              <ExpandableCalendar
+                key={isWeekView ? 'isWeekView' : 'monthView'}
+                initialPosition={isWeekView ? Positions.CLOSED : Positions.OPEN}
+                markedDates={{
+                  [selectedDate]: { selected: true },
+                }}
+                firstDay={FIRST_DAY}
+                dayComponent={renderDayComponent}
+                renderHeader={renderCustomHeader}
+                closeOnDayPress={false}
+                allowShadow={false}
+                hideArrows
+                hideKnob
+                disablePan
+              />
+              <View style={{ marginBottom: getCalendarMarginBottom() }} />
+              <View style={{ flex: 1, marginHorizontal: 20 }}>
+                <Divider style={styles.divider} />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{selectedDateKoreanString}</Text>
+                  <TouchableOpacity style={{ paddingLeft: 8, paddingBottom: 8 }} onPress={handlePressPlusIcon}>
+                    <PlusIcon />
+                  </TouchableOpacity>
                 </View>
-              </CalendarProvider>
-            </View>
+                {selectedDateTaskList ? (
+                  <View style={{ flex: 1, marginTop: 16 }}>
+                    <ListContainerView
+                      year={year}
+                      month={month}
+                      taskList={selectedDateTaskList}
+                      selectedDate={selectedDate}
+                    />
+                  </View>
+                ) : null}
+              </View>
+            </CalendarProvider>
           </View>
-        </Shadow>
+        </View>
       </View>
     </>
   );
@@ -361,7 +349,10 @@ const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.COLORS.STATUS.GREEN_90,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96,
+  },
+  profileWrap: {
+    paddingHorizontal: 20,
   },
   profile: {
     gap: 16,
