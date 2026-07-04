@@ -32,6 +32,7 @@ const linking = {
       REALTIME_NAG: 'realtime-nag',
       MYINFO: 'myinfo',
       NOTIFICATION_LIST: 'notification',
+      RECEIVED_FEEDBACK: 'received-feedback',
     },
   },
 };

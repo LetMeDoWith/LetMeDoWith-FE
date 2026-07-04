@@ -11,6 +11,7 @@ import {
   taskCategoryScheme,
   todoTaskScheme,
   fetchDowithTaskRequestScheme,
+  fetchDowithTaskResponseDataScheme,
   fetchDowithTaskResponseScheme,
   fetchTodoTaskResponseScheme,
   fetchTodoTaskRequestScheme,
@@ -38,6 +39,7 @@ type fetchTodoTaskRequestSchemeType = z.infer<typeof fetchTodoTaskRequestScheme>
 type fetchTodoTaskResponseDataSchemeType = z.infer<typeof fetchTodoTaskResponseDataScheme>;
 type fetchTodoTaskResponseSchemeType = z.infer<typeof fetchTodoTaskResponseScheme>;
 type fetchDowithTaskRequestSchemeType = z.infer<typeof fetchDowithTaskRequestScheme>;
+type fetchDowithTaskResponseDataSchemeType = z.infer<typeof fetchDowithTaskResponseDataScheme>;
 type fetchDowithTaskResponseSchemeType = z.infer<typeof fetchDowithTaskResponseScheme>;
 type fetchTaskListRequestSchemeType = z.infer<typeof fetchTaskListRequestScheme>;
 type todoTaskSchemeType = z.infer<typeof todoTaskScheme>;
@@ -71,6 +73,7 @@ export type {
   fetchTodoTaskResponseDataSchemeType,
   fetchTodoTaskResponseSchemeType,
   fetchDowithTaskRequestSchemeType,
+  fetchDowithTaskResponseDataSchemeType,
   fetchDowithTaskResponseSchemeType,
   fetchTaskListRequestSchemeType,
   todoTaskSchemeType,

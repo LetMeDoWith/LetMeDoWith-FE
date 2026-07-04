@@ -86,7 +86,11 @@ const fetchDowithTaskRequestScheme = z.object({
   dowithTaskId: z.number().describe('두윗 task id'),
 });
 
-const fetchDowithTaskResponseScheme = BaseResponseScheme.extend({ data: addTaskRequestScheme });
+const fetchDowithTaskResponseDataScheme = dowithTaskScheme.extend({
+  routineCondition: taskRoutineConditionScheme.nullable(),
+});
+
+const fetchDowithTaskResponseScheme = BaseResponseScheme.extend({ data: fetchDowithTaskResponseDataScheme });
 
 const updateTaskRequestScheme = todoTaskScheme
   .pick({ title: true, startTime: true, taskCategoryId: true })
@@ -192,6 +196,7 @@ export {
   taskFormScheme,
   updateTodoTaskStatusResponseScheme,
   fetchDowithTaskRequestScheme,
+  fetchDowithTaskResponseDataScheme,
   fetchDowithTaskResponseScheme,
   updateTaskRequestScheme,
   updateTaskRoutineRequestScheme,

@@ -392,7 +392,7 @@ const Item = ({
                   if (successImageUrls) {
                     navigate('CHEER_COLLECTION', { dowithTaskId: id, successImageUrl: successImageUrls[0] });
                   } else {
-                    navigate('RECEIVED_FEEDBACK', { dowithTaskId: id, title, status: localStatus });
+                    navigate('RECEIVED_FEEDBACK', { dowithTaskId: id });
                   }
                 }}
               >

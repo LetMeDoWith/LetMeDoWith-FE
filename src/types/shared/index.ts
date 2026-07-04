@@ -3,8 +3,6 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
-import type { TaskStatusEnumType } from 'types/task/scheme/enum';
-
 type SignUpStackParamList = {
   SIGN_UP_USER_INFO: undefined;
   SIGN_UP_AGREEMENT: undefined;
@@ -34,8 +32,6 @@ type RootStackParamList = {
   NOTIFICATION_LIST: undefined;
   RECEIVED_FEEDBACK: {
     dowithTaskId: number;
-    title: string;
-    status: TaskStatusEnumType;
   };
   CHEER_COLLECTION: {
     dowithTaskId: number;

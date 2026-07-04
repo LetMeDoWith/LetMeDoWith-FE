@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { ReceivedFeedbackContent } from 'components/Feedback/ReceivedFeedbackContent';
+import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { theme } from 'styles/theme';
 import type { RootStackScreenProps } from 'types/shared';
 import type { TaskStatusEnumType } from 'types/task/scheme/enum';
@@ -40,8 +42,23 @@ const TaskInfoHeader = ({ title, status }: { title: string; status: TaskStatusEn
   );
 };
 
-const ReceivedFeedback = ({ route }: RootStackScreenProps<'RECEIVED_FEEDBACK'>) => {
-  const { dowithTaskId, title, status } = route.params;
+const ReceivedFeedback = ({ navigation, route }: RootStackScreenProps<'RECEIVED_FEEDBACK'>) => {
+  // 딥링크로 진입하면 dowithTaskId가 문자열로 전달될 수 있어 숫자로 보정
+  const dowithTaskId = Number(route.params.dowithTaskId);
+
+  // 상태칩/제목은 상세 조회로 채운다 (Item 진입 시에는 캐시된 값이 즉시 사용됨)
+  const { data: dowithTask } = useFetchDowithTask({ dowithTaskId });
+
+  // 인증 완료(성공) 태스크로 딥링크 진입한 경우 응원 모아보기 화면으로 대체 이동
+  useEffect(() => {
+    const successImageUrl = dowithTask?.successImageUrls?.[0];
+    if (successImageUrl) {
+      navigation.replace('CHEER_COLLECTION', { dowithTaskId, successImageUrl });
+    }
+  }, [dowithTask, dowithTaskId, navigation]);
+
+  const title = dowithTask?.title ?? '';
+  const status = dowithTask?.status ?? 'WAIT';
 
   return (
     <View style={styles.container}>
