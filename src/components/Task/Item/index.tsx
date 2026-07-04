@@ -32,7 +32,6 @@ import { Gallery } from 'components/common/icons/Gallery';
 import { RoutineArrow } from 'components/common/icons/RoutineArrow';
 import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
 import { isAos } from 'utils/device';
-import { CheerCollectionModal } from 'components/Feedback/Modal/CheerCollectionModal';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -66,7 +65,6 @@ const Item = ({
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { showDialog, hideDialog } = useDialog();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const [cheerModalVisible, setCheerModalVisible] = useState(false);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const isTodoMode = mode === 'TODO';
   const [localStatus, setLocalStatus] = useState(status);
@@ -392,7 +390,7 @@ const Item = ({
                 style={styles.feedbackChip}
                 onPress={() => {
                   if (successImageUrls) {
-                    setCheerModalVisible(true);
+                    navigate('CHEER_COLLECTION', { dowithTaskId: id, successImageUrl: successImageUrls[0] });
                   } else {
                     navigate('RECEIVED_FEEDBACK', { dowithTaskId: id, title, status: localStatus });
                   }
@@ -416,14 +414,6 @@ const Item = ({
       >
         <View style={styles.modalContainer}>{renderBottomSheetContent()}</View>
       </BottomSheet>
-      {successImageUrls && (
-        <CheerCollectionModal
-          visible={cheerModalVisible}
-          dowithTaskId={id}
-          successImageUrl={successImageUrls[0]}
-          onClose={() => setCheerModalVisible(false)}
-        />
-      )}
       {successImageUrls && (
         <Modal
           visible={imageModalVisible}

@@ -8,6 +8,7 @@ import { FeedbackStackNavigator } from 'components/navigators/Stack/Feedback';
 import { TaskForm } from 'screens/Home/Task';
 import { RealtimeNag } from 'screens/Feed/RealtimeNag';
 import { ReceivedFeedback } from 'screens/Feedback/ReceivedFeedback';
+import { CheerCollection } from 'screens/Feedback/CheerCollection';
 import { Myinfo } from 'screens/Mypage/Setting/Myinfo';
 import { NotificationScreen } from 'screens/Notification';
 import type { RootStackParamList } from 'types/shared';
@@ -35,6 +36,7 @@ const HomeStackNavigator = () => {
       <Screen name="MYINFO" component={Myinfo} options={{ headerTitle: '내 정보 관리' }} />
       <Screen name="NOTIFICATION_LIST" component={NotificationScreen} options={{ headerTitle: '알림' }} />
       <Screen name="RECEIVED_FEEDBACK" component={ReceivedFeedback} options={{ headerTitle: '잡도리 모아보기' }} />
+      <Screen name="CHEER_COLLECTION" component={CheerCollection} options={{ headerTitle: '잡도리 모아보기' }} />
     </Navigator>
   );
 };

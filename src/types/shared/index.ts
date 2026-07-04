@@ -37,6 +37,10 @@ type RootStackParamList = {
     title: string;
     status: TaskStatusEnumType;
   };
+  CHEER_COLLECTION: {
+    dowithTaskId: number;
+    successImageUrl: string;
+  };
 };
 
 type RootStackScreenProps<T extends keyof RootStackParamList> = StackScreenProps<RootStackParamList, T>;
