@@ -23,8 +23,8 @@ const DateTimePicker = forwardRef<BottomSheetModalMethods, Props>((props, ref) =
       const now = dayjs();
       const currentMinutes = now.minute();
 
-      // minuteInterval에 맞춰 올림
-      const nextMinutes = Math.ceil(currentMinutes / minuteInterval) * minuteInterval;
+      // 현재 분이 5분 단위에 정확히 걸쳐도 다음 단위로 (항상 현재보다 미래인 5분 단위)
+      const nextMinutes = (Math.floor(currentMinutes / minuteInterval) + 1) * minuteInterval;
 
       // 60분을 넘으면 다음 시간으로
       if (nextMinutes >= 60) {
