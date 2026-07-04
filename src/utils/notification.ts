@@ -113,7 +113,7 @@ const displayNotification = async (message: FirebaseMessagingTypes.RemoteMessage
       body: message.notification?.body || '',
       android: {
         channelId: CHANNEL_ID,
-        smallIcon: 'ic_launcher',
+        smallIcon: 'ic_stat_notification',
         ...(imageUrl && {
           largeIcon: imageUrl,
         }),
