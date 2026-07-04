@@ -85,6 +85,10 @@ const Item = ({
     !isTodoMode && dayjs(`${data?.date} ${data?.startTime}`).add(1, 'hour').isBefore(dayjs());
   const isFailed = localStatus === TASK_STATUS_ENUM.enum.FAIL;
 
+  // 인증 완료(성공)한 두윗은 수정/삭제(관리 메뉴) 불가
+  const isDowithSuccess = !isTodoMode && localStatus === TASK_STATUS_ENUM.enum.SUCCESS;
+  const isManageDisabled = isInvalidUpdateDowithTask || isFailed || isDowithSuccess;
+
   const { mutate: uploadDowithTaskSuccessImageUrlListMutate } = useUploadDowithTaskSuccessImageList(id);
   const { mutate: completeTodoTaskStatusMutate } = useUpdateTodoTaskStatus({ year, month });
   const { mutate: deleteTaskMutate } = useUpdateTask({
@@ -403,8 +407,8 @@ const Item = ({
                 <Text style={styles.feedbackChipText}>{feedBackCount}</Text>
               </Pressable>
             )}
-            <Pressable onPress={handleBottomSheet} disabled={isInvalidUpdateDowithTask || isFailed}>
-              <EtcDots disabled={isInvalidUpdateDowithTask || isFailed} />
+            <Pressable onPress={handleBottomSheet} disabled={isManageDisabled}>
+              <EtcDots disabled={isManageDisabled} />
             </Pressable>
           </View>
         </View>
