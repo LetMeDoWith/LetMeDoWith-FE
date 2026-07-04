@@ -70,6 +70,8 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
     ? !isFieldChanged || !title || isAddTodoTaskMutateLoading || isUpdateTaskMutateLoading
     : !isFieldChanged || !title || !startTime || isAddDowithTaskMutateLoading;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
+  // 오늘 날짜에 두윗 등록할 때만 지난 시각 선택을 제한 (미래 날짜는 시간 제약 없음)
+  const isDowithOnToday = !isTodoMode && dayjs(date).isSame(dayjs(), 'day');
 
   /**
    * 루틴 설정 메뉴 노출 조건
@@ -427,8 +429,8 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
         ref={dateTimePickerRef}
         mode="time"
         title="시작 시간"
-        description={!isTodoMode ? '이미 지난 시간은 선택할 수 없어요.' : ''}
-        minimumDate={!isTodoMode ? dayjs().toDate() : undefined}
+        description={isDowithOnToday ? '이미 지난 시간은 선택할 수 없어요.' : ''}
+        minimumDate={isDowithOnToday ? dayjs().toDate() : undefined}
         minuteInterval={5}
         onConfirm={handleDateChange}
       />
