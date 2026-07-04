@@ -23,6 +23,13 @@ import { useDialog } from 'components/common/Dialog/Provider';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { DateTimePicker } from 'components/common/DateTimePicker';
 
+const REGISTER_BLOCKED_DIALOG = {
+  type: 'ALERT' as const,
+  title: '⚠️ 도리 등록 불가',
+  content: '다른 도리러들에게 잡도리를 받으려면\n다가올 날에 등록해 주세요!',
+  alertButtonText: '확인',
+};
+
 const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
   const { params } = route;
   const isEditMode = !!params.mode;
@@ -221,13 +228,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
       // 지난 날짜에는 두윗 등록 불가
       const isInvalidAddDowithTask = mode === 'DOWITH' && dayjs(date).isBefore(dayjs(), 'day');
       if (isInvalidAddDowithTask) {
-        showDialog({
-          type: 'ALERT',
-          title: '두윗 등록 불가',
-          content:
-            '지난 날짜에는 두윗을 등록할 수 없어요.\n\n다른 두윗들에게 잔소리를 받으려면\n미래 날짜에 두윗을 등록해 주세요!',
-          handleAlertButton: hideDialog,
-        });
+        showDialog({ ...REGISTER_BLOCKED_DIALOG, handleAlertButton: hideDialog });
         return;
       }
       setTaskMode(mode);
@@ -286,9 +287,15 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
         return;
       }
 
+      // 도리는 현재 시각 이후만 등록 가능 (지난 날짜/시각이면 등록 불가)
+      if (dayjs(`${date} ${payload.startTime}`).isBefore(dayjs())) {
+        showDialog({ ...REGISTER_BLOCKED_DIALOG, handleAlertButton: hideDialog });
+        return;
+      }
+
       addDowithTaskMutate(payload);
     },
-    [isTodoMode, isEditMode, isRoutineTask],
+    [isTodoMode, isEditMode, isRoutineTask, date],
   );
 
   return (
