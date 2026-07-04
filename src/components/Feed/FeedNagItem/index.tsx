@@ -22,6 +22,9 @@ import { formatRemainingTime } from 'utils/date';
 import type { taskFeedbackTemplateSchemeType } from 'types/feedback/scheme/api';
 import type { myFeedbackSchemeType, feedbackAvailableDowithTaskSchemeType } from 'types/task/scheme/api';
 
+// 회전 이모지도 FastImage로 통일 (RN Image 캐시 분리로 인한 이전 이모지 노출 방지)
+const AnimatedFastImage = Animated.createAnimatedComponent(FastImage);
+
 interface Props {
   taskId: number;
   profileImageUrl: string;
@@ -161,7 +164,8 @@ const FeedNagItem = ({
     <View style={styles.container}>
       {isAnimating && (
         <ConfettiEffect trigger={animationTrigger} delay={400} style={styles.animationOverlay}>
-          <Animated.Image
+          <AnimatedFastImage
+            key={animatingTemplate?.id}
             source={{ uri: animatingTemplate?.emojiUrl }}
             style={[styles.animatingEmoji, emojiAnimatedStyle]}
           />
