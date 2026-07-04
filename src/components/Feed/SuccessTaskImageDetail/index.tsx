@@ -17,7 +17,9 @@ interface Props {
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SWIPE_THRESHOLD = 200;
+const SWIPE_THRESHOLD = 100;
+// 아래로 빠르게 튕기면 짧게 쓸어도 닫히도록 하는 속도 임계값 (px/s)
+const VELOCITY_THRESHOLD = 1000;
 
 const SuccessTaskImageDetail = ({ visible, data, initialIndex, onClose }: Props) => {
   const insets = useSafeAreaInsets();
@@ -38,7 +40,7 @@ const SuccessTaskImageDetail = ({ visible, data, initialIndex, onClose }: Props)
       }
     })
     .onEnd(e => {
-      if (e.translationY > SWIPE_THRESHOLD) {
+      if (e.translationY > SWIPE_THRESHOLD || e.velocityY > VELOCITY_THRESHOLD) {
         runOnJS(onClose)();
       } else {
         translateY.value = withTiming(0, { duration: 200 });
