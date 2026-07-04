@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import { Alert, ScrollView, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NavigationContainer, DefaultTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
@@ -74,7 +74,6 @@ dayjs.extend(customParseFormat);
 const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEvent) => {
   if ('action' in event && event.action && event.action.type === 'error') {
     const errorData = event.action.error.response.data;
-    const errorMessage = errorData.message;
 
     const {
       tokenInfo,
@@ -88,15 +87,12 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
       return;
     }
 
-    // 에러 타입에 따라 Alert 표시 및 로깅
+    // 에러 타입에 따라 로깅
     if ('query' in event) {
-      Alert.alert(`[QueryCacheNotifyEvent Error]: ${errorMessage}`);
       console.error('[QueryCacheNotifyEvent Error]:', errorData);
     } else if ('mutation' in event) {
-      Alert.alert(`[MutationCacheNotifyEvent Error]: ${errorMessage}`);
       console.error('[MutationCacheNotifyEvent Error]:', errorData);
     } else {
-      Alert.alert(`[Unknown Event Error]: ${errorMessage}`);
       console.error('[Unknown Event Error]:', errorData);
     }
   }
