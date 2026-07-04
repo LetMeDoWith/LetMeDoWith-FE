@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Dimensions, Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Dimensions, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
@@ -65,7 +65,6 @@ const Item = ({
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { showDialog, hideDialog } = useDialog();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const [imageModalVisible, setImageModalVisible] = useState(false);
   const isTodoMode = mode === 'TODO';
   const [localStatus, setLocalStatus] = useState(status);
 
@@ -376,7 +375,10 @@ const Item = ({
         <View style={styles.rightContainer}>
           <View style={styles.rightContent}>
             {successImageUrls && successImageUrls.length > 0 && (
-              <Pressable onPress={() => setImageModalVisible(true)}>
+              <Pressable
+                hitSlop={8}
+                onPress={() => navigate('CHEER_COLLECTION', { dowithTaskId: id, successImageUrl: successImageUrls[0] })}
+              >
                 <FastImage
                   style={{ width: 24, height: 24, borderRadius: 4 }}
                   source={{
@@ -388,6 +390,7 @@ const Item = ({
             {!isNil(feedBackCount) && (
               <Pressable
                 style={styles.feedbackChip}
+                hitSlop={8}
                 onPress={() => {
                   if (successImageUrls) {
                     navigate('CHEER_COLLECTION', { dowithTaskId: id, successImageUrl: successImageUrls[0] });
@@ -414,22 +417,6 @@ const Item = ({
       >
         <View style={styles.modalContainer}>{renderBottomSheetContent()}</View>
       </BottomSheet>
-      {successImageUrls && (
-        <Modal
-          visible={imageModalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setImageModalVisible(false)}
-        >
-          <Pressable style={styles.imageModalOverlay} onPress={() => setImageModalVisible(false)}>
-            <FastImage
-              source={{ uri: successImageUrls[0] }}
-              style={styles.imageModalImage}
-              resizeMode={FastImage.resizeMode.contain}
-            />
-          </Pressable>
-        </Modal>
-      )}
     </>
   );
 };
@@ -483,16 +470,6 @@ const styles = StyleSheet.create({
   },
   feedbackChipText: {
     ...theme.TYPOGRAPHY.CAPTION1_BASIC,
-  },
-  imageModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  imageModalImage: {
-    width: '100%',
-    height: '80%',
   },
 });
 
