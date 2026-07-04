@@ -6,6 +6,7 @@ import { Thunder } from 'components/common/icons/Thunder';
 import { LikeIcon } from 'components/common/icons/LikeIcon';
 import { ReceivedFeedbackContent } from 'components/Feedback/ReceivedFeedbackContent';
 import { useFetchDowithTaskFeedbackAggregates } from 'hooks/queries/feedback/useFetchDowithTaskFeedbackAggregates';
+import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { useFetchDowithTaskLikers } from 'hooks/queries/task/useFetchDowithTaskLikers';
 import { theme } from 'styles/theme';
 import type { RootStackScreenProps } from 'types/shared';
@@ -14,8 +15,14 @@ import type { dowithTaskLikerSchemeType } from 'types/task/scheme/api';
 type Tab = 'FEEDBACK' | 'LIKE';
 
 const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) => {
-  const { dowithTaskId, successImageUrl } = route.params;
+  const { successImageUrl: successImageUrlParam } = route.params;
+  // 딥링크로 진입하면 dowithTaskId가 문자열로 전달될 수 있어 숫자로 보정
+  const dowithTaskId = Number(route.params.dowithTaskId);
   const [activeTab, setActiveTab] = useState<Tab>('FEEDBACK');
+
+  // Item 진입 시에는 params로 받은 이미지로 즉시 렌더, 딥링크 진입 시에는 상세 조회로 보완
+  const { data: dowithTask } = useFetchDowithTask({ dowithTaskId }, { enabled: !successImageUrlParam });
+  const successImageUrl = successImageUrlParam ?? dowithTask?.successImageUrls?.[0] ?? '';
 
   const { data: aggregates } = useFetchDowithTaskFeedbackAggregates(dowithTaskId);
   const {

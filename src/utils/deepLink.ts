@@ -33,6 +33,7 @@ const linking = {
       MYINFO: 'myinfo',
       NOTIFICATION_LIST: 'notification',
       RECEIVED_FEEDBACK: 'received-feedback',
+      CHEER_COLLECTION: 'cheer-collection',
     },
   },
 };

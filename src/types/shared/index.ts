@@ -35,7 +35,8 @@ type RootStackParamList = {
   };
   CHEER_COLLECTION: {
     dowithTaskId: number;
-    successImageUrl: string;
+    // Item 진입 시 즉시 렌더용으로 전달, 딥링크 진입 시에는 미전달 (화면에서 상세 조회로 보완)
+    successImageUrl?: string;
   };
 };
 
