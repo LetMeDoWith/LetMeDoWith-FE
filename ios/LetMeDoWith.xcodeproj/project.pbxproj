@@ -8,12 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		00E356F31AD99517003FC87E /* LetMeDoWithTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* LetMeDoWithTests.m */; };
+		0D9C7836E3490FD8A251E8A9 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF69191BA7F1986BE24D42B8 /* Foundation.framework */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		3539403C2D9EBF76AC60F8FC /* Pods_LetMeDoWith_LetMeDoWithTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96BEDF8B4C94F3B8C4CB6CEC /* Pods_LetMeDoWith_LetMeDoWithTests.framework */; };
+		5C828D8024322981769F08BA /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF7ED9027C967329D622EE1 /* NotificationService.swift */; };
 		6A885E915B920D4804CBB89E /* Pods_LetMeDoWith.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F32FFC3A59ED3CFAC6278DD4 /* Pods_LetMeDoWith.framework */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		8EE8CD98353289FEDEAFA635 /* NotificationService.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 68887D3D9E31F0F66EB58DBF /* NotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E72FBCE5B643443495B04653 /* Roboto-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */; };
 		F61F819E2B77759C00AB4F5F /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = F61F819D2B77759C00AB4F5F /* main.jsbundle */; };
 		F669D01B2E2CDE0000EDA9CA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F669D01A2E2CDE0000EDA9CA /* GoogleService-Info.plist */; };
@@ -46,7 +49,28 @@
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
 			remoteInfo = LetMeDoWith;
 		};
+		C3E51B245C6513B48408DCB4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD336E26848DF312D97DE3DB;
+			remoteInfo = NotificationService;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8EBAD52BF9058942249A22E9 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				8EE8CD98353289FEDEAFA635 /* NotificationService.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		00E356EE1AD99517003FC87E /* LetMeDoWithTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LetMeDoWithTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -59,11 +83,15 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = LetMeDoWith/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = LetMeDoWith/main.m; sourceTree = "<group>"; };
 		3767627F4C7FD82552725B0F /* Pods-LetMeDoWith.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LetMeDoWith.debug.xcconfig"; path = "Target Support Files/Pods-LetMeDoWith/Pods-LetMeDoWith.debug.xcconfig"; sourceTree = "<group>"; };
+		68887D3D9E31F0F66EB58DBF /* NotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Medium.ttf"; path = "../src/assets/fonts/Roboto-Medium.ttf"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = LetMeDoWith/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		8CF7ED9027C967329D622EE1 /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		96BEDF8B4C94F3B8C4CB6CEC /* Pods_LetMeDoWith_LetMeDoWithTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LetMeDoWith_LetMeDoWithTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A04E69E23E76E596BECD0BF2 /* Pods-LetMeDoWith-LetMeDoWithTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LetMeDoWith-LetMeDoWithTests.release.xcconfig"; path = "Target Support Files/Pods-LetMeDoWith-LetMeDoWithTests/Pods-LetMeDoWith-LetMeDoWithTests.release.xcconfig"; sourceTree = "<group>"; };
+		AD8F34E24FAE0974738D05DE /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AF98343BE5A9E9A4348490D5 /* Pods-LetMeDoWith.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LetMeDoWith.release.xcconfig"; path = "Target Support Files/Pods-LetMeDoWith/Pods-LetMeDoWith.release.xcconfig"; sourceTree = "<group>"; };
+		DF69191BA7F1986BE24D42B8 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F32FFC3A59ED3CFAC6278DD4 /* Pods_LetMeDoWith.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LetMeDoWith.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F61F819D2B77759C00AB4F5F /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
@@ -112,6 +140,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				6A885E915B920D4804CBB89E /* Pods_LetMeDoWith.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3D9D6433AABDB380CC34D07 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0D9C7836E3490FD8A251E8A9 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -170,8 +206,19 @@
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				F32FFC3A59ED3CFAC6278DD4 /* Pods_LetMeDoWith.framework */,
 				96BEDF8B4C94F3B8C4CB6CEC /* Pods_LetMeDoWith_LetMeDoWithTests.framework */,
+				C1D32F07215B472B479A8C73 /* iOS */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		78D6CC2FC1793011678C40F9 /* NotificationService */ = {
+			isa = PBXGroup;
+			children = (
+				8CF7ED9027C967329D622EE1 /* NotificationService.swift */,
+				AD8F34E24FAE0974738D05DE /* Info.plist */,
+			);
+			name = NotificationService;
+			path = NotificationService;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -193,6 +240,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
 				24264A48C70841488437D34B /* Resources */,
+				78D6CC2FC1793011678C40F9 /* NotificationService */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -204,6 +252,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* LetMeDoWith.app */,
 				00E356EE1AD99517003FC87E /* LetMeDoWithTests.xctest */,
+				68887D3D9E31F0F66EB58DBF /* NotificationService.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -217,6 +266,14 @@
 				A04E69E23E76E596BECD0BF2 /* Pods-LetMeDoWith-LetMeDoWithTests.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		C1D32F07215B472B479A8C73 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				DF69191BA7F1986BE24D42B8 /* Foundation.framework */,
+			);
+			name = iOS;
 			sourceTree = "<group>";
 		};
 		F67546FF2BDD3A06001B263D /* Fonts */ = {
@@ -282,16 +339,35 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				5386D9D4D439D83281D36397 /* [CP] Embed Pods Frameworks */,
 				F453FB5D68C56ED51A7F51A9 /* [CP] Copy Pods Resources */,
+				8EBAD52BF9058942249A22E9 /* Embed App Extensions */,
 				F17D51DB6665182B225B6B12 /* [CP-User] [RNFB] Core Configuration */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				D36197C761D2D0E15926E31A /* PBXTargetDependency */,
 			);
 			name = LetMeDoWith;
 			productName = LetMeDoWith;
 			productReference = 13B07F961A680F5B00A75B9A /* LetMeDoWith.app */;
 			productType = "com.apple.product-type.application";
+		};
+		FD336E26848DF312D97DE3DB /* NotificationService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 30F9E4A2A8C55A212D23BEAC /* Build configuration list for PBXNativeTarget "NotificationService" */;
+			buildPhases = (
+				1B80F28A9295AFB3333543B4 /* Sources */,
+				D3D9D6433AABDB380CC34D07 /* Frameworks */,
+				A7644B3C8F5AD8A48D6AB6EF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NotificationService;
+			productName = NotificationService;
+			productReference = 68887D3D9E31F0F66EB58DBF /* NotificationService.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -326,6 +402,7 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* LetMeDoWith */,
 				00E356ED1AD99517003FC87E /* LetMeDoWithTests */,
+				FD336E26848DF312D97DE3DB /* NotificationService */,
 			);
 		};
 /* End PBXProject section */
@@ -366,6 +443,13 @@
 				F67547192BDD3A06001B263D /* MaterialCommunityIcons.ttf in Resources */,
 				F675471E2BDD3A06001B263D /* FontAwesome5_Regular.ttf in Resources */,
 				E72FBCE5B643443495B04653 /* Roboto-Medium.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A7644B3C8F5AD8A48D6AB6EF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -533,6 +617,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1B80F28A9295AFB3333543B4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C828D8024322981769F08BA /* NotificationService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -540,6 +632,12 @@
 			isa = PBXTargetDependency;
 			target = 13B07F861A680F5B00A75B9A /* LetMeDoWith */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
+		};
+		D36197C761D2D0E15926E31A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = NotificationService;
+			target = FD336E26848DF312D97DE3DB /* NotificationService */;
+			targetProxy = C3E51B245C6513B48408DCB4 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -654,6 +752,31 @@
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
+		};
+		631A726ADB8BFD890960F50A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 21;
+				DEVELOPMENT_TEAM = U3N4285KF6;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = NotificationService/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.9.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith2.NotificationService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 		83CBBA201A601CBA00E9B192 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -830,6 +953,32 @@
 			};
 			name = Release;
 		};
+		B88CC95FAD0EC3BD5B62BEB1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 21;
+				DEVELOPMENT_TEAM = U3N4285KF6;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = NotificationService/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.9.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith2.NotificationService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -847,6 +996,15 @@
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
 				13B07F951A680F5B00A75B9A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		30F9E4A2A8C55A212D23BEAC /* Build configuration list for PBXNativeTarget "NotificationService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B88CC95FAD0EC3BD5B62BEB1 /* Release */,
+				631A726ADB8BFD890960F50A /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
