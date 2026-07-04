@@ -32,8 +32,6 @@ import { Gallery } from 'components/common/icons/Gallery';
 import { RoutineArrow } from 'components/common/icons/RoutineArrow';
 import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
 import { isAos } from 'utils/device';
-import { ReceivedFeedbackBottomSheet } from 'components/Task/BottomSheet';
-import { ReceivedFeedbackModal } from 'components/Feedback/Modal/ReceivedFeedbackModal';
 import { CheerCollectionModal } from 'components/Feedback/Modal/CheerCollectionModal';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -68,8 +66,6 @@ const Item = ({
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { showDialog, hideDialog } = useDialog();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const feedbackBottomSheetRef = useRef<BottomSheetModal>(null);
-  const [receivedModalVisible, setReceivedModalVisible] = useState(false);
   const [cheerModalVisible, setCheerModalVisible] = useState(false);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const isTodoMode = mode === 'TODO';
@@ -397,10 +393,8 @@ const Item = ({
                 onPress={() => {
                   if (successImageUrls) {
                     setCheerModalVisible(true);
-                  } else if (isFailed) {
-                    setReceivedModalVisible(true);
                   } else {
-                    feedbackBottomSheetRef.current?.present();
+                    navigate('RECEIVED_FEEDBACK', { dowithTaskId: id, title, status: localStatus });
                   }
                 }}
               >
@@ -422,12 +416,6 @@ const Item = ({
       >
         <View style={styles.modalContainer}>{renderBottomSheetContent()}</View>
       </BottomSheet>
-      <ReceivedFeedbackBottomSheet ref={feedbackBottomSheetRef} dowithTaskId={id} />
-      <ReceivedFeedbackModal
-        visible={receivedModalVisible}
-        dowithTaskId={id}
-        onClose={() => setReceivedModalVisible(false)}
-      />
       {successImageUrls && (
         <CheerCollectionModal
           visible={cheerModalVisible}

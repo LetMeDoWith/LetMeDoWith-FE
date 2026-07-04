@@ -1,5 +1,14 @@
 import { type ComponentType, type ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, type FlatListProps, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  FlatList,
+  type FlatListProps,
+  Pressable,
+  StyleSheet,
+  type StyleProp,
+  Text,
+  View,
+  type ViewStyle,
+} from 'react-native';
 import FastImage from 'react-native-fast-image';
 
 import { Thunder } from 'components/common/icons/Thunder';
@@ -15,6 +24,7 @@ interface Props {
   showTotalCount?: boolean;
   ListComponent?: ComponentType<FlatListProps<dowithTaskFeedbackSchemeType>>;
   headerComponent?: ReactElement;
+  contentContainerStyle?: StyleProp<ViewStyle>;
 }
 
 const ReceivedFeedbackContent = ({
@@ -23,6 +33,7 @@ const ReceivedFeedbackContent = ({
   showTotalCount = true,
   ListComponent = FlatList,
   headerComponent,
+  contentContainerStyle,
 }: Props) => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
 
@@ -118,7 +129,7 @@ const ReceivedFeedbackContent = ({
       onEndReachedThreshold={0.5}
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={ListHeader}
-      contentContainerStyle={styles.listContent}
+      contentContainerStyle={[styles.listContent, contentContainerStyle]}
     />
   );
 };
