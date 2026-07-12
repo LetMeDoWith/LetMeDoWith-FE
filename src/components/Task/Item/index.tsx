@@ -135,7 +135,7 @@ const Item = ({
     switch (status) {
       case TASK_STATUS_ENUM.enum.WAIT:
         if (!isTodoMode) {
-          return <UploadImage />;
+          return <UploadImage width={24} height={24} />;
         }
 
         return <TaskWait mode={mode} />;
