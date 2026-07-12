@@ -11,7 +11,7 @@ type SignUpStackParamList = {
 type SignUpStackScreenProps<T extends keyof SignUpStackParamList> = StackScreenProps<SignUpStackParamList, T>;
 
 type HomeTabParamList = {
-  MYTODO: undefined;
+  MYTODO: { date?: string } | undefined;
   FEED: undefined;
   MYPAGE: undefined;
 };

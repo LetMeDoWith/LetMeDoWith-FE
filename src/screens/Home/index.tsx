@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import dayjs from 'dayjs';
@@ -29,15 +29,33 @@ import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api'
 // 요일 시작: 0=일, 1=월
 const FIRST_DAY = 0;
 
-const Home = ({ navigation: { navigate } }: HomeTabScreenProps<'MYTODO'>) => {
+const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps<'MYTODO'>) => {
   const { top } = useSafeAreaInsets();
 
   // 정시 기준 5분 간격(1분, 6분, ..., 56분)으로 TaskList 자동 refetch
   useScheduledRefetch([TASK_QUERY_KEY.LIST]);
 
   const todayDateString = dayjs().format('YYYY-MM-DD');
-  const [currentDate, setCurrentDate] = useState(todayDateString);
-  const [selectedDate, setSelectedDate] = useState(todayDateString);
+
+  // 딥링크(letmedowith://home?date=YYYY-MM-DD)로 전달된 날짜. 형식이 어긋나도 필터/달력이 깨지지 않도록 정규화
+  const deepLinkDate = route.params?.date;
+  const initialDate = deepLinkDate ? dayjs(deepLinkDate).format('YYYY-MM-DD') : todayDateString;
+  const [currentDate, setCurrentDate] = useState(initialDate);
+  const [selectedDate, setSelectedDate] = useState(initialDate);
+
+  // 앱이 이미 실행 중(홈 마운트 상태)일 때 딥링크로 재진입하면 파라미터 변화를 상태에 반영
+  useEffect(() => {
+    if (!deepLinkDate) {
+      return;
+    }
+
+    const normalizedDate = dayjs(deepLinkDate).format('YYYY-MM-DD');
+    setSelectedDate(normalizedDate);
+    setCurrentDate(normalizedDate); // 달력도 해당 월/주로 이동
+
+    setParams({ date: undefined });
+  }, [deepLinkDate, setParams]);
+
   const [isWeekView, setIsWeekView] = useState(true);
   const selectedDateKoreanString = dayjs(selectedDate).format('YYYY년 MM월 DD일 dddd');
 
