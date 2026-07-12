@@ -248,9 +248,16 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
 
   const onSubmit: SubmitHandler<addTaskRequestSchemeType> = useCallback(
     values => {
+      // 루틴 값을 실제로 설정한 경우(startDate·endDate·cycle 모두 존재)에만 routineCondition을 포함시킨다.
+      // 바텀 시트를 열었다 닫기만 하면 startDate만 채워지므로 이를 미설정으로 간주해 null 처리한다.
+      const hasRoutineCondition =
+        !isNil(values.routineCondition?.startDate) &&
+        !isNil(values.routineCondition?.endDate) &&
+        !isNil(values.routineCondition?.cycle);
+
       const payload = {
         ...values,
-        ...(isNil(values.routineCondition?.startDate) && { routineCondition: null }),
+        ...(!hasRoutineCondition && { routineCondition: null }),
       };
 
       const handleButton =
