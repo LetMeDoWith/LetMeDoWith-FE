@@ -29,6 +29,9 @@ import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api'
 // 요일 시작: 0=일, 1=월
 const FIRST_DAY = 0;
 
+// 태스크가 없는 날짜 조회 시 매번 새 객체를 만들지 않도록 공유하는 빈 목록
+const EMPTY_TASK_LIST: fetchTaskListResponseSchemeDataType = { dowithTasks: [], todoTasks: [] };
+
 const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps<'MYTODO'>) => {
   const { top } = useSafeAreaInsets();
 
@@ -65,12 +68,33 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
 
   const { data: taskList } = useFetchTaskList(yearMonth);
   const { data: myDowithInfo } = useFetchMyDowithInfo();
-  const selectedDateTaskList = taskList
-    ? {
-        dowithTasks: taskList.dowithTasks.filter(task => task.date === selectedDate),
-        todoTasks: taskList.todoTasks.filter(task => task.date === selectedDate),
+
+  // 날짜별로 태스크를 한 번만 그룹핑해두고, 달력 셀·선택 날짜·아이콘 판정에서 O(1)로 조회한다.
+  // (기존에는 셀마다 전체 목록을 filter → O(보이는 날짜 × 태스크 수))
+  const tasksByDate = useMemo(() => {
+    const map = new Map<string, fetchTaskListResponseSchemeDataType>();
+    if (!taskList) {
+      return map;
+    }
+
+    const getOrCreate = (date: string) => {
+      const existing = map.get(date);
+      if (existing) {
+        return existing;
       }
-    : null;
+
+      const created: fetchTaskListResponseSchemeDataType = { dowithTasks: [], todoTasks: [] };
+      map.set(date, created);
+      return created;
+    };
+
+    taskList.dowithTasks.forEach(task => getOrCreate(task.date).dowithTasks.push(task));
+    taskList.todoTasks.forEach(task => getOrCreate(task.date).todoTasks.push(task));
+
+    return map;
+  }, [taskList]);
+
+  const selectedDateTaskList = taskList ? tasksByDate.get(selectedDate) ?? EMPTY_TASK_LIST : null;
 
   const handleBadge = () => {
     console.log('대표 뱃지 클릭');
@@ -116,25 +140,21 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
     return Math.round(gridEnd.diff(gridStart, 'day') / 7) + 1;
   };
 
-  const hasIconOnDates = (dates: string[], taskList?: fetchTaskListResponseSchemeDataType) =>
-    !!taskList &&
-    dates.some(
-      date =>
-        taskList.dowithTasks.some(task => task.date === date) || taskList.todoTasks.some(task => task.date === date),
-    );
+  // 그룹핑 맵에 날짜 키가 있으면 그 날짜에 태스크가 하나 이상 존재한다는 의미
+  const hasIconOnDates = (dates: string[]) => dates.some(date => tasksByDate.has(date));
 
   const getCalendarMarginBottom = () => {
     // 주간 보기
     if (isWeekView) {
       const weekStart = startOfWeek(dayjs(currentDate), FIRST_DAY);
       const weekDates = Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day').format('YYYY-MM-DD'));
-      return hasIconOnDates(weekDates, taskList) ? 30 : 0;
+      return hasIconOnDates(weekDates) ? 30 : 0;
     }
 
     // 월간 보기
     const lastWeekDates = getLastVisibleWeekDates(currentDate, FIRST_DAY);
     const weeks = getWeeksCount(currentDate, FIRST_DAY); // 5 또는 6
-    const lastRowHasIcon = hasIconOnDates(lastWeekDates, taskList);
+    const lastRowHasIcon = hasIconOnDates(lastWeekDates);
 
     if (weeks === 7) {
       return lastRowHasIcon ? 10 : -10;
@@ -241,10 +261,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
     date?: DateData;
   }) => {
     // const isToday = date?.dateString === todayDateString;
-    const targetDayTaskList = {
-      dowithTasks: taskList?.dowithTasks.filter(task => task.date === date?.dateString) ?? [],
-      todoTasks: taskList?.todoTasks.filter(task => task.date === date?.dateString) ?? [],
-    };
+    const targetDayTaskList = tasksByDate.get(date?.dateString ?? '') ?? EMPTY_TASK_LIST;
 
     const { dowithTasks, todoTasks } = targetDayTaskList;
 
