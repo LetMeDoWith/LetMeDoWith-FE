@@ -34,6 +34,7 @@ const receivedFeedbackScheme = z.object({
   receivedAt: z.string().describe('피드백 수신 일시'),
   dowithTaskTitle: z.string().describe('두윗 Task 제목'),
   parsedMessage: z.string().describe('닉네임 치환된 잔소리 메시지'),
+  deepLink: z.string().describe('두윗이 등록된 홈 화면으로 이동하는 딥링크'),
   taskFeedbackTemplate: taskFeedbackTemplateScheme,
 });
 

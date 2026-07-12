@@ -1,8 +1,9 @@
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 import { ReceivedComment, EmptyComment } from 'components/Feedback';
 import { useFetchReceivedFeedbacks } from 'hooks/queries/feedback/useFetchReceivedFeedbacks';
 import type { receivedFeedbackSchemeType } from 'types/feedback/scheme/api';
+import { navigateByDeepLink } from 'utils/deepLink';
 
 const ReceiveFeedback = () => {
   const { data, isLoading } = useFetchReceivedFeedbacks();
@@ -25,15 +26,18 @@ const ReceiveFeedback = () => {
     );
   }
 
+  // 잔소리 항목을 탭하면 해당 두윗이 등록된 홈 화면으로 이동 (deepLink 미제공 시 아무 동작 안 함)
   const renderItem = ({ item, index }: { item: receivedFeedbackSchemeType; index: number }) => (
-    <ReceivedComment
-      profileImageUrl={item.senderProfileImageUrl}
-      message={item.parsedMessage}
-      nickname={item.senderNickname}
-      dowithTaskTitle={item.dowithTaskTitle}
-      receivedAt={item.receivedAt}
-      isLast={index === feedbacks.length - 1}
-    />
+    <Pressable disabled={!item.deepLink} onPress={() => navigateByDeepLink(item.deepLink)}>
+      <ReceivedComment
+        profileImageUrl={item.senderProfileImageUrl}
+        message={item.parsedMessage}
+        nickname={item.senderNickname}
+        dowithTaskTitle={item.dowithTaskTitle}
+        receivedAt={item.receivedAt}
+        isLast={index === feedbacks.length - 1}
+      />
+    </Pressable>
   );
 
   return (
