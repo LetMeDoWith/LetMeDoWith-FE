@@ -57,7 +57,7 @@ const useScheduledRefetch = (queryKeys: readonly (readonly string[])[]) => {
     timerRef.current = setTimeout(async () => {
       // 개발 모드에서는 자동 refresh가 동작 중임을 로딩 아이콘 대신 스낵바로 알린다.
       if (IS_DEV_MODE) {
-        showSnackbar('[DEV] 자동 새로고침 완료', 2000);
+        showSnackbar('[DEV] 자동 새로고침 완료', { duration: 2000 });
       }
 
       // 자동 refetch 동안에는 전역 로딩 오버레이를 띄우지 않는다.

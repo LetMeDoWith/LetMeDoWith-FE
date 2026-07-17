@@ -20,6 +20,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { IS_DEV_MODE } from 'utils/env';
 import { useLoadingOverlayStore } from 'stores/loadingOverlayStore';
 import { GlobalSnackbar } from 'components/common/GlobalSnackbar';
+import { showSnackbar, SNACKBAR_TYPE } from 'stores/snackbarStore';
 
 import { Login } from 'screens/Login';
 import { HomeStackNavigator } from 'components/navigators/Stack/Home';
@@ -69,21 +70,25 @@ dayjs.extend(customParseFormat);
   showsHorizontalScrollIndicator: false,
 };
 
+// API 에러 발생 시 공통으로 노출하는 스낵바 메시지
+const API_ERROR_SNACKBAR_MESSAGE = '앗 잠시 문제가 생겼어요. 다시 시도해 주세요.';
+
 /**
  * React Query의 전역 에러 핸들러
  * 모든 쿼리/뮤테이션에서 발생한 에러를 중앙에서 처리
  */
 const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEvent) => {
   if ('action' in event && event.action && event.action.type === 'error') {
-    const errorData = event.action.error.response.data;
+    // 네트워크 에러(응답 없음)도 있으므로 옵셔널 체이닝으로 안전하게 접근
+    const errorData = event.action.error?.response?.data;
 
     const {
       tokenInfo,
       authActions: { setIsNeedRefreshToken },
     } = useStore.getState();
 
-    // 만료된 토큰 에러 → 리프레시 토큰이 유효하면 토큰 재발급 시도
-    const isTokenExpiredError = errorData.statusCode === ErrorStatusCodeEnum.enum.E302;
+    // 만료된 토큰 에러 → 리프레시 토큰이 유효하면 토큰 재발급 시도(스낵바 없이 조용히 처리)
+    const isTokenExpiredError = errorData?.statusCode === ErrorStatusCodeEnum.enum.E302;
     if (isTokenExpiredError && tokenInfo.refresh?.token && dayjs().isBefore(tokenInfo.refresh?.expireAt)) {
       setIsNeedRefreshToken(true);
       return;
@@ -97,6 +102,9 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
     } else {
       console.error('[Unknown Event Error]:', errorData);
     }
+
+    // API 에러 공통 스낵바 노출(토큰 재발급 케이스는 위에서 return되어 제외됨)
+    showSnackbar(API_ERROR_SNACKBAR_MESSAGE, { type: SNACKBAR_TYPE.ERROR });
   }
 };
 
