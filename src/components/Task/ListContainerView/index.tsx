@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { ScrollView } from 'react-native';
+import { View } from 'react-native';
 
 import { List } from 'components/Task';
 import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
@@ -11,11 +11,12 @@ interface Props {
   selectedDate: string;
 }
 
+// 스크롤은 홈 화면 바깥 ScrollView가 담당(달력+리스트 전체가 함께 스크롤)하므로 여기선 목록만 렌더한다.
 const ListContainerView = memo(({ year, month, taskList, selectedDate }: Props) => (
-  <ScrollView contentContainerStyle={{ paddingBottom: 134, gap: 16 }} showsVerticalScrollIndicator={false}>
+  <View style={{ gap: 16 }}>
     <List type="DOWITH" items={taskList.dowithTasks} year={year} month={month} selectedDate={selectedDate} />
     <List type="TODO" items={taskList.todoTasks} year={year} month={month} selectedDate={selectedDate} />
-  </ScrollView>
+  </View>
 ));
 ListContainerView.displayName = 'ListContainerView';
 

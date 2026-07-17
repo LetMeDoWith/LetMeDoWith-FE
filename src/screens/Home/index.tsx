@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import dayjs from 'dayjs';
 import { Divider } from 'react-native-paper';
@@ -294,7 +294,12 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
   return (
     <>
       <View style={{ height: top, backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_98 }} />
-      <View style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        stickyHeaderIndices={[1]}
+        showsVerticalScrollIndicator={false}
+      >
         <LinearGradient
           colors={[theme.COLORS.GRAY_SCALE.GRAY_98, theme.COLORS.GRAY_SCALE.GRAY_96]}
           start={{ x: 0, y: 0 }}
@@ -328,52 +333,52 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
             </View>
           </View>
         </LinearGradient>
-        <View style={styles.contentWrap}>
-          <View style={{ flex: 1 }}>
-            <CalendarProvider
-              style={styles.calendarWrap}
-              date={currentDate}
-              // 스와이프로 달을 이동할 때도 currentDate를 동기화(< > 버튼은 별도로 setCurrentDate). 동적 여백 계산에 필요.
-              onMonthChange={month => setCurrentDate(month.dateString)}
-            >
-              <ExpandableCalendar
-                // 주/월 전환 시에만 리마운트(위치 초기화).
-                key={isWeekView ? 'weekView' : 'monthView'}
-                initialPosition={isWeekView ? Positions.CLOSED : Positions.OPEN}
-                markedDates={markedDates}
-                firstDay={FIRST_DAY}
-                dayComponent={renderDayComponent}
-                renderHeader={renderCustomHeader}
-                closeOnDayPress={false}
-                allowShadow={false}
-                hideArrows
-                hideKnob
-                disablePan
-              />
-              <View style={{ marginBottom: isWeekView ? WEEK_VIEW_BOTTOM_MARGIN : monthViewBottomMargin }} />
-              <View style={{ flex: 1, marginHorizontal: 20 }}>
-                <Divider style={styles.divider} />
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{selectedDateKoreanString}</Text>
-                  <TouchableOpacity style={{ paddingLeft: 8, paddingBottom: 8 }} onPress={handlePressPlusIcon}>
-                    <PlusIcon />
-                  </TouchableOpacity>
-                </View>
-                {selectedDateTaskList ? (
-                  <View style={{ flex: 1, marginTop: 16 }}>
-                    <ListContainerView
-                      year={year}
-                      month={month}
-                      taskList={selectedDateTaskList}
-                      selectedDate={selectedDate}
-                    />
-                  </View>
-                ) : null}
+        {/* 스크롤 시 최상단에 고정되는 흰색 영역의 상단 캡(둥근 모서리). 아래 본문이 이 캡 밑으로 스크롤된다. */}
+        <View style={styles.sheetCap} />
+        <View style={styles.sheetBody}>
+          <CalendarProvider
+            style={styles.calendarWrap}
+            date={currentDate}
+            // 스와이프로 달을 이동할 때도 currentDate를 동기화(< > 버튼은 별도로 setCurrentDate). 동적 여백 계산에 필요.
+            onMonthChange={month => setCurrentDate(month.dateString)}
+          >
+            <ExpandableCalendar
+              // 주/월 전환 시에만 리마운트(위치 초기화).
+              key={isWeekView ? 'weekView' : 'monthView'}
+              initialPosition={isWeekView ? Positions.CLOSED : Positions.OPEN}
+              markedDates={markedDates}
+              firstDay={FIRST_DAY}
+              dayComponent={renderDayComponent}
+              renderHeader={renderCustomHeader}
+              closeOnDayPress={false}
+              allowShadow={false}
+              hideArrows
+              hideKnob
+              disablePan
+            />
+            <View style={{ marginBottom: isWeekView ? WEEK_VIEW_BOTTOM_MARGIN : monthViewBottomMargin }} />
+            <View style={{ marginHorizontal: 20 }}>
+              <Divider style={styles.divider} />
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{selectedDateKoreanString}</Text>
+                <TouchableOpacity style={{ paddingLeft: 8, paddingBottom: 8 }} onPress={handlePressPlusIcon}>
+                  <PlusIcon />
+                </TouchableOpacity>
               </View>
-            </CalendarProvider>
-          </View>
+              {selectedDateTaskList ? (
+                <View style={{ marginTop: 16 }}>
+                  <ListContainerView
+                    year={year}
+                    month={month}
+                    taskList={selectedDateTaskList}
+                    selectedDate={selectedDate}
+                  />
+                </View>
+              ) : null}
+            </View>
+          </CalendarProvider>
         </View>
-      </View>
+      </ScrollView>
     </>
   );
 };
@@ -416,13 +421,21 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   title: theme.TYPOGRAPHY.TITLE_3,
-  contentWrap: {
-    flex: 1,
-    gap: 12,
+  // 내용이 화면보다 짧아도 흰색 본문이 하단까지 차도록 최소 높이를 화면에 맞춘다.
+  scrollContent: {
+    flexGrow: 1,
+  },
+  sheetCap: {
+    height: 20,
+    backgroundColor: theme.COLORS.DEFAULT.WHITE,
     borderTopStartRadius: 20,
     borderTopRightRadius: 20,
+  },
+  sheetBody: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 134,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
-    padding: 20,
   },
   calendarWrap: {
     marginHorizontal: -20,
