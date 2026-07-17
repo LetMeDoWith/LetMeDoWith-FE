@@ -5,7 +5,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { DoubleThunder } from 'components/common/icons/DoubleThunder';
 import { FeedNagItem } from 'components/Feed/FeedNagItem';
-import { useFetchFeedbackAvailableDowithTasks } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasks';
+import { useFetchFeedbackAvailableDowithTasksInfinite } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasksInfinite';
 import type { RootStackParamList } from 'types/shared';
 import { theme } from 'styles/theme';
 
@@ -13,11 +13,11 @@ const DISPLAY_COUNT = 5;
 
 const FeedNagList = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { data, isLoading } = useFetchFeedbackAvailableDowithTasks();
+  const { data, isLoading } = useFetchFeedbackAvailableDowithTasksInfinite();
 
-  const allTasks = data?.dowithTasks ?? [];
-  const dowithTasks = allTasks.slice(0, DISPLAY_COUNT);
-  const hasMore = allTasks.length > DISPLAY_COUNT;
+  const firstPage = data?.pages[0];
+  const dowithTasks = (firstPage?.data.dowithTasks ?? []).slice(0, DISPLAY_COUNT);
+  const hasMore = (firstPage?.totalCount ?? 0) > DISPLAY_COUNT;
 
   return (
     <View style={styles.container}>
@@ -26,7 +26,7 @@ const FeedNagList = () => {
         <Text style={theme.TYPOGRAPHY.TITLE_2}>실시간 잔소리하기</Text>
       </View>
       {isLoading && <ActivityIndicator />}
-      {!isLoading && allTasks.length > 0 && (
+      {!isLoading && dowithTasks.length > 0 && (
         <>
           <View style={styles.list}>
             {dowithTasks.map(item => (
