@@ -439,6 +439,8 @@ const styles = StyleSheet.create({
   },
   calendarWrap: {
     marginHorizontal: -20,
+    // 주 뷰에서 커스텀 셀 높이가 라이브러리 기본 CLOSED_HEIGHT보다 커, 아래 월 뷰의 다음 주 행이 비치는 것을 잘라낸다.
+    overflow: 'hidden',
   },
   calendarDay: {
     width: 24,
