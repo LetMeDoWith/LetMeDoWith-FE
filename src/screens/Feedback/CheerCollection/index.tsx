@@ -25,12 +25,9 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
   const successImageUrl = successImageUrlParam ?? dowithTask?.successImageUrls?.[0] ?? '';
 
   const { data: aggregates } = useFetchDowithTaskFeedbackAggregates(dowithTaskId);
-  const {
-    data: likersPages,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useFetchDowithTaskLikers(dowithTaskId, activeTab === 'LIKE');
+  // 좋아요 카운트(totalCount)가 첫 페이지 응답에 담겨 있어, 진입 시점에도 개수를 표시하려면 쿼리를 항상 활성화한다.
+  // (탭 활성 시에만 enable하면 좋아요 탭을 눌러야 카운트가 0→실제값으로 바뀌는 문제 발생)
+  const { data: likersPages, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchDowithTaskLikers(dowithTaskId);
 
   const feedbackCount = aggregates?.reduce((sum, item) => sum + item.count, 0) ?? 0;
   const likeCount = likersPages?.pages[0]?.totalCount ?? 0;
