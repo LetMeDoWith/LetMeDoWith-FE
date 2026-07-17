@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo } from 'react';
 import { ScrollView } from 'react-native';
 
 import { List } from 'components/Task';
@@ -11,11 +11,12 @@ interface Props {
   selectedDate: string;
 }
 
-const ListContainerView = ({ year, month, taskList, selectedDate }: Props) => (
+const ListContainerView = memo(({ year, month, taskList, selectedDate }: Props) => (
   <ScrollView contentContainerStyle={{ paddingBottom: 134, gap: 16 }} showsVerticalScrollIndicator={false}>
     <List type="DOWITH" items={taskList.dowithTasks} year={year} month={month} selectedDate={selectedDate} />
     <List type="TODO" items={taskList.todoTasks} year={year} month={month} selectedDate={selectedDate} />
   </ScrollView>
-);
+));
+ListContainerView.displayName = 'ListContainerView';
 
 export { ListContainerView };

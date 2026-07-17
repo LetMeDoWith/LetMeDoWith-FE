@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
@@ -49,7 +49,7 @@ interface Props {
   feedBackCount?: number | null;
 }
 
-const Item = ({
+const Item = memo(function Item({
   id,
   mode,
   title,
@@ -61,7 +61,7 @@ const Item = ({
   selectedDate,
   successImageUrls,
   feedBackCount,
-}: Props) => {
+}: Props) {
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { showDialog, hideDialog } = useDialog();
   const taskManagementBottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -72,17 +72,25 @@ const Item = ({
     setLocalStatus(status);
   }, [status]);
 
-  const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
-  const { data: dowithTaskData } = useFetchDowithTask({ dowithTaskId: id }, { enabled: !isTodoMode && id !== -1 });
-
   const [showUploadImageBottomSheet, setShowUploadImageBottomSheet] = useState(false);
+  // 상세(루틴 정보)는 관리 시트를 열 때만 조회한다. 리스트 렌더 시 항목마다 상세 쿼리를 실행하던 비용 제거.
+  const [isDetailEnabled, setIsDetailEnabled] = useState(false);
+
+  const { data: todoTaskData } = useFetchTodoTask(
+    { todoTaskId: id },
+    { enabled: mode === 'TODO' && id !== -1 && isDetailEnabled },
+  );
+  const { data: dowithTaskData } = useFetchDowithTask(
+    { dowithTaskId: id },
+    { enabled: !isTodoMode && id !== -1 && isDetailEnabled },
+  );
 
   const data = id && mode ? todoTaskData ?? dowithTaskData : null;
   const isRoutineTask = !isNil(data?.routineCondition);
 
-  // 현재 시간이 업데이트 하려는 Task가 두윗이고, 시작 시간으로부터 1시간을 초과했을 경우
+  // 두윗이고, 시작 시간으로부터 1시간을 초과했을 경우 (list의 selectedDate=task 날짜, startTime은 prop이라 상세 조회 불필요)
   const isInvalidUpdateDowithTask =
-    !isTodoMode && dayjs(`${data?.date} ${data?.startTime}`).add(1, 'hour').isBefore(dayjs());
+    !isTodoMode && dayjs(`${selectedDate} ${startTime}`).add(1, 'hour').isBefore(dayjs());
   const isFailed = localStatus === TASK_STATUS_ENUM.enum.FAIL;
 
   // 인증 완료(성공)한 두윗은 수정/삭제(관리 메뉴) 불가
@@ -127,6 +135,7 @@ const Item = ({
   };
 
   const handleBottomSheet = () => {
+    setIsDetailEnabled(true); // 관리 시트에서 루틴 정보가 필요하므로 이때 상세 조회 활성화
     setShowUploadImageBottomSheet(false);
     taskManagementBottomSheetModalRef.current?.present();
   };
@@ -423,7 +432,7 @@ const Item = ({
       </BottomSheet>
     </>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

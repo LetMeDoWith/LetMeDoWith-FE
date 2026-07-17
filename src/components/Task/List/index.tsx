@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { theme } from 'styles/theme';
@@ -13,7 +14,7 @@ interface Props {
   selectedDate: string;
 }
 
-const List = ({ type, items, year, month, selectedDate }: Props) => {
+const List = memo(({ type, items, year, month, selectedDate }: Props) => {
   const isDoWithMode = type === 'DOWITH';
 
   return (
@@ -46,7 +47,8 @@ const List = ({ type, items, year, month, selectedDate }: Props) => {
       ))}
     </View>
   );
-};
+});
+List.displayName = 'List';
 
 const styles = StyleSheet.create({
   container: {},
