@@ -347,7 +347,13 @@ const Item = memo(function Item({
         >
           {renderTaskStatusIcon(mode, localStatus)}
           <View style={styles.leftContent}>
-            <Text style={[styles.title, isFailed && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}>{title}</Text>
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={[styles.title, isFailed && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }]}
+            >
+              {title}
+            </Text>
             {(startTime || taskCategoryName) && (
               <View style={styles.option}>
                 {startTime && (
@@ -441,13 +447,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   leftContainer: {
+    flex: 1,
     flexDirection: 'row',
     gap: 8,
+    // 긴 제목이 오른쪽 인증 사진·관리(⋯) 영역에 닿지 않도록 간격 확보
+    marginRight: 12,
   },
   rightContainer: {
     alignItems: 'flex-start',
   },
   leftContent: {
+    // 제목 폭을 제한해 numberOfLines 말줄임(ellipsis)이 동작하도록 flex로 남는 폭만 차지
+    flex: 1,
     gap: 4,
   },
   rightContent: {
