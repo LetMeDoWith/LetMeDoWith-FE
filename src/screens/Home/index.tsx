@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import dayjs from 'dayjs';
@@ -40,6 +40,32 @@ const WEEK_VIEW_BOTTOM_MARGIN = 8;
 
 // 태스크가 없는 날짜 조회 시 매번 새 객체를 만들지 않도록 공유하는 빈 목록
 const EMPTY_TASK_LIST: fetchTaskListResponseSchemeDataType = { dowithTasks: [], todoTasks: [] };
+
+type MarkingStatus = React.ComponentProps<typeof TaskStatusMarking>['status'];
+
+interface CalendarDayProps {
+  day?: number;
+  dateString?: string;
+  isSelected: boolean;
+  isDisabled: boolean;
+  status: MarkingStatus | null;
+  onPress: (dateString?: string) => void;
+}
+
+// 날짜 셀을 memo로 분리해, 다른 날짜 선택/달 이동 시 값이 바뀐 셀만 재렌더되게 한다(마킹 SVG 재렌더 최소화).
+const CalendarDay = memo(({ day, dateString, isSelected, isDisabled, status, onPress }: CalendarDayProps) => (
+  <TouchableOpacity style={styles.dayWrap} onPress={() => onPress(dateString)}>
+    <View style={[styles.calendarDay, isSelected && styles.selectedDay]}>
+      <Text
+        style={[theme.TYPOGRAPHY.CAPTION_2, isSelected && styles.selectedDayText, isDisabled && styles.disabledDayText]}
+      >
+        {day}
+      </Text>
+    </View>
+    {status && <TaskStatusMarking status={status} />}
+  </TouchableOpacity>
+));
+CalendarDay.displayName = 'CalendarDay';
 
 const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps<'MYTODO'>) => {
   const { top } = useSafeAreaInsets();
@@ -126,13 +152,11 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
     navigate('TASK_FORM', { date: selectedDate, screen: 'COMMON' });
   };
 
-  const handleDayPress = (date?: DateData) => () => {
-    if (!date) {
-      return;
+  const handleDayPress = useCallback((dateString?: string) => {
+    if (dateString) {
+      setSelectedDate(dateString);
     }
-
-    setSelectedDate(date.dateString);
-  };
+  }, []);
 
   const getTaskStatus = useCallback((taskList: fetchTaskListResponseSchemeDataType) => {
     const { dowithTasks, todoTasks } = taskList;
@@ -224,49 +248,47 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
     return TASK_STATUS.NONE;
   }, []);
 
-  const renderDayComponent = ({
-    date,
-    state,
-  }: // marking,
-  DayProps & {
-    date?: DateData;
-  }) => {
-    // const isToday = date?.dateString === todayDateString;
-    const targetDayTaskList = tasksByDate.get(date?.dateString ?? '') ?? EMPTY_TASK_LIST;
+  // 날짜별 마킹 상태를 taskList가 바뀔 때만 한 번 계산해둔다(셀 렌더마다 getTaskStatus 호출 방지).
+  const statusByDate = useMemo(() => {
+    const map = new Map<string, MarkingStatus>();
+    tasksByDate.forEach((tasks, date) => map.set(date, getTaskStatus(tasks)));
+    return map;
+  }, [tasksByDate, getTaskStatus]);
 
-    const { dowithTasks, todoTasks } = targetDayTaskList;
+  // 선택 여부는 selectedDate 비교 대신 라이브러리가 markedDates로 넘겨주는 marking.selected를 사용한다.
+  // → renderDayComponent가 selectedDate에 의존하지 않아 참조가 안정적이고, 선택 시 바뀐 날짜 셀만 갱신된다.
+  const renderDayComponent = useCallback(
+    ({ date, state, marking }: DayProps & { date?: DateData }) => {
+      const dateString = date?.dateString;
+      return (
+        <CalendarDay
+          day={date?.day}
+          dateString={dateString}
+          isSelected={!!marking?.selected}
+          isDisabled={state === 'disabled'}
+          status={dateString ? statusByDate.get(dateString) ?? null : null}
+          onPress={handleDayPress}
+        />
+      );
+    },
+    [statusByDate, handleDayPress],
+  );
 
-    // 등록한 Task가 있어야만 task 상태 마킹 노출
-    const isStatusMarkingVisible = todoTasks.length > 0 || dowithTasks.length > 0;
+  const markedDates = useMemo(() => ({ [selectedDate]: { selected: true } }), [selectedDate]);
 
-    return (
-      <TouchableOpacity style={styles.dayWrap} onPress={handleDayPress(date)}>
-        <View style={[styles.calendarDay, date?.dateString === selectedDate && styles.selectedDay]}>
-          <Text
-            style={[
-              theme.TYPOGRAPHY.CAPTION_2,
-              date?.dateString === selectedDate && styles.selectedDayText,
-              state === 'disabled' && { color: theme.COLORS.GRAY_SCALE.GRAY_80 },
-            ]}
-          >
-            {date?.day}
-          </Text>
-        </View>
-        {isStatusMarkingVisible && <TaskStatusMarking status={getTaskStatus(targetDayTaskList)} />}
-      </TouchableOpacity>
-    );
-  };
-
-  const renderCustomHeader = (date: Date) => (
-    <CustomCalendarHeader
-      type="EXPANDABLE"
-      date={date}
-      selectedDate={selectedDate}
-      isWeekView={isWeekView}
-      setIsWeekView={setIsWeekView}
-      setCurrentDate={setCurrentDate}
-      setSelectedDate={setSelectedDate}
-    />
+  const renderCustomHeader = useCallback(
+    (date: Date) => (
+      <CustomCalendarHeader
+        type="EXPANDABLE"
+        date={date}
+        selectedDate={selectedDate}
+        isWeekView={isWeekView}
+        setIsWeekView={setIsWeekView}
+        setCurrentDate={setCurrentDate}
+        setSelectedDate={setSelectedDate}
+      />
+    ),
+    [selectedDate, isWeekView],
   );
 
   return (
@@ -318,9 +340,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
                 // 주/월 전환 시에만 리마운트(위치 초기화).
                 key={isWeekView ? 'weekView' : 'monthView'}
                 initialPosition={isWeekView ? Positions.CLOSED : Positions.OPEN}
-                markedDates={{
-                  [selectedDate]: { selected: true },
-                }}
+                markedDates={markedDates}
                 firstDay={FIRST_DAY}
                 dayComponent={renderDayComponent}
                 renderHeader={renderCustomHeader}
@@ -425,6 +445,9 @@ const styles = StyleSheet.create({
   },
   selectedDayText: {
     color: theme.COLORS.DEFAULT.WHITE,
+  },
+  disabledDayText: {
+    color: theme.COLORS.GRAY_SCALE.GRAY_80,
   },
   divider: {
     borderWidth: 0.5,
