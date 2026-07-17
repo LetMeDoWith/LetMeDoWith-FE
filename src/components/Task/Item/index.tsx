@@ -407,7 +407,7 @@ const Item = ({
                 <Text style={styles.feedbackChipText}>{feedBackCount}</Text>
               </Pressable>
             )}
-            <Pressable onPress={handleBottomSheet} disabled={isManageDisabled}>
+            <Pressable hitSlop={8} onPress={handleBottomSheet} disabled={isManageDisabled}>
               <EtcDots disabled={isManageDisabled} />
             </Pressable>
           </View>
