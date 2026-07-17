@@ -38,7 +38,11 @@ const DateTimePicker = forwardRef<BottomSheetModalMethods, Props>((props, ref) =
   };
 
   const [selectedDate, setSelectedDate] = useState<Date>(getInitialDate());
-  const [currentMinimumDate, setCurrentMinimumDate] = useState(minimumDate);
+  // 최소 선택 가능 시각을 raw 현재시각(예: 10:08)이 아닌 "다음 5분 경계"(예: 10:10)로 맞춘다.
+  // raw 값을 쓰면 과거 시각 선택 시 네이티브 피커가 10:08 같은 비경계 값으로 스냅되어 저장되는 문제가 있음.
+  const [currentMinimumDate, setCurrentMinimumDate] = useState<Date | undefined>(
+    minimumDate ? getInitialDate() : undefined,
+  );
   const [isDisabled, setIsDisabled] = useState(false);
 
   // 피커가 열릴 때 현재 시간 기준으로 초기값 및 minimumDate 갱신
