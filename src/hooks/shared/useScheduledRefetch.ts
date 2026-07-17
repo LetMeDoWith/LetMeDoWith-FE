@@ -4,6 +4,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
 import { useAppState } from 'hooks/shared/useAppState';
+import { useAutoRefreshStore } from 'stores/autoRefreshStore';
+import { showSnackbar } from 'stores/snackbarStore';
+import { IS_DEV_MODE } from 'utils/env';
 
 /**
  * 정시 기준 5분 간격(1분, 6분, 11분, ..., 56분)으로 지정된 쿼리를 무효화하는 훅.
@@ -51,10 +54,21 @@ const useScheduledRefetch = (queryKeys: readonly (readonly string[])[]) => {
 
     console.log('delay: ', delay);
 
-    timerRef.current = setTimeout(() => {
-      queryKeys.forEach(queryKey => {
-        queryClient.invalidateQueries({ queryKey: [...queryKey] });
-      });
+    timerRef.current = setTimeout(async () => {
+      // 개발 모드에서는 자동 refresh가 동작 중임을 로딩 아이콘 대신 스낵바로 알린다.
+      if (IS_DEV_MODE) {
+        showSnackbar('[DEV] 자동 새로고침 완료', 2000);
+      }
+
+      // 자동 refetch 동안에는 전역 로딩 오버레이를 띄우지 않도록 플래그를 세운다.
+      const { setAutoRefreshing } = useAutoRefreshStore.getState();
+      setAutoRefreshing(true);
+      try {
+        await Promise.all(queryKeys.map(queryKey => queryClient.invalidateQueries({ queryKey: [...queryKey] })));
+      } finally {
+        setAutoRefreshing(false);
+      }
+
       scheduleNext();
     }, delay);
   };

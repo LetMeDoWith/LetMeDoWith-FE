@@ -17,7 +17,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import Config from 'react-native-config';
+import { IS_DEV_MODE } from 'utils/env';
+import { useAutoRefreshStore } from 'stores/autoRefreshStore';
+import { GlobalSnackbar } from 'components/common/GlobalSnackbar';
 
 import { Login } from 'screens/Login';
 import { HomeStackNavigator } from 'components/navigators/Stack/Home';
@@ -37,7 +39,7 @@ import { AppStateProvider, AppStateContext, useAppState } from 'hooks/shared/use
 
 export const navigationRef = createNavigationContainerRef();
 
-const ENABLE_DEVTOOLS = __DEV__ || Config.ENABLE_DEVTOOLS === 'true';
+const ENABLE_DEVTOOLS = IS_DEV_MODE;
 
 const DevToolsRoot = ENABLE_DEVTOOLS ? require('components/__dev__/DevToolsRoot').DevToolsRoot : () => null;
 
@@ -134,7 +136,9 @@ function AppContent() {
   const isTokenRefreshingRef = useRef(false);
   const isFetching = useIsFetching();
   const isMutating = useIsMutating();
-  const isLoading = isFetching + isMutating > 0;
+  const isAutoRefreshing = useAutoRefreshStore(state => state.isAutoRefreshing);
+  // 자동(스케줄) refresh 중에는 로딩 오버레이를 띄우지 않는다. 유저 액션에 의한 refetch만 표시.
+  const isLoading = isFetching + isMutating > 0 && !isAutoRefreshing;
 
   const { mutate: mutateRefreshToken } = useRefreshTokenQuery();
   const { mutate: mutateNotificationToken } = useAddNotificationToken();
@@ -249,6 +253,7 @@ function AppContent() {
         <Login />
       )}
       {(!isHydrated || isLoading) && <LoadingOverlay />}
+      <GlobalSnackbar />
     </View>
   );
 }
