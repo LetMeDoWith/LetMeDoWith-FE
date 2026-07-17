@@ -1,8 +1,9 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import React, { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Divider, Switch } from 'react-native-paper';
 import { CalendarList } from 'react-native-calendars';
 import type { DateData, MarkedDates } from 'react-native-calendars/src/types';
+import type { CalendarListImperativeMethods } from 'react-native-calendars/src/calendar-list';
 import dayjs from 'dayjs';
 import type { DayProps } from 'react-native-calendars/src/calendar/day';
 import { FormState, useFormContext, UseFormSetValue, UseFormWatch } from 'react-hook-form';
@@ -30,10 +31,40 @@ import type { TaskRoutineCycleEnumType } from 'types/task/scheme/enum';
 // 헤더 약 48. 보이는 달의 주 수에 맞춰 높이를 동적으로 잡고 overflow로 잘라 불필요한 여백을 없앤다.
 const CALENDAR_ROW_HEIGHT = 50;
 const CALENDAR_HEADER_HEIGHT = 48;
+// CalendarList 자체 높이는 최대(6주)로 고정해 달 전환 시 재렌더를 줄이고, 실제 노출 높이는 wrapper의 overflow로 제어한다.
+const CALENDAR_LIST_MAX_HEIGHT = CALENDAR_HEADER_HEIGHT + CALENDAR_ROW_HEIGHT * 6;
 // 달력 첫날의 요일(0=일) 기준으로 해당 월이 몇 주에 걸치는지 계산한다.
 const getWeeksInMonth = (dateString: string) => {
   const startOfMonth = dayjs(dateString).startOf('month');
   return Math.ceil((startOfMonth.day() + startOfMonth.daysInMonth()) / 7);
+};
+
+// CalendarList 항목 재렌더 최소화용: props를 안정 참조로 유지(모듈 상수/memo)해 스와이프 중 부모 재렌더가 전파되지 않게 한다.
+const CALENDAR_LIST_STYLE = { paddingLeft: 0, paddingRight: 0 };
+const CALENDAR_HEADER_STYLE = { paddingHorizontal: 15 };
+const MemoizedCalendarList = memo(CalendarList);
+
+// 요일/비활성 상태에 따른 날짜 텍스트 색. 순수 함수라 모듈 레벨로 올려 렌더 콜백을 안정적으로 memo할 수 있게 한다.
+const getDayTextColor = (dateString: string, state?: string) => {
+  // 선택할 수 없는 요일은 회색 처리
+  if (state === 'disabled') {
+    return theme.COLORS.GRAY_SCALE.GRAY_80;
+  }
+
+  const dayOfWeek = new Date(dateString).getDay();
+
+  // 일요일
+  if (dayOfWeek === 0) {
+    return theme.COLORS.PRIMARY.RED_60;
+  }
+
+  // 토요일
+  if (dayOfWeek === 6) {
+    return theme.COLORS.SECONDARY.BLUE_60;
+  }
+
+  // 평일
+  return theme.COLORS.DEFAULT.BLACK;
 };
 
 const WEEKLY_DAY_INFO = [
@@ -117,14 +148,31 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     const date = watch('date');
     const targetDateString = date;
 
-    const [currentDate, setCurrentDate] = useState(targetDateString);
+    // current(초기 표시 월)는 마운트 후 바꾸지 않는다. current를 스와이프에 맞춰 바꾸면 라이브러리가 scrollToMonth를
+    // 되걸어(에코) 관성과 충돌 → 월이 자동으로 왕복한다. 스와이프는 라이브러리 내부 상태로만 처리한다.
+    const [currentDate] = useState(targetDateString);
     // 가로 페이징 CalendarList는 컨테이너 폭을 알아야 월 단위로 정확히 스냅된다. 편집화면·바텀시트 폭이 달라 onLayout으로 측정한다.
     const [calendarWidth, setCalendarWidth] = useState(0);
-    // 보이는 달의 주 수에 맞춘 높이. 옆 달(6주)이 함께 렌더돼도 wrapper의 overflow로 잘라 여백을 없앤다.
-    const calendarListHeight = useMemo(
-      () => CALENDAR_HEADER_HEIGHT + getWeeksInMonth(currentDate) * CALENDAR_ROW_HEIGHT,
-      [currentDate],
+    // 보이는 달(스와이프 즉시 반영). wrapper 높이를 이 값으로 구동해 달 전환 시 높이가 곧바로 조정되게 한다.
+    const [visibleMonth, setVisibleMonth] = useState(targetDateString);
+    // 화살표(‹ ›)는 current를 바꾸지 않고 이 ref의 scrollToMonth로 명령형 스크롤 → 에코 루프 없이 이동한다.
+    const calendarRef = useRef<CalendarListImperativeMethods>(null);
+
+    // wrapper는 보이는 달의 주 수만큼만 노출(overflow로 클립)해 여백을 없앤다. 즉시 반영되도록 visibleMonth로 계산.
+    const calendarWrapperHeight = useMemo(
+      () => CALENDAR_HEADER_HEIGHT + getWeeksInMonth(visibleMonth) * CALENDAR_ROW_HEIGHT,
+      [visibleMonth],
     );
+
+    // 스와이프/화살표로 보이는 달이 바뀌면 높이만 즉시 갱신한다(current는 건드리지 않음).
+    const handleVisibleMonthChange = useCallback((month: DateData) => {
+      setVisibleMonth(month.dateString);
+    }, []);
+
+    // 화살표: 헤더의 현재 표시 월(baseDate) 기준으로 명령형 스크롤. current 변경이 아니라 에코 루프가 없다.
+    const handleMoveMonth = useCallback((amount: number, baseDate: Date) => {
+      calendarRef.current?.scrollToMonth(dayjs(baseDate).add(amount, 'month').format('YYYY-MM-DD'));
+    }, []);
     // 투두 모드에서 사용하는 선택 기간 상태
     const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null);
     const [selectedPrimaryCategory, setSelectedPrimaryCategory] = useState<TaskRoutineCycleEnumType | null>(null);
@@ -226,6 +274,12 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
 
       return marked;
     };
+
+    // 스와이프 중 부모 재렌더로 매번 재계산/새 객체가 생기지 않도록 메모이즈(선택 기간이 바뀔 때만 갱신).
+    const markedDates = useMemo(
+      () => getMarkedPeriodDates(selectedEndDate),
+      [selectedEndDate, routineCondition?.startDate, targetDateString],
+    );
 
     const handleExcludeHolidays = (value: boolean) => {
       if (isRoutineEditScreen) {
@@ -353,111 +407,114 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     });
 
     // 요일별 텍스트 색상 결정 함수
-    const getDayTextColor = (dateString: string, state?: string) => {
-      // 선택할 수 없는 요일은 회색 처리
-      if (state === 'disabled') {
-        return theme.COLORS.GRAY_SCALE.GRAY_80;
-      }
-
-      /**
-       * 해당 날의 요일 값 반환
-       * 0 - 일요일
-       * 1 - 월요일
-       * 2 - 화요일
-       * 3 - 수요일
-       * 4 - 목요일
-       * 5 - 금요일
-       * 6 - 토요일
-       */
-      const dayOfWeek = new Date(dateString).getDay();
-
-      // 일요일
-      if (dayOfWeek === 0) {
-        return theme.COLORS.PRIMARY.RED_60;
-      }
-
-      // 토요일
-      if (dayOfWeek === 6) {
-        return theme.COLORS.SECONDARY.BLUE_60;
-      }
-
-      // 평일
-      return theme.COLORS.DEFAULT.BLACK;
-    };
-
-    const renderDayComponent = ({ date, state, marking }: DayProps & { date?: DateData }) => {
-      if (!date) {
-        return null;
-      }
-
-      const textColor = getDayTextColor(date.dateString, state);
-      const isDisabled = state === 'disabled';
-
-      const isStartDay = marking?.startingDay;
-      const isEndDay = marking?.endingDay;
-      const isMiddleDay = marking?.color && !isStartDay && !isEndDay;
-      const isSingleDay = isStartDay && isEndDay;
-
-      const getBackgroundDayColor = (isTargetDay?: boolean) => {
-        if (!isMiddleDay && !isTargetDay) {
-          return 'transparent';
+    const handleDayPress = useCallback(
+      (date: DateData) => {
+        /**
+         * 날짜 선택이 유효하지 않은 경우
+         * 1. 루틴 수정 스크린 - 선택한 날짜가 이미 루틴 종료일로 설정되어 있을 경우
+         * 2. 루틴 등록 스크린 - 선택한 날짜가 등록한 날 기준으로 동일하거나 이전일 경우
+         */
+        if (
+          (isRoutineEditScreen && date.dateString === routineCondition?.endDate) ||
+          (!isRoutineEditScreen && dayjs(date.dateString).isSameOrBefore(targetDateString))
+        ) {
+          return;
         }
 
-        if (isTargetDay) {
-          return theme.COLORS.GRAY_SCALE.GRAY_92;
+        setSelectedEndDate(prev => {
+          // 선택한 종료일 재선택 시 미선택으로 초기화
+          if (prev === date.dateString) {
+            if (isRoutineEditScreen) {
+              setValue('routineCondition.endDate', null, { shouldDirty: true, shouldTouch: true });
+            }
+            return null;
+          }
+
+          if (isRoutineEditScreen) {
+            setValue('routineCondition.endDate', date.dateString, { shouldDirty: true, shouldTouch: true });
+          }
+          return date.dateString;
+        });
+      },
+      [isRoutineEditScreen, routineCondition?.endDate, targetDateString, setValue],
+    );
+
+    const renderDayComponent = useCallback(
+      ({ date, state, marking }: DayProps & { date?: DateData }) => {
+        if (!date) {
+          return null;
         }
 
-        return theme.COLORS.GRAY_SCALE.GRAY_96;
-      };
+        const textColor = getDayTextColor(date.dateString, state);
+        const isDisabled = state === 'disabled';
 
-      return (
-        // 셀이 열 전체 폭을 채우게 해(flex:1) 캘린더 폭과 무관하게 기간 배경이 인접 셀과 항상 맞닿게 한다.
-        <View style={styles.dayCell}>
-          {/* 배경 레이어 - 간격을 넘어서 확장 */}
-          {!isSingleDay && (
-            <View
-              style={{
-                position: 'absolute',
-                top: 0,
-                bottom: 0,
-                left: -5,
-                right: -5,
-                flexDirection: 'row',
-                overflow: 'visible',
-              }}
+        const isStartDay = marking?.startingDay;
+        const isEndDay = marking?.endingDay;
+        const isMiddleDay = marking?.color && !isStartDay && !isEndDay;
+        const isSingleDay = isStartDay && isEndDay;
+
+        const getBackgroundDayColor = (isTargetDay?: boolean) => {
+          if (!isMiddleDay && !isTargetDay) {
+            return 'transparent';
+          }
+
+          if (isTargetDay) {
+            return theme.COLORS.GRAY_SCALE.GRAY_92;
+          }
+
+          return theme.COLORS.GRAY_SCALE.GRAY_96;
+        };
+
+        return (
+          // 셀이 열 전체 폭을 채우게 해(flex:1) 캘린더 폭과 무관하게 기간 배경이 인접 셀과 항상 맞닿게 한다.
+          <View style={styles.dayCell}>
+            {/* 배경 레이어 - 간격을 넘어서 확장 */}
+            {!isSingleDay && (
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  left: -5,
+                  right: -5,
+                  flexDirection: 'row',
+                  overflow: 'visible',
+                }}
+              >
+                {/* 왼쪽 절반 */}
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: getBackgroundDayColor(isEndDay),
+                  }}
+                />
+                {/* 오른쪽 절반 */}
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: getBackgroundDayColor(isStartDay),
+                  }}
+                />
+              </View>
+            )}
+            <Pressable
+              onPress={() => handleDayPress(date)}
+              disabled={isDisabled}
+              style={[
+                styles.dayButton,
+                (isStartDay || isEndDay) && {
+                  backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_92,
+                  borderRadius: 18,
+                },
+              ]}
             >
-              {/* 왼쪽 절반 */}
-              <View
-                style={{
-                  flex: 1,
-                  backgroundColor: getBackgroundDayColor(isEndDay),
-                }}
-              />
-              {/* 오른쪽 절반 */}
-              <View
-                style={{
-                  flex: 1,
-                  backgroundColor: getBackgroundDayColor(isStartDay),
-                }}
-              />
-            </View>
-          )}
-          <Pressable
-            onPress={() => handleDayPress(date)}
-            disabled={isDisabled}
-            style={[
-              styles.dayButton,
-              (isStartDay || isEndDay) && {
-                backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_92,
-                borderRadius: 18,
-              },
-            ]}
-          >
-            <Text style={[theme.TYPOGRAPHY.BODY_2, { color: textColor }]}>{date.day}</Text>
-          </Pressable>
-        </View>
-      );
-    };
+              <Text style={[theme.TYPOGRAPHY.BODY_2, { color: textColor }]}>{date.day}</Text>
+            </Pressable>
+          </View>
+        );
+      },
+      [handleDayPress],
+    );
 
     const handleSubmit = () => {
       setValue('routineCondition', buildRoutineCondition());
@@ -498,43 +555,9 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       }
     };
 
-    const handleDayPress = (date: DateData) => {
-      /**
-       * 날짜 선택이 유효하지 않은 경우
-       * 1. 루틴 수정 스크린 - 선택한 날짜가 이미 루틴 종료일로 설정되어 있을 경우
-       * 2. 루틴 등륵 스크린 - 선택한 날짜가 등록한 날 기준으로 동일하거나 이전일 경우
-       */
-      if (
-        (isRoutineEditScreen && date.dateString === routineCondition?.endDate) ||
-        (!isRoutineEditScreen && dayjs(date.dateString).isSameOrBefore(targetDateString))
-      ) {
-        return;
-      }
-
-      setSelectedEndDate(prev => {
-        // 선택한 종료일 재선택 시 미선택으로 초기화
-        if (prev === date.dateString) {
-          if (isRoutineEditScreen) {
-            setValue('routineCondition.endDate', null, {
-              shouldDirty: true,
-              shouldTouch: true,
-            });
-          }
-          return null;
-        }
-
-        if (isRoutineEditScreen) {
-          setValue('routineCondition.endDate', date.dateString, {
-            shouldDirty: true,
-            shouldTouch: true,
-          });
-        }
-        return date.dateString;
-      });
-    };
-
-    const renderCustomHeader = (date: Date) => (
-      <CustomCalendarHeader type="NORMAL" date={date} setCurrentDate={setCurrentDate} />
+    const renderCustomHeader = useCallback(
+      (date: Date) => <CustomCalendarHeader type="NORMAL" date={date} onMoveMonth={handleMoveMonth} />,
+      [handleMoveMonth],
     );
 
     useEffect(() => {
@@ -590,9 +613,10 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
               }}
             >
               {calendarWidth > 0 && (
-                // 옆 달(6주)이 FlatList 높이를 끌어올려도 현재 달 높이로 잘라 여백을 제거한다.
-                <View style={{ height: calendarListHeight, overflow: 'hidden' }}>
-                  <CalendarList
+                // 보이는 달 높이만큼만 노출(overflow 클립)해 여백 제거. visibleMonth로 즉시 반영돼 달 전환 지연이 없다.
+                <View style={{ height: calendarWrapperHeight, overflow: 'hidden' }}>
+                  <MemoizedCalendarList
+                    ref={calendarRef}
                     current={currentDate}
                     // 가로 페이징으로 좌우 스와이프 시 월이 슬라이드 애니메이션과 함께 이동한다.
                     horizontal
@@ -600,20 +624,21 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
                     // 헤더(화살표 포함)는 고정하고 달력 본문만 슬라이드시킨다.
                     staticHeader
                     calendarWidth={calendarWidth}
-                    calendarHeight={calendarListHeight}
+                    // 자체 높이는 최대(6주)로 고정 → 달 전환 시 CalendarList 재렌더/재측정 최소화(실제 노출은 wrapper가 클립).
+                    calendarHeight={CALENDAR_LIST_MAX_HEIGHT}
                     // CalendarList 기본 좌우 패딩(15)은 제거하고, 헤더는 본문(week 자체 패딩 15)에 맞춰 정렬한다.
-                    calendarStyle={{ paddingLeft: 0, paddingRight: 0 }}
-                    headerStyle={{ paddingHorizontal: 15 }}
+                    calendarStyle={CALENDAR_LIST_STYLE}
+                    headerStyle={CALENDAR_HEADER_STYLE}
                     pastScrollRange={12}
                     futureScrollRange={24}
                     markingType={'period'}
-                    markedDates={getMarkedPeriodDates(selectedEndDate)}
+                    markedDates={markedDates}
                     minDate={targetDateString}
                     renderHeader={renderCustomHeader}
                     onDayPress={handleDayPress}
                     dayComponent={renderDayComponent}
-                    // 스와이프·화살표 모두 currentDate를 동기화해 헤더와 어긋나지 않게 한다.
-                    onMonthChange={month => setCurrentDate(month.dateString)}
+                    // 보이는 달이 바뀌면 wrapper 높이만 즉시 갱신(current는 건드리지 않아 에코 없음).
+                    onMonthChange={handleVisibleMonthChange}
                     hideDayNames
                     hideArrows
                   />

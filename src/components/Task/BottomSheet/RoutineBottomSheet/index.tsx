@@ -33,6 +33,8 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ navigat
       title="루틴 등록하기"
       buttonConfig={{ title: '등록하기', isDisabled: !isSubmitValid }}
       snapPoints={['90%']}
+      // 달력 가로 스와이프·세로 스크롤이 시트 팬 제스처와 충돌하지 않도록 콘텐츠 팬 제스처를 끈다.
+      enableContentPanningGesture={false}
       handleCloseButton={() => formRef.current?.handleCloseButton()}
       handleButtonSubmit={() => formRef.current?.handleSubmit()}
     >

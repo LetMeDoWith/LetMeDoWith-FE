@@ -9,11 +9,13 @@ import { theme } from 'styles/theme';
 interface Props {
   type: 'NORMAL' | 'EXPANDABLE';
   date: Date;
-  setCurrentDate: Dispatch<SetStateAction<string>>;
+  setCurrentDate?: Dispatch<SetStateAction<string>>;
   selectedDate?: string;
   setSelectedDate?: Dispatch<SetStateAction<string>>;
   isWeekView?: boolean;
   setIsWeekView?: Dispatch<SetStateAction<boolean>>;
+  // 제공 시 화살표가 setCurrentDate 대신 이 콜백으로 이동한다(명령형 스크롤 등, controlled current 에코 회피용).
+  onMoveMonth?: (amount: number, baseDate: Date) => void;
 }
 
 const CustomCalendarHeader = ({
@@ -24,12 +26,18 @@ const CustomCalendarHeader = ({
   setSelectedDate,
   isWeekView,
   setIsWeekView,
+  onMoveMonth,
 }: Props) => {
   const isExpandableType = type === 'EXPANDABLE';
   const today = dayjs().format('YYYY-MM-DD');
 
   const moveDate = (_date: Date, amount: number, isWeekView?: boolean) => () => {
-    setCurrentDate(prev =>
+    if (onMoveMonth) {
+      onMoveMonth(amount, _date);
+      return;
+    }
+
+    setCurrentDate?.(prev =>
       dayjs(prev)
         .add(amount, isWeekView ? 'week' : 'month')
         .format('YYYY-MM-DD'),
@@ -48,7 +56,7 @@ const CustomCalendarHeader = ({
     if (setSelectedDate) {
       setSelectedDate(today);
     }
-    setCurrentDate(today);
+    setCurrentDate?.(today);
   };
 
   return (

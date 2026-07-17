@@ -21,6 +21,8 @@ interface Props {
   snapPoints: string[];
   description?: string;
   enablePanDownToClose?: boolean;
+  // 콘텐츠 위 드래그로 시트를 움직이는 제스처. 시트 안에 가로 스크롤(예: 달력 스와이프)이 있을 때 끄면 제스처 충돌을 막는다.
+  enableContentPanningGesture?: boolean;
   useScrollView?: boolean;
   buttonConfig?: {
     title: string;
@@ -37,6 +39,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     title,
     description,
     enablePanDownToClose = false,
+    enableContentPanningGesture = true,
     useScrollView = true,
     buttonConfig,
     handleCloseButton,
@@ -112,6 +115,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
       ref={innerRef}
       snapPoints={snapPoints}
       enablePanDownToClose={enablePanDownToClose}
+      enableContentPanningGesture={enableContentPanningGesture}
       backdropComponent={renderBackdrop}
       handleComponent={
         enablePanDownToClose
