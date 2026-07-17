@@ -35,6 +35,11 @@ interface Props {
   status: feedbackAvailableDowithTaskSchemeType['status'];
   feedbackCount: number;
   myFeedbacks: myFeedbackSchemeType[];
+  /*
+   * 잔소리 이모지가 펼쳐졌을 때 호출. 이모지 바의 화면상 하단 Y(window 기준)를 넘겨, 부모가 가려지면 스크롤한다.
+   * FlatList(실시간 잔소리)는 인자를 무시하고 scrollToIndex를 쓰고, ScrollView(둘러보기)는 이 값으로 스크롤 양을 계산한다.
+   */
+  onExpand?: (reactionBarBottomY: number) => void;
 }
 
 // "보낸 잔소리" 라벨 예상 너비 + paddingHorizontal + gap
@@ -54,6 +59,7 @@ const FeedNagItem = ({
   status,
   feedbackCount,
   myFeedbacks,
+  onExpand,
 }: Props) => {
   const queryClient = useQueryClient();
   const { data: templates } = useFetchFeedbackTemplates();
@@ -131,6 +137,15 @@ const FeedNagItem = ({
     [startAnimation, sendFeedback, taskId, showDialog, hideDialog],
   );
 
+  const reactionBarRef = React.useRef<View>(null);
+
+  // 펼침 레이아웃 후 이모지 바의 화면상 하단 Y를 측정해 부모에 전달(가려짐 판단·스크롤용)
+  const handleReactionBarLayout = useCallback(() => {
+    reactionBarRef.current?.measureInWindow((_x, y, _width, height) => {
+      onExpand?.(y + height);
+    });
+  }, [onExpand]);
+
   const [bubbleWidth, setBubbleWidth] = useState(0);
 
   const onBubbleLayout = useCallback((e: LayoutChangeEvent) => {
@@ -201,7 +216,7 @@ const FeedNagItem = ({
             </Pressable>
           </View>
           {showReactions && templates && (
-            <View style={styles.reactionBarWrapper}>
+            <View ref={reactionBarRef} style={styles.reactionBarWrapper} onLayout={handleReactionBarLayout}>
               <View style={styles.reactionBar}>
                 {templates.map(template => (
                   <Pressable key={template.id} style={styles.reactionButton} onPress={() => handleReaction(template)}>

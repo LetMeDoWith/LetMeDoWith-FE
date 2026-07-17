@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
-import { ScrollView } from 'react-native';
+import { useCallback, useRef } from 'react';
+import { Dimensions, type NativeScrollEvent, type NativeSyntheticEvent, ScrollView } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 import { FeedNagList, FeedNagEmpty, SuccessTaskImageList } from 'components/Feed';
 import { PullToRefreshControl } from 'components/common/PullToRefreshControl';
@@ -16,6 +17,28 @@ const Feed = () => {
   const { data, isLoading } = useFetchFeedbackAvailableDowithTasksInfinite();
   const hasNagTasks = (data?.pages[0]?.data.dowithTasks.length ?? 0) > 0;
 
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollY = useRef(0);
+  const tabBarHeight = useBottomTabBarHeight();
+
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    scrollY.current = event.nativeEvent.contentOffset.y;
+  }, []);
+
+  // 이모지 바 하단(window 기준 Y)이 탭바 위 보이는 영역을 넘으면(가려지면) 그만큼 스크롤해 다 보이게 한다.
+  const handleItemExpand = useCallback(
+    (reactionBarBottomY: number) => {
+      const visibleBottom = Dimensions.get('window').height - tabBarHeight;
+      const REVEAL_MARGIN = 16;
+      const overflow = reactionBarBottomY - visibleBottom + REVEAL_MARGIN;
+
+      if (overflow > 0) {
+        scrollRef.current?.scrollTo({ y: scrollY.current + overflow, animated: true });
+      }
+    },
+    [tabBarHeight],
+  );
+
   const onRefresh = useCallback(
     () =>
       Promise.all([
@@ -26,10 +49,15 @@ const Feed = () => {
   );
 
   return (
-    <ScrollView refreshControl={<PullToRefreshControl onRefresh={onRefresh} />}>
+    <ScrollView
+      ref={scrollRef}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
+      refreshControl={<PullToRefreshControl onRefresh={onRefresh} />}
+    >
       {!isLoading && hasNagTasks && (
         <>
-          <FeedNagList />
+          <FeedNagList onItemExpand={handleItemExpand} />
           <SuccessTaskImageList />
         </>
       )}
