@@ -1,4 +1,3 @@
-import { Alert } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import type { ApiError } from 'services/apiClient';
 
@@ -7,11 +6,13 @@ import { refreshToken } from 'services/rest/auth';
 import { AUTH_QUERY_KEY } from 'constants/queries';
 import { useStore } from 'stores/index';
 import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
+import { useDialog } from 'components/common/Dialog/Provider';
 
 /**
  * 토큰 재발급 Mutation Query Hook
  */
 const useRefreshTokenQuery = () => {
+  const { showDialog, hideDialog } = useDialog();
   const { initAuthInfo, setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId } = useStore(
     ({
       authActions: { initAuthInfo, setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId },
@@ -48,7 +49,13 @@ const useRefreshTokenQuery = () => {
         errorCode === ErrorStatusCodeEnum.enum.E307 ||
         errorCode === ErrorStatusCodeEnum.enum.E308
       ) {
-        Alert.alert('세션이 만료되었습니다. 로그인 화면으로 이동합니다');
+        // 앱 foreground 복귀 시 만료 처리(App.tsx)와 동일한 Dialog로 통일
+        showDialog({
+          type: 'ALERT',
+          title: '세션 만료',
+          content: '세션 정보가 만료되어\n로그인 페이지로 이동합니다.',
+          handleAlertButton: hideDialog,
+        });
         initAuthInfo();
       }
     },
