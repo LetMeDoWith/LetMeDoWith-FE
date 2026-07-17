@@ -1,7 +1,7 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Divider, Switch } from 'react-native-paper';
-import { Calendar } from 'react-native-calendars';
+import { CalendarList } from 'react-native-calendars';
 import type { DateData, MarkedDates } from 'react-native-calendars/src/types';
 import dayjs from 'dayjs';
 import type { DayProps } from 'react-native-calendars/src/calendar/day';
@@ -25,6 +25,16 @@ import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { TASK_ROUTINE_CYCLE_ENUM } from 'schemes/task/enum';
 import { useUpdateTaskRoutine } from 'hooks/queries/task/useUpdateTaskRoutine';
 import type { TaskRoutineCycleEnumType } from 'types/task/scheme/enum';
+
+// 가로 페이징 CalendarList는 고정 높이가 필요하다. 커스텀 셀 높이(36) + 주 상하 마진(7×2)=50,
+// 헤더 약 48. 보이는 달의 주 수에 맞춰 높이를 동적으로 잡고 overflow로 잘라 불필요한 여백을 없앤다.
+const CALENDAR_ROW_HEIGHT = 50;
+const CALENDAR_HEADER_HEIGHT = 48;
+// 달력 첫날의 요일(0=일) 기준으로 해당 월이 몇 주에 걸치는지 계산한다.
+const getWeeksInMonth = (dateString: string) => {
+  const startOfMonth = dayjs(dateString).startOf('month');
+  return Math.ceil((startOfMonth.day() + startOfMonth.daysInMonth()) / 7);
+};
 
 const WEEKLY_DAY_INFO = [
   { code: 'MONDAY', value: 1, name: '월' },
@@ -108,6 +118,13 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
     const targetDateString = date;
 
     const [currentDate, setCurrentDate] = useState(targetDateString);
+    // 가로 페이징 CalendarList는 컨테이너 폭을 알아야 월 단위로 정확히 스냅된다. 편집화면·바텀시트 폭이 달라 onLayout으로 측정한다.
+    const [calendarWidth, setCalendarWidth] = useState(0);
+    // 보이는 달의 주 수에 맞춘 높이. 옆 달(6주)이 함께 렌더돼도 wrapper의 overflow로 잘라 여백을 없앤다.
+    const calendarListHeight = useMemo(
+      () => CALENDAR_HEADER_HEIGHT + getWeeksInMonth(currentDate) * CALENDAR_ROW_HEIGHT,
+      [currentDate],
+    );
     // 투두 모드에서 사용하는 선택 기간 상태
     const [selectedEndDate, setSelectedEndDate] = useState<string | null>(null);
     const [selectedPrimaryCategory, setSelectedPrimaryCategory] = useState<TaskRoutineCycleEnumType | null>(null);
@@ -394,7 +411,8 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       };
 
       return (
-        <View>
+        // 셀이 열 전체 폭을 채우게 해(flex:1) 캘린더 폭과 무관하게 기간 배경이 인접 셀과 항상 맞닿게 한다.
+        <View style={styles.dayCell}>
           {/* 배경 레이어 - 간격을 넘어서 확장 */}
           {!isSingleDay && (
             <View
@@ -561,18 +579,47 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
           </View>
           <Divider style={{ marginVertical: 20 }} />
           {expanded && (
-            <Calendar
-              initialDate={currentDate}
-              style={{ marginBottom: 32 }}
-              markingType={'period'}
-              markedDates={getMarkedPeriodDates(selectedEndDate)}
-              minDate={targetDateString}
-              renderHeader={renderCustomHeader}
-              onDayPress={handleDayPress}
-              dayComponent={renderDayComponent}
-              hideDayNames
-              hideArrows
-            />
+            <View
+              // 바깥 컨테이너 좌우 패딩(편집화면 20 / 바텀시트 24)을 살짝 상쇄해 달력을 조금 더 넓게 편다(과하면 잘림).
+              style={{ marginBottom: 32, marginHorizontal: -8 }}
+              onLayout={event => {
+                const { width } = event.nativeEvent.layout;
+                if (width > 0 && width !== calendarWidth) {
+                  setCalendarWidth(width);
+                }
+              }}
+            >
+              {calendarWidth > 0 && (
+                // 옆 달(6주)이 FlatList 높이를 끌어올려도 현재 달 높이로 잘라 여백을 제거한다.
+                <View style={{ height: calendarListHeight, overflow: 'hidden' }}>
+                  <CalendarList
+                    current={currentDate}
+                    // 가로 페이징으로 좌우 스와이프 시 월이 슬라이드 애니메이션과 함께 이동한다.
+                    horizontal
+                    pagingEnabled
+                    // 헤더(화살표 포함)는 고정하고 달력 본문만 슬라이드시킨다.
+                    staticHeader
+                    calendarWidth={calendarWidth}
+                    calendarHeight={calendarListHeight}
+                    // CalendarList 기본 좌우 패딩(15)은 제거하고, 헤더는 본문(week 자체 패딩 15)에 맞춰 정렬한다.
+                    calendarStyle={{ paddingLeft: 0, paddingRight: 0 }}
+                    headerStyle={{ paddingHorizontal: 15 }}
+                    pastScrollRange={12}
+                    futureScrollRange={24}
+                    markingType={'period'}
+                    markedDates={getMarkedPeriodDates(selectedEndDate)}
+                    minDate={targetDateString}
+                    renderHeader={renderCustomHeader}
+                    onDayPress={handleDayPress}
+                    dayComponent={renderDayComponent}
+                    // 스와이프·화살표 모두 currentDate를 동기화해 헤더와 어긋나지 않게 한다.
+                    onMonthChange={month => setCurrentDate(month.dateString)}
+                    hideDayNames
+                    hideArrows
+                  />
+                </View>
+              )}
+            </View>
           )}
           <View style={styles.routineSection}>
             <Text style={styles.routineSectionTitle}>반복 패턴</Text>
@@ -786,6 +833,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  // 라이브러리 dayContainer(flex:1, column)의 가로 폭을 채운다(alignSelf:stretch). flex:1은 세로로 늘어나 붕괴하므로 금지.
+  dayCell: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
   },
   dayButton: {
     height: 36,
