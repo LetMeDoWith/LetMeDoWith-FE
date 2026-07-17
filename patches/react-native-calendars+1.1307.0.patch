@@ -1,0 +1,25 @@
+diff --git a/node_modules/react-native-calendars/src/expandableCalendar/index.js b/node_modules/react-native-calendars/src/expandableCalendar/index.js
+index fe7025d..7fa8cef 100644
+--- a/node_modules/react-native-calendars/src/expandableCalendar/index.js
++++ b/node_modules/react-native-calendars/src/expandableCalendar/index.js
+@@ -23,8 +23,8 @@ export var Positions;
+ })(Positions || (Positions = {}));
+ const SPEED = 20;
+ const BOUNCINESS = 6;
+-const CLOSED_HEIGHT = 120; // header + 1 week
+-const WEEK_HEIGHT = 46;
++const CLOSED_HEIGHT = 140; // patched: 헤더 + 커스텀 1주 높이 (주뷰 높이)
++const WEEK_HEIGHT = 61; // patched: 46 -> 61 (커스텀 셀 47 + 주여백 14)
+ const DAY_NAMES_PADDING = 24;
+ const PAN_GESTURE_THRESHOLD = 30;
+ const LEFT_ARROW = require('../calendar/img/previous.png');
+@@ -100,7 +100,8 @@ const ExpandableCalendar = (props) => {
+         if (!horizontal) {
+             return Math.max(constants.screenHeight, constants.screenWidth);
+         }
+-        return CLOSED_HEIGHT + (WEEK_HEIGHT * (numberOfWeeks.current - 1)) + (hideKnob ? 12 : KNOB_CONTAINER_HEIGHT) + (constants.isAndroid ? 3 : 0);
++        // patched: 항상 6주 크기로 계산(6주 달 잘림 방지). 남는 공간은 앱에서 음수 margin으로 상쇄.
++        return CLOSED_HEIGHT + (WEEK_HEIGHT * (6 - 1)) + (hideKnob ? 12 : KNOB_CONTAINER_HEIGHT) + (constants.isAndroid ? 3 : 0);
+     };
+     const openHeight = useRef(getOpenHeight());
+     const closedHeight = useMemo(() => CLOSED_HEIGHT + (hideKnob || Number(numberOfDays) > 1 ? 0 : KNOB_CONTAINER_HEIGHT), [numberOfDays, hideKnob]);

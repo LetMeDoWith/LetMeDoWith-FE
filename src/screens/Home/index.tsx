@@ -29,6 +29,15 @@ import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api'
 // 요일 시작: 0=일, 1=월
 const FIRST_DAY = 0;
 
+// 날짜(24) + gap(2) + 마킹(21). 마킹 없어도 예약해 셀 높이를 균일하게.
+const DAY_CELL_HEIGHT = 47;
+
+// patch의 WEEK_HEIGHT와 동일. openHeight가 항상 6주 크기라, 주 수가 적은 달은 (6-주수)×이만큼 음수로 상쇄한다.
+const WEEK_HEIGHT_PX = 61;
+// 월뷰 하단 여백(6주 달 기준). 이 값만 조절하면 모든 달에 반영된다.
+const MONTH_VIEW_BASE_MARGIN = 12;
+const WEEK_VIEW_BOTTOM_MARGIN = 8;
+
 // 태스크가 없는 날짜 조회 시 매번 새 객체를 만들지 않도록 공유하는 빈 목록
 const EMPTY_TASK_LIST: fetchTaskListResponseSchemeDataType = { dowithTasks: [], todoTasks: [] };
 
@@ -60,6 +69,15 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
   }, [deepLinkDate, setParams]);
 
   const [isWeekView, setIsWeekView] = useState(true);
+
+  // 현재 달의 주 수(4~6). 하단 여백을 동적으로 상쇄하는 데 사용.
+  const weeksInCurrentMonth = useMemo(() => {
+    const startOfMonth = dayjs(currentDate).startOf('month');
+    const firstDayOffset = (startOfMonth.day() - FIRST_DAY + 7) % 7;
+    return Math.ceil((firstDayOffset + startOfMonth.daysInMonth()) / 7);
+  }, [currentDate]);
+
+  const monthViewBottomMargin = MONTH_VIEW_BASE_MARGIN - (6 - weeksInCurrentMonth) * WEEK_HEIGHT_PX;
   const selectedDateKoreanString = dayjs(selectedDate).format('YYYY년 MM월 DD일 dddd');
 
   const year = dayjs(selectedDate).year();
@@ -114,53 +132,6 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
     }
 
     setSelectedDate(date.dateString);
-  };
-
-  const startOfWeek = (targetDay: dayjs.Dayjs, firstDay: number) => {
-    const diff = (targetDay.day() - firstDay + 7) % 7;
-    return targetDay.subtract(diff, 'day');
-  };
-
-  // 월뷰에서 실제로 "보이는 마지막 주" 7일(압축 규칙 반영)
-  const getLastVisibleWeekDates = (current: string, firstDay: number) => {
-    // 달의 마지막 날
-    const end = dayjs(current).endOf('month');
-    // 압축되면 직전 주가 마지막 줄
-    const base = end.day() === firstDay ? end.subtract(1, 'day') : end;
-    const start = startOfWeek(base, firstDay);
-    return Array.from({ length: 7 }, (_, i) => start.add(i, 'day').format('YYYY-MM-DD'));
-  };
-
-  // 이번 달이 화면에 몇 줄로 보이는지 계산
-  const getWeeksCount = (current: string, firstDay: number) => {
-    const currentDate = dayjs(current);
-    const gridStart = startOfWeek(currentDate.startOf('month'), firstDay);
-    // 마지막 보이는 토/일까지
-    const gridEnd = startOfWeek(currentDate.endOf('month'), firstDay).add(6, 'day');
-    return Math.round(gridEnd.diff(gridStart, 'day') / 7) + 1;
-  };
-
-  // 그룹핑 맵에 날짜 키가 있으면 그 날짜에 태스크가 하나 이상 존재한다는 의미
-  const hasIconOnDates = (dates: string[]) => dates.some(date => tasksByDate.has(date));
-
-  const getCalendarMarginBottom = () => {
-    // 주간 보기
-    if (isWeekView) {
-      const weekStart = startOfWeek(dayjs(currentDate), FIRST_DAY);
-      const weekDates = Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day').format('YYYY-MM-DD'));
-      return hasIconOnDates(weekDates) ? 30 : 0;
-    }
-
-    // 월간 보기
-    const lastWeekDates = getLastVisibleWeekDates(currentDate, FIRST_DAY);
-    const weeks = getWeeksCount(currentDate, FIRST_DAY); // 5 또는 6
-    const lastRowHasIcon = hasIconOnDates(lastWeekDates);
-
-    if (weeks === 7) {
-      return lastRowHasIcon ? 10 : -10;
-    } else {
-      return lastRowHasIcon ? -40 : -60;
-    }
   };
 
   const getTaskStatus = useCallback((taskList: fetchTaskListResponseSchemeDataType) => {
@@ -337,9 +308,15 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
         </LinearGradient>
         <View style={styles.contentWrap}>
           <View style={{ flex: 1 }}>
-            <CalendarProvider style={styles.calendarWrap} date={currentDate}>
+            <CalendarProvider
+              style={styles.calendarWrap}
+              date={currentDate}
+              // 스와이프로 달을 이동할 때도 currentDate를 동기화(< > 버튼은 별도로 setCurrentDate). 동적 여백 계산에 필요.
+              onMonthChange={month => setCurrentDate(month.dateString)}
+            >
               <ExpandableCalendar
-                key={isWeekView ? 'isWeekView' : 'monthView'}
+                // 주/월 전환 시에만 리마운트(위치 초기화).
+                key={isWeekView ? 'weekView' : 'monthView'}
                 initialPosition={isWeekView ? Positions.CLOSED : Positions.OPEN}
                 markedDates={{
                   [selectedDate]: { selected: true },
@@ -353,7 +330,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
                 hideKnob
                 disablePan
               />
-              <View style={{ marginBottom: getCalendarMarginBottom() }} />
+              <View style={{ marginBottom: isWeekView ? WEEK_VIEW_BOTTOM_MARGIN : monthViewBottomMargin }} />
               <View style={{ flex: 1, marginHorizontal: 20 }}>
                 <Divider style={styles.divider} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -431,18 +408,20 @@ const styles = StyleSheet.create({
     marginHorizontal: -20,
   },
   calendarDay: {
-    width: 32,
-    height: 32,
+    width: 24,
+    height: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // 날짜를 위로 정렬해 마킹 유무와 무관하게 위치가 일정. 마킹은 셀에 포함되어 어디서도 잘리지 않는다.
   dayWrap: {
+    height: DAY_CELL_HEIGHT,
     alignItems: 'center',
+    gap: 2,
   },
   selectedDay: {
     backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_40,
-    padding: 8,
-    borderRadius: 14,
+    borderRadius: 10,
   },
   selectedDayText: {
     color: theme.COLORS.DEFAULT.WHITE,
