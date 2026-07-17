@@ -1,12 +1,13 @@
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ReceivedComment, EmptyComment } from 'components/Feedback';
+import { PullToRefreshControl } from 'components/common/PullToRefreshControl';
 import { useFetchReceivedFeedbacks } from 'hooks/queries/feedback/useFetchReceivedFeedbacks';
 import type { receivedFeedbackSchemeType } from 'types/feedback/scheme/api';
 import { navigateByDeepLink } from 'utils/deepLink';
 
 const ReceiveFeedback = () => {
-  const { data, isLoading } = useFetchReceivedFeedbacks();
+  const { data, isLoading, refetch } = useFetchReceivedFeedbacks();
 
   if (isLoading) {
     return (
@@ -20,9 +21,12 @@ const ReceiveFeedback = () => {
 
   if (feedbacks.length === 0) {
     return (
-      <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.emptyContainer}
+        refreshControl={<PullToRefreshControl onRefresh={refetch} />}
+      >
         <EmptyComment type="RECEIVE" />
-      </View>
+      </ScrollView>
     );
   }
 
@@ -46,6 +50,7 @@ const ReceiveFeedback = () => {
       renderItem={renderItem}
       keyExtractor={item => item.id.toString()}
       contentContainerStyle={styles.list}
+      refreshControl={<PullToRefreshControl onRefresh={refetch} />}
     />
   );
 };
@@ -53,6 +58,9 @@ const ReceiveFeedback = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  emptyContainer: {
+    flexGrow: 1,
   },
   list: {
     gap: 20,

@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
 import { useAppState } from 'hooks/shared/useAppState';
-import { useAutoRefreshStore } from 'stores/autoRefreshStore';
+import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
 import { showSnackbar } from 'stores/snackbarStore';
 import { IS_DEV_MODE } from 'utils/env';
 
@@ -60,14 +60,10 @@ const useScheduledRefetch = (queryKeys: readonly (readonly string[])[]) => {
         showSnackbar('[DEV] 자동 새로고침 완료', 2000);
       }
 
-      // 자동 refetch 동안에는 전역 로딩 오버레이를 띄우지 않도록 플래그를 세운다.
-      const { setAutoRefreshing } = useAutoRefreshStore.getState();
-      setAutoRefreshing(true);
-      try {
-        await Promise.all(queryKeys.map(queryKey => queryClient.invalidateQueries({ queryKey: [...queryKey] })));
-      } finally {
-        setAutoRefreshing(false);
-      }
+      // 자동 refetch 동안에는 전역 로딩 오버레이를 띄우지 않는다.
+      await runWithSuppressedOverlay(() =>
+        Promise.all(queryKeys.map(queryKey => queryClient.invalidateQueries({ queryKey: [...queryKey] }))),
+      );
 
       scheduleNext();
     }, delay);

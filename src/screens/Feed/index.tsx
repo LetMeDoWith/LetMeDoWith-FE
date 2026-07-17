@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { useCallback } from 'react';
+import { ScrollView } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { FeedNagList, FeedNagEmpty, SuccessTaskImageList } from 'components/Feed';
+import { PullToRefreshControl } from 'components/common/PullToRefreshControl';
 import { useScheduledRefetch } from 'hooks/shared/useScheduledRefetch';
 import { useFetchFeedbackAvailableDowithTasksInfinite } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasksInfinite';
 import { TASK_QUERY_KEY } from 'constants/queries';
@@ -14,19 +15,18 @@ const Feed = () => {
   const queryClient = useQueryClient();
   const { data, isLoading } = useFetchFeedbackAvailableDowithTasksInfinite();
   const hasNagTasks = (data?.pages[0]?.data.dowithTasks.length ?? 0) > 0;
-  const [refreshing, setRefreshing] = useState(false);
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS }),
-      queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.SUCCESS_DOWITH_TASKS }),
-    ]);
-    setRefreshing(false);
-  }, [queryClient]);
+  const onRefresh = useCallback(
+    () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS }),
+        queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.SUCCESS_DOWITH_TASKS }),
+      ]),
+    [queryClient],
+  );
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+    <ScrollView refreshControl={<PullToRefreshControl onRefresh={onRefresh} />}>
       {!isLoading && hasNagTasks && (
         <>
           <FeedNagList />

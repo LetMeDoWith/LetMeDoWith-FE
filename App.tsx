@@ -18,7 +18,7 @@ import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { IS_DEV_MODE } from 'utils/env';
-import { useAutoRefreshStore } from 'stores/autoRefreshStore';
+import { useLoadingOverlayStore } from 'stores/loadingOverlayStore';
 import { GlobalSnackbar } from 'components/common/GlobalSnackbar';
 
 import { Login } from 'screens/Login';
@@ -136,9 +136,9 @@ function AppContent() {
   const isTokenRefreshingRef = useRef(false);
   const isFetching = useIsFetching();
   const isMutating = useIsMutating();
-  const isAutoRefreshing = useAutoRefreshStore(state => state.isAutoRefreshing);
-  // 자동(스케줄) refresh 중에는 로딩 오버레이를 띄우지 않는다. 유저 액션에 의한 refetch만 표시.
-  const isLoading = isFetching + isMutating > 0 && !isAutoRefreshing;
+  const isOverlaySuppressed = useLoadingOverlayStore(state => state.isSuppressed);
+  // 자동 새로고침·당겨서 새로고침처럼 자체 로딩 표시가 있는 refetch 중에는 전역 오버레이를 숨긴다.
+  const isLoading = isFetching + isMutating > 0 && !isOverlaySuppressed;
 
   const { mutate: mutateRefreshToken } = useRefreshTokenQuery();
   const { mutate: mutateNotificationToken } = useAddNotificationToken();

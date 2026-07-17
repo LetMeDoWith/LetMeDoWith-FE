@@ -1,11 +1,12 @@
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
 import { SentComment, EmptyComment } from 'components/Feedback';
+import { PullToRefreshControl } from 'components/common/PullToRefreshControl';
 import { useFetchSendFeedbacks } from 'hooks/queries/feedback/useFetchSendFeedbacks';
 import type { sentFeedbackSchemeType } from 'types/feedback/scheme/api';
 
 const SendFeedback = () => {
-  const { data, isLoading } = useFetchSendFeedbacks();
+  const { data, isLoading, refetch } = useFetchSendFeedbacks();
 
   if (isLoading) {
     return (
@@ -19,9 +20,12 @@ const SendFeedback = () => {
 
   if (feedbacks.length === 0) {
     return (
-      <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.emptyContainer}
+        refreshControl={<PullToRefreshControl onRefresh={refetch} />}
+      >
         <EmptyComment type="SEND" />
-      </View>
+      </ScrollView>
     );
   }
 
@@ -42,6 +46,7 @@ const SendFeedback = () => {
       renderItem={renderItem}
       keyExtractor={item => item.id.toString()}
       contentContainerStyle={styles.list}
+      refreshControl={<PullToRefreshControl onRefresh={refetch} />}
     />
   );
 };
@@ -49,6 +54,9 @@ const SendFeedback = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  emptyContainer: {
+    flexGrow: 1,
   },
   list: {
     gap: 20,
