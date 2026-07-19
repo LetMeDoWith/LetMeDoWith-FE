@@ -14,6 +14,7 @@ import FastImage from 'react-native-fast-image';
 import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
 
 import { Thunder } from 'components/common/icons/Thunder';
+import { FeedbackEmoji } from 'components/Feedback/FeedbackEmoji';
 import { useFetchDowithTaskFeedbackAggregates } from 'hooks/queries/feedback/useFetchDowithTaskFeedbackAggregates';
 import { useFetchDowithTaskFeedbacks } from 'hooks/queries/feedback/useFetchDowithTaskFeedbacks';
 import { useFetchFeedbackTemplates } from 'hooks/queries/feedback/useFetchFeedbackTemplates';
@@ -105,7 +106,7 @@ const ReceivedFeedbackContent = ({
               style={[styles.tab, isSelected && styles.tabSelected]}
               onPress={() => setSelectedTemplateId(item.feedbackTemplateId)}
             >
-              {template?.emojiUrl && <FastImage source={{ uri: template.emojiUrl }} style={styles.tabEmoji} />}
+              {template?.emojiUrl && <FeedbackEmoji uri={template.emojiUrl} size={44} />}
               <Text style={[styles.tabCount, isSelected && styles.tabCountSelected]}>{item.count}</Text>
             </Pressable>
           );
@@ -163,10 +164,6 @@ const styles = StyleSheet.create({
   },
   tabSelected: {
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_40,
-  },
-  tabEmoji: {
-    width: 44,
-    height: 44,
   },
   tabCount: {
     ...theme.TYPOGRAPHY.BODY_2,

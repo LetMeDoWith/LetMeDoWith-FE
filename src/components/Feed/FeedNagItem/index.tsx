@@ -5,6 +5,7 @@ import Animated from 'react-native-reanimated';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
+import { FeedbackEmoji, FeedbackSvg, isSvgUri } from 'components/Feedback/FeedbackEmoji';
 import { Clock } from 'components/common/icons/Clock';
 import { Thunder } from 'components/common/icons/Thunder';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
@@ -179,11 +180,17 @@ const FeedNagItem = ({
     <View style={styles.container}>
       {isAnimating && (
         <ConfettiEffect trigger={animationTrigger} delay={400} style={styles.animationOverlay}>
-          <AnimatedFastImage
-            key={animatingTemplate?.id}
-            source={{ uri: animatingTemplate?.emojiUrl }}
-            style={[styles.animatingEmoji, emojiAnimatedStyle]}
-          />
+          {isSvgUri(animatingTemplate?.emojiUrl) ? (
+            <Animated.View style={[styles.animatingEmoji, emojiAnimatedStyle]}>
+              <FeedbackSvg uri={animatingTemplate?.emojiUrl ?? ''} size={80} />
+            </Animated.View>
+          ) : (
+            <AnimatedFastImage
+              key={animatingTemplate?.id}
+              source={{ uri: animatingTemplate?.emojiUrl }}
+              style={[styles.animatingEmoji, emojiAnimatedStyle]}
+            />
+          )}
         </ConfettiEffect>
       )}
 
@@ -220,7 +227,7 @@ const FeedNagItem = ({
               <View style={styles.reactionBar}>
                 {templates.map(template => (
                   <Pressable key={template.id} style={styles.reactionButton} onPress={() => handleReaction(template)}>
-                    <FastImage source={{ uri: template.emojiUrl }} style={styles.reactionEmoji} />
+                    <FeedbackEmoji uri={template.emojiUrl} size={48} />
                     <Text style={styles.reactionMessage}>{template.name}</Text>
                   </Pressable>
                 ))}
@@ -235,7 +242,7 @@ const FeedNagItem = ({
                 if (!template) {
                   return null;
                 }
-                return <FastImage key={index} source={{ uri: template.emojiUrl }} style={styles.sentEmoji} />;
+                return <FeedbackEmoji key={index} uri={template.emojiUrl} size={24} />;
               })}
               {overflowCount > 0 && <Text style={styles.overflowCount}>+{overflowCount}</Text>}
             </View>
@@ -323,10 +330,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  reactionEmoji: {
-    width: 48,
-    height: 48,
-  },
   reactionMessage: {
     ...theme.TYPOGRAPHY.CAPTION1_BASIC,
     color: theme.COLORS.GRAY_SCALE.GRAY_50,
@@ -344,10 +347,6 @@ const styles = StyleSheet.create({
   sentLabel: {
     ...theme.TYPOGRAPHY.CAPTION1_BASIC,
     color: theme.COLORS.GRAY_SCALE.GRAY_60,
-  },
-  sentEmoji: {
-    width: 24,
-    height: 24,
   },
   overflowCount: {
     ...theme.TYPOGRAPHY.CAPTION1_BASIC,
