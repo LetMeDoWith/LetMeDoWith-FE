@@ -1,24 +1,27 @@
 import type { ApiError } from 'services/apiClient';
-import { useQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 
 import { FEEDBACK_QUERY_KEY } from 'constants/queries';
+import { DEFAULT_PAGE_SIZE } from 'constants/shared';
 import { fetchReceivedFeedbacks } from 'services/rest/feedback';
-import type { PageRequestSchemeType } from 'types/shared/scheme/api';
-import type { fetchReceivedFeedbacksResponseSchemeType, receivedFeedbackSchemeType } from 'types/feedback/scheme/api';
+import type { fetchReceivedFeedbacksResponseSchemeType } from 'types/feedback/scheme/api';
 
-type ReceivedFeedbacksResult = {
-  feedbacks: receivedFeedbackSchemeType[];
-  totalCount: number;
-};
-
-const useFetchReceivedFeedbacks = (params?: PageRequestSchemeType) =>
-  useQuery<fetchReceivedFeedbacksResponseSchemeType, ApiError, ReceivedFeedbacksResult>({
-    queryKey: [...FEEDBACK_QUERY_KEY.RECEIVED, params?.page, params?.size],
-    queryFn: () => fetchReceivedFeedbacks(params),
-    select: data => ({
-      feedbacks: data.data.feedbacks,
-      totalCount: data.totalCount,
-    }),
+const useFetchReceivedFeedbacks = () =>
+  useInfiniteQuery<
+    fetchReceivedFeedbacksResponseSchemeType,
+    ApiError,
+    InfiniteData<fetchReceivedFeedbacksResponseSchemeType, number>,
+    readonly string[],
+    number
+  >({
+    queryKey: [...FEEDBACK_QUERY_KEY.RECEIVED],
+    queryFn: ({ pageParam }) => fetchReceivedFeedbacks({ page: pageParam, size: DEFAULT_PAGE_SIZE }),
+    getNextPageParam: lastPage => {
+      const currentPage = lastPage.page;
+      const totalPage = lastPage.totalPage;
+      return currentPage + 1 < totalPage ? currentPage + 1 : undefined;
+    },
+    initialPageParam: 0,
   });
 
 export { useFetchReceivedFeedbacks };

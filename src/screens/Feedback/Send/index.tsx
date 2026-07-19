@@ -6,7 +6,7 @@ import { useFetchSendFeedbacks } from 'hooks/queries/feedback/useFetchSendFeedba
 import type { sentFeedbackSchemeType } from 'types/feedback/scheme/api';
 
 const SendFeedback = () => {
-  const { data, isLoading, refetch } = useFetchSendFeedbacks();
+  const { data, isLoading, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchSendFeedbacks();
 
   if (isLoading) {
     return (
@@ -16,7 +16,13 @@ const SendFeedback = () => {
     );
   }
 
-  const feedbacks = data?.feedbacks ?? [];
+  const feedbacks = data?.pages.flatMap(page => page.data.feedbacks) ?? [];
+
+  const handleEndReached = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
 
   if (feedbacks.length === 0) {
     return (
@@ -46,6 +52,9 @@ const SendFeedback = () => {
       renderItem={renderItem}
       keyExtractor={item => item.id.toString()}
       contentContainerStyle={styles.list}
+      onEndReached={handleEndReached}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={isFetchingNextPage ? <ActivityIndicator style={styles.footer} /> : null}
       refreshControl={<PullToRefreshControl onRefresh={refetch} />}
     />
   );
@@ -60,6 +69,9 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 20,
+  },
+  footer: {
+    paddingVertical: 16,
   },
 });
 
