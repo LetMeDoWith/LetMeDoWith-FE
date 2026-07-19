@@ -8,8 +8,9 @@ import {
   MutationCacheNotifyEvent,
   QueryCacheNotifyEvent,
   QueryClientProvider,
-  useIsFetching,
-  useIsMutating,
+  // TODO(임시): 전역 로딩 오버레이(fetching/mutating) 비활성화로 미사용
+  // useIsFetching,
+  // useIsMutating,
 } from '@tanstack/react-query';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -17,7 +18,8 @@ import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { IS_DEV_MODE } from 'utils/env';
-import { useLoadingOverlayStore } from 'stores/loadingOverlayStore';
+// TODO(임시): 전역 로딩 오버레이(fetching/mutating) 비활성화로 미사용
+// import { useLoadingOverlayStore } from 'stores/loadingOverlayStore';
 import { GlobalSnackbar } from 'components/common/GlobalSnackbar';
 import { queryClient } from 'services/queryClient';
 import { showSnackbar, SNACKBAR_TYPE } from 'stores/snackbarStore';
@@ -140,11 +142,14 @@ function AppContent() {
 
   // 토큰 재발급 진행중 관련 flag 변수 (중복 요청 방지)
   const isTokenRefreshingRef = useRef(false);
-  const isFetching = useIsFetching();
-  const isMutating = useIsMutating();
-  const isOverlaySuppressed = useLoadingOverlayStore(state => state.isSuppressed);
-  // 자동 새로고침·당겨서 새로고침처럼 자체 로딩 표시가 있는 refetch 중에는 전역 오버레이를 숨긴다.
-  const isLoading = isFetching + isMutating > 0 && !isOverlaySuppressed;
+  /*
+   * TODO(임시): fetching/mutating마다 전역 오버레이가 떠서 비활성화. 필요 시 아래 주석 해제.
+   * const isFetching = useIsFetching();
+   * const isMutating = useIsMutating();
+   * const isOverlaySuppressed = useLoadingOverlayStore(state => state.isSuppressed);
+   * // 자동 새로고침·당겨서 새로고침처럼 자체 로딩 표시가 있는 refetch 중에는 전역 오버레이를 숨긴다.
+   * const isLoading = isFetching + isMutating > 0 && !isOverlaySuppressed;
+   */
 
   const { mutate: mutateRefreshToken } = useRefreshTokenQuery();
   const { mutate: mutateNotificationToken } = useAddNotificationToken();
@@ -258,7 +263,8 @@ function AppContent() {
       ) : (
         <Login />
       )}
-      {(!isHydrated || isLoading) && <LoadingOverlay />}
+      {/* TODO(임시): isLoading(fetching/mutating) 오버레이 비활성화 → 하이드레이션 로딩만 유지 */}
+      {!isHydrated && <LoadingOverlay />}
       <GlobalSnackbar />
     </View>
   );
