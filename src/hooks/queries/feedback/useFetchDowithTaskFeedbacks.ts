@@ -29,6 +29,7 @@ const useFetchDowithTaskFeedbacks = (dowithTaskId: number, feedbackTemplateId: n
     initialPageParam: 0,
     enabled: feedbackTemplateId !== null,
     placeholderData: previousData => previousData,
+    staleTime: 60 * 1000,
   });
 
 export { useFetchDowithTaskFeedbacks };
