@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 
 import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
+import { PullToRefreshControl } from 'components/common/PullToRefreshControl';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -69,9 +70,12 @@ const NotificationList = ({ type }: { type: 'NORMAL' | 'EVENT' }) => {
 
   if (notifications.length === 0) {
     return (
-      <View style={styles.emptyListContainer}>
+      <ScrollView
+        contentContainerStyle={styles.emptyListContent}
+        refreshControl={<PullToRefreshControl onRefresh={refetch} />}
+      >
         <Text style={styles.emptyListText}>아직 받은 알림이 없어요.</Text>
-      </View>
+      </ScrollView>
     );
   }
 
@@ -98,6 +102,7 @@ const NotificationList = ({ type }: { type: 'NORMAL' | 'EVENT' }) => {
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         contentContainerStyle={styles.listContent}
+        refreshControl={<PullToRefreshControl onRefresh={refetch} />}
       />
     </View>
   );
@@ -247,8 +252,8 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
   },
-  emptyListContainer: {
-    flex: 1,
+  emptyListContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
