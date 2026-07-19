@@ -5,8 +5,6 @@
  */
 const svgXmlCache = new Map<string, string>();
 
-const isSvgUri = (uri?: string | null): uri is string => !!uri && uri.split('?')[0].toLowerCase().endsWith('.svg');
-
 const getCachedSvgXml = (uri: string) => svgXmlCache.get(uri) ?? null;
 
 /*
@@ -28,14 +26,14 @@ const fetchAndCacheSvgXml = async (uri: string): Promise<string | null> => {
 };
 
 /*
- * 여러 이모지 URL 중 아직 캐시에 없는 SVG만 미리 fetch해 캐시를 워밍한다(첫 렌더 지연 제거).
+ * 아직 캐시에 없는 이모지 URL을 미리 fetch해 캐시를 워밍한다(첫 렌더 지연 제거).
  */
 const preloadFeedbackSvgs = (uris: (string | null | undefined)[]) => {
   uris.forEach(uri => {
-    if (isSvgUri(uri) && !svgXmlCache.has(uri)) {
+    if (uri && !svgXmlCache.has(uri)) {
       fetchAndCacheSvgXml(uri);
     }
   });
 };
 
-export { isSvgUri, getCachedSvgXml, fetchAndCacheSvgXml, preloadFeedbackSvgs };
+export { getCachedSvgXml, fetchAndCacheSvgXml, preloadFeedbackSvgs };

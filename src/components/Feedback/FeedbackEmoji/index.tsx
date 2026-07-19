@@ -1,21 +1,19 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import { SvgXml } from 'react-native-svg';
 
-import { fetchAndCacheSvgXml, getCachedSvgXml, isSvgUri } from 'utils/feedbackSvgCache';
+import { fetchAndCacheSvgXml, getCachedSvgXml } from 'utils/feedbackSvgCache';
 
 /*
- * 잔소리 템플릿 이모지 렌더러.
- * FastImage는 SVG를 렌더하지 못하므로, URL이 .svg면 SvgXml로, 그 외(png 등)는 FastImage로 그린다.
- * 이모지는 정사각형이라 size 하나로 width/height를 지정한다.
+ * 잔소리 템플릿 이모지 렌더러(SVG 전용 — 잔소리 이모지는 SVG로 통일).
+ * URL별 SVG XML을 세션 캐시(재요청 방지)로 받아 SvgXml로 그린다. 이모지는 정사각형이라 size 하나로 width/height를 지정한다.
  */
-interface FeedbackSvgProps {
+interface Props {
   uri: string;
   size: number;
 }
 
-const FeedbackSvg = ({ uri, size }: FeedbackSvgProps) => {
+const FeedbackEmoji = ({ uri, size }: Props) => {
   // 캐시에 있으면 초기값으로 즉시 렌더(깜빡임 없음), 없으면 fetch 후 표시
   const [xml, setXml] = useState<string | null>(() => getCachedSvgXml(uri));
 
@@ -40,16 +38,4 @@ const FeedbackSvg = ({ uri, size }: FeedbackSvgProps) => {
   return <SvgXml xml={xml} width={size} height={size} />;
 };
 
-interface Props {
-  uri: string;
-  size: number;
-}
-
-const FeedbackEmoji = ({ uri, size }: Props) =>
-  isSvgUri(uri) ? (
-    <FeedbackSvg uri={uri} size={size} />
-  ) : (
-    <FastImage source={{ uri }} style={{ width: size, height: size }} />
-  );
-
-export { FeedbackEmoji, FeedbackSvg, isSvgUri };
+export { FeedbackEmoji };

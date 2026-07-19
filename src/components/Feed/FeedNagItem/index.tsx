@@ -5,7 +5,7 @@ import Animated from 'react-native-reanimated';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
-import { FeedbackEmoji, FeedbackSvg, isSvgUri } from 'components/Feedback/FeedbackEmoji';
+import { FeedbackEmoji } from 'components/Feedback/FeedbackEmoji';
 import { Clock } from 'components/common/icons/Clock';
 import { Thunder } from 'components/common/icons/Thunder';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
@@ -22,9 +22,6 @@ import { theme } from 'styles/theme';
 import { formatRemainingTime } from 'utils/date';
 import type { taskFeedbackTemplateSchemeType } from 'types/feedback/scheme/api';
 import type { myFeedbackSchemeType, feedbackAvailableDowithTaskSchemeType } from 'types/task/scheme/api';
-
-// 회전 이모지도 FastImage로 통일 (RN Image 캐시 분리로 인한 이전 이모지 노출 방지)
-const AnimatedFastImage = Animated.createAnimatedComponent(FastImage);
 
 interface Props {
   taskId: number;
@@ -180,17 +177,9 @@ const FeedNagItem = ({
     <View style={styles.container}>
       {isAnimating && (
         <ConfettiEffect trigger={animationTrigger} delay={400} style={styles.animationOverlay}>
-          {isSvgUri(animatingTemplate?.emojiUrl) ? (
-            <Animated.View style={[styles.animatingEmoji, emojiAnimatedStyle]}>
-              <FeedbackSvg uri={animatingTemplate?.emojiUrl ?? ''} size={80} />
-            </Animated.View>
-          ) : (
-            <AnimatedFastImage
-              key={animatingTemplate?.id}
-              source={{ uri: animatingTemplate?.emojiUrl }}
-              style={[styles.animatingEmoji, emojiAnimatedStyle]}
-            />
-          )}
+          <Animated.View style={[styles.animatingEmoji, emojiAnimatedStyle]}>
+            <FeedbackEmoji uri={animatingTemplate?.emojiUrl ?? ''} size={80} />
+          </Animated.View>
         </ConfettiEffect>
       )}
 
