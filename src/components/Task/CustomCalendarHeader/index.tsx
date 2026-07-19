@@ -18,6 +18,9 @@ interface Props {
   onMoveMonth?: (amount: number, baseDate: Date) => void;
 }
 
+// 화살표 터치 영역 확대
+const ARROW_HIT_SLOP = { top: 12, bottom: 12, left: 8, right: 8 };
+
 const CustomCalendarHeader = ({
   type,
   date,
@@ -72,10 +75,10 @@ const CustomCalendarHeader = ({
       </View>
       <View style={styles.customHeaderRight}>
         <View style={styles.weekCalendarArrowWrap}>
-          <TouchableOpacity onPress={moveDate(date, -1, isWeekView)}>
+          <TouchableOpacity hitSlop={ARROW_HIT_SLOP} onPress={moveDate(date, -1, isWeekView)}>
             <ArrowLeft />
           </TouchableOpacity>
-          <TouchableOpacity onPress={moveDate(date, 1, isWeekView)}>
+          <TouchableOpacity hitSlop={ARROW_HIT_SLOP} onPress={moveDate(date, 1, isWeekView)}>
             <ArrowRight />
           </TouchableOpacity>
         </View>
@@ -115,7 +118,7 @@ const styles = StyleSheet.create({
   customHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   weekCalendarArrowWrap: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 16,
   },
 });
 
