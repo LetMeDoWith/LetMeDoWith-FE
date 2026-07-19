@@ -75,6 +75,8 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
   },
   footer: {
     paddingVertical: 16,

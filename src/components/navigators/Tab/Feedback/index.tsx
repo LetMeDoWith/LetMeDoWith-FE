@@ -21,8 +21,6 @@ const FeedbackTopTabNavigator = () => {
       <Tab.Navigator
         sceneContainerStyle={{
           backgroundColor: theme.COLORS.DEFAULT.WHITE,
-          paddingVertical: 24,
-          paddingHorizontal: 20,
         }}
         screenOptions={{
           tabBarIndicatorStyle: { backgroundColor: theme.COLORS.DEFAULT.BLACK },
