@@ -1,6 +1,8 @@
 import { useCallback, useRef } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 
+import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
+
 import { FeedNagItem } from 'components/Feed/FeedNagItem';
 import { FeedNagEmpty } from 'components/Feed/FeedNagEmpty';
 import { useFetchFeedbackAvailableDowithTasksInfinite } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasksInfinite';
@@ -16,7 +18,7 @@ const RealtimeNag = () => {
 
   const handleEndReached = () => {
     if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      runWithSuppressedOverlay(() => fetchNextPage());
     }
   };
 

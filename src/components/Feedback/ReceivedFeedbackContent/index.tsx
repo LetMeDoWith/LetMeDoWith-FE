@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 
+import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
+
 import { Thunder } from 'components/common/icons/Thunder';
 import { useFetchDowithTaskFeedbackAggregates } from 'hooks/queries/feedback/useFetchDowithTaskFeedbackAggregates';
 import { useFetchDowithTaskFeedbacks } from 'hooks/queries/feedback/useFetchDowithTaskFeedbacks';
@@ -64,7 +66,7 @@ const ReceivedFeedbackContent = ({
 
   const handleEndReached = () => {
     if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      runWithSuppressedOverlay(() => fetchNextPage());
     }
   };
 

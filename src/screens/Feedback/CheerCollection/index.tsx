@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
 import FastImage from 'react-native-fast-image';
 
 import { Thunder } from 'components/common/icons/Thunder';
@@ -36,7 +38,7 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
 
   const handleLikersEndReached = () => {
     if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      runWithSuppressedOverlay(() => fetchNextPage());
     }
   };
 

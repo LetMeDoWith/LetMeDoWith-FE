@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
+import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
 import { Item } from 'components/Mypage/Setting/Notice';
 import { useFetchNotices } from 'hooks/queries/notice/useFetchNotices';
 import { theme } from 'styles/theme';
@@ -21,7 +22,7 @@ const NoticeList = ({ navigation }: SettingStackScreenProps<'NOTICE'>) => {
 
   const handleEndReached = () => {
     if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      runWithSuppressedOverlay(() => fetchNextPage());
     }
   };
 

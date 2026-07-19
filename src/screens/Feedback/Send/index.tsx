@@ -1,5 +1,7 @@
 import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
+import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
+
 import { SentComment, EmptyComment } from 'components/Feedback';
 import { PullToRefreshControl } from 'components/common/PullToRefreshControl';
 import { useFetchSendFeedbacks } from 'hooks/queries/feedback/useFetchSendFeedbacks';
@@ -20,7 +22,7 @@ const SendFeedback = () => {
 
   const handleEndReached = () => {
     if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      runWithSuppressedOverlay(() => fetchNextPage());
     }
   };
 
