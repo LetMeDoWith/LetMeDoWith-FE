@@ -228,7 +228,8 @@ const FeedNagItem = ({
                 {templates.map(template => (
                   <Pressable key={template.id} style={styles.reactionButton} onPress={() => handleReaction(template)}>
                     <FeedbackEmoji uri={template.emojiUrl} size={48} />
-                    <Text style={styles.reactionMessage}>{template.name}</Text>
+                    {/* 둘러보기·실시간 잔소리하기의 잔소리 이모지 선택 UI에서만 줄바꿈으로 결합 */}
+                    <Text style={styles.reactionMessage}>{template.nameTokens.join('\n')}</Text>
                   </Pressable>
                 ))}
               </View>

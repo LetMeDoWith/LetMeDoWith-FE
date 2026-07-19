@@ -50,8 +50,8 @@ const ReceivedFeedbackContent = ({
   } = useFetchDowithTaskFeedbacks(dowithTaskId, selectedTemplateId);
 
   const templateMap = useMemo(() => {
-    const map = new Map<number, { emojiUrl: string; name: string }>();
-    templates?.forEach(t => map.set(t.id, { emojiUrl: t.emojiUrl, name: t.name }));
+    const map = new Map<number, { emojiUrl: string; nameTokens: string[] }>();
+    templates?.forEach(t => map.set(t.id, { emojiUrl: t.emojiUrl, nameTokens: t.nameTokens }));
     return map;
   }, [templates]);
 
@@ -85,7 +85,8 @@ const ReceivedFeedbackContent = ({
     [],
   );
 
-  const selectedTemplateName = selectedTemplateId ? templateMap.get(selectedTemplateId)?.name : '';
+  // 잔소리 선택 UI가 아닌 화면(잡도리 모아보기 등)에서는 공백으로 결합
+  const selectedTemplateName = selectedTemplateId ? templateMap.get(selectedTemplateId)?.nameTokens.join(' ') : '';
 
   const ListHeader = (
     <View>
