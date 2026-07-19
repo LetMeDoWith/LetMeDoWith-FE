@@ -9,8 +9,9 @@ import { ElementsTab } from 'components/__dev__/tabs/ElementsTab';
 import { ConsoleTab } from 'components/__dev__/tabs/ConsoleTab';
 import { NetworkTab } from 'components/__dev__/tabs/NetworkTab';
 import { StorageTab } from 'components/__dev__/tabs/StorageTab';
+import { QueryTab } from 'components/__dev__/tabs/QueryTab';
 
-const TABS: DevToolsTab[] = ['Elements', 'Console', 'Network', 'Storage'];
+const TABS: DevToolsTab[] = ['Elements', 'Console', 'Network', 'Storage', 'Query'];
 const SNAP_POINTS = ['75%'];
 
 const DevToolsSheet = () => {
@@ -58,6 +59,8 @@ const DevToolsSheet = () => {
         return <NetworkTab />;
       case 'Storage':
         return <StorageTab />;
+      case 'Query':
+        return <QueryTab />;
     }
   };
 

@@ -23,4 +23,4 @@ export interface NetworkEntry {
   responseBody?: unknown;
 }
 
-export type DevToolsTab = 'Elements' | 'Console' | 'Network' | 'Storage';
+export type DevToolsTab = 'Elements' | 'Console' | 'Network' | 'Storage' | 'Query';

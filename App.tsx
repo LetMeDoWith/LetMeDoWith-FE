@@ -7,7 +7,6 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import {
   MutationCacheNotifyEvent,
   QueryCacheNotifyEvent,
-  QueryClient,
   QueryClientProvider,
   useIsFetching,
   useIsMutating,
@@ -20,6 +19,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { IS_DEV_MODE } from 'utils/env';
 import { useLoadingOverlayStore } from 'stores/loadingOverlayStore';
 import { GlobalSnackbar } from 'components/common/GlobalSnackbar';
+import { queryClient } from 'services/queryClient';
 import { showSnackbar, SNACKBAR_TYPE } from 'stores/snackbarStore';
 
 import { Login } from 'screens/Login';
@@ -107,8 +107,6 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
     showSnackbar(API_ERROR_SNACKBAR_MESSAGE, { type: SNACKBAR_TYPE.ERROR });
   }
 };
-
-const queryClient = new QueryClient();
 
 // 전역 에러 핸들링 구독 (모든 쿼리/뮤테이션)
 queryClient.getQueryCache().subscribe(subscribeListener);
