@@ -3,6 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
 import FastImage from 'react-native-fast-image';
+import { Freeze } from 'react-freeze';
 
 import { Thunder } from 'components/common/icons/Thunder';
 import { LikeIcon } from 'components/common/icons/LikeIcon';
@@ -98,25 +99,41 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
 
   return (
     <View style={styles.container}>
-      <View style={[styles.tabContent, activeTab !== 'FEEDBACK' && styles.hidden]}>
-        <ReceivedFeedbackContent
-          dowithTaskId={dowithTaskId}
-          showTotalCount={false}
-          headerComponent={listHeader}
-          contentContainerStyle={styles.listContent}
-        />
+      {/*
+       * 비활성 탭을 display:none으로 숨기면, 다시 보일 때 네이티브 ScrollView가 레이아웃을
+       * 재측정하면서 스크롤 위치가 0으로 리셋됐다가 복원되어 "위로 갔다 아래로" 플리커가 발생한다.
+       * 절대배치로 겹쳐 두고 opacity/pointerEvents로만 숨겨 두 탭의 레이아웃(스크롤 위치)을 유지하고,
+       * 비활성 탭은 Freeze로 감싸 마운트(스크롤 위치)는 유지하되 리렌더는 정지시켜 오버헤드를 줄인다.
+       */}
+      <View
+        style={[styles.tabContent, activeTab !== 'FEEDBACK' && styles.hiddenTab]}
+        pointerEvents={activeTab === 'FEEDBACK' ? 'auto' : 'none'}
+      >
+        <Freeze freeze={activeTab !== 'FEEDBACK'}>
+          <ReceivedFeedbackContent
+            dowithTaskId={dowithTaskId}
+            showTotalCount={false}
+            headerComponent={listHeader}
+            contentContainerStyle={styles.listContent}
+          />
+        </Freeze>
       </View>
-      <View style={[styles.tabContent, activeTab !== 'LIKE' && styles.hidden]}>
-        <FlatList
-          data={likers}
-          renderItem={renderLikerItem}
-          keyExtractor={item => item.dowithTaskLikeId.toString()}
-          onEndReached={handleLikersEndReached}
-          onEndReachedThreshold={0.5}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={listHeader}
-          contentContainerStyle={styles.listContent}
-        />
+      <View
+        style={[styles.tabContent, activeTab !== 'LIKE' && styles.hiddenTab]}
+        pointerEvents={activeTab === 'LIKE' ? 'auto' : 'none'}
+      >
+        <Freeze freeze={activeTab !== 'LIKE'}>
+          <FlatList
+            data={likers}
+            renderItem={renderLikerItem}
+            keyExtractor={item => item.dowithTaskLikeId.toString()}
+            onEndReached={handleLikersEndReached}
+            onEndReachedThreshold={0.5}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={listHeader}
+            contentContainerStyle={styles.listContent}
+          />
+        </Freeze>
       </View>
     </View>
   );
@@ -128,10 +145,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
   },
   tabContent: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
   },
-  hidden: {
-    display: 'none',
+  hiddenTab: {
+    opacity: 0,
+    zIndex: -1,
   },
   successImage: {
     aspectRatio: 0.75,
