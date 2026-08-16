@@ -17,6 +17,7 @@ concurrency:
 
 permissions:
   contents: write
+  actions: write # 빌드 실패 시 런 전체를 취소(fail-fast)하기 위해 필요
 
 # 드라이런: 실제 배포 없이 시크릿·빌드·서명·알림을 끝까지 검증한다.
 # push로도 쓸 수 있게 커밋 메시지에 [dry-run]이 있으면 켜진다
@@ -141,6 +142,20 @@ jobs:
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
 
+      # 알림을 먼저 보내고 취소한다. 순서를 바꾸면 distribute-notify까지 취소돼
+      # (!cancelled() 가드) 실패 알림이 아예 나가지 않는다.
+      - name: 실패 시 알림 후 워크플로우 중단
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ needs.version.outputs.version }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
+          echo "::error::Android 빌드 실패 — 나머지 잡을 중단합니다"
+          gh run cancel "${{ github.run_id }}"
+
   ios:
     needs: version
     runs-on: macos-15
@@ -239,6 +254,19 @@ jobs:
           name: ios-ipa
           path: ios/build/ipa/*.ipa
           if-no-files-found: error
+
+      # Android 잡과 동일 — 알림 먼저, 그다음 취소
+      - name: 실패 시 알림 후 워크플로우 중단
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ needs.version.outputs.version }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
+          echo "::error::iOS 빌드 실패 — 나머지 잡을 중단합니다"
+          gh run cancel "${{ github.run_id }}"
 
   distribute-notify:
     needs: [version, release-notes, android, ios]
