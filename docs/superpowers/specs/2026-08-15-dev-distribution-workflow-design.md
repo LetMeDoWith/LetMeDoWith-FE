@@ -55,7 +55,7 @@ production 프로젝트용 워크플로우는 범위 외 (추후 별도 구성).
 - 배포 인증서(.p12)를 임시 키체인에 로드
 - **서명은 automatic signing + App Store Connect API 키** (`-allowProvisioningUpdates`) — 앱 외에 NotificationService 확장 타깃이 있어 수동 프로파일 관리(2개 유지·갱신)보다 자동 서명이 안전하다. 테스터 UDID 추가 시 포털 등록만 하면 CI가 프로파일을 자동 갱신
 - `bundle exec pod install` (Gemfile 기반)
-- 시크릿 복원: `.env`, `ios/LetMeDoWith/GoogleService-Info.plist`(dev 프로젝트용)
+- 시크릿 복원: `.env`, `ios/GoogleService-Info.plist`(dev 프로젝트용 — pbxproj가 참조하는 실제 경로)
 - `xcodebuild archive` → ad-hoc export로 IPA 생성. 기존 `ExportOptions.plist`는 `method: development`라 CI 전용 `ios/ExportOptions-adhoc.plist` 추가
 - IPA artifact 업로드
 
