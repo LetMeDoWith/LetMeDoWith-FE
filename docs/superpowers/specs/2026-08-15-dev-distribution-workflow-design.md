@@ -97,7 +97,8 @@ production 프로젝트용 워크플로우는 범위 외 (추후 별도 구성).
 
 ## 리스크 / 확인 사항
 
-- **iOS development 서명**: UDID 미등록 기기는 설치 불가. 테스터 추가 시 Apple Developer 포털에 UDID 등록 후 재배포 필요(프로파일은 CI가 자동 갱신). 기기 100대 한도가 차거나 운영 부담이 커지면 ad-hoc/TestFlight 전환 검토
+- **iOS development 서명**: UDID 미등록 기기는 설치 불가. 테스터 추가 시 포털에 UDID 등록 → 로컬에서 프로파일 갱신 → `IOS_PROVISIONING_PROFILES` 시크릿 교체가 필요하다(자동 갱신이 아님). 기기 100대 한도가 차거나 이 수동 갱신이 잦아지면 ASC 키 자동 발급 또는 ad-hoc/TestFlight 전환 검토
+- 프로파일 만료(현재 2027-07-12) 전 시크릿 교체 필요 — 만료되면 iOS 잡이 서명 단계에서 실패한다
 - 인증서는 **Apple Development**를 사용한다(팀에 Distribution 인증서 없음). 만료 시 재발급 후 `IOS_CERT_P12`·`IOS_CERT_PASSWORD` 갱신 필요
 - 향후 ad-hoc/App Store로 전환할 경우 `aps-environment`를 `production`으로 바꾸고 푸시 수신을 재검증해야 한다
 - macOS 러너 과금(리눅스의 10배 배율) — 빌드당 15~25분 소모. private repo 무료 분량 모니터링
