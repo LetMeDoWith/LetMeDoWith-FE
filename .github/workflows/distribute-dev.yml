@@ -15,6 +15,7 @@ permissions:
 jobs:
   version:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     outputs:
       version: ${{ steps.extract.outputs.version }}
       sha: ${{ steps.commit.outputs.sha }}
@@ -62,6 +63,7 @@ jobs:
   release-notes:
     needs: version
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -81,6 +83,7 @@ jobs:
   android:
     needs: version
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -124,6 +127,7 @@ jobs:
   ios:
     needs: version
     runs-on: macos-14
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -149,6 +153,7 @@ jobs:
       - name: 배포 인증서를 임시 키체인에 로드
         env:
           IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          IOS_CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
         run: |
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
           KEYCHAIN_PASSWORD=$(uuidgen)
@@ -157,7 +162,7 @@ jobs:
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN_PATH" \
-            -P "${{ secrets.IOS_CERT_PASSWORD }}" -T /usr/bin/codesign
+            -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
           rm "$RUNNER_TEMP/cert.p12"
@@ -212,8 +217,9 @@ jobs:
 
   distribute-notify:
     needs: [version, release-notes, android, ios]
-    if: always() && needs.version.result == 'success'
+    if: ${{ !cancelled() && needs.version.result == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       VERSION: ${{ needs.version.outputs.version }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -235,12 +241,12 @@ jobs:
         run: |
           printf '%s\n' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
-          npx firebase-tools appdistribution:distribute \
+          npx firebase-tools@14 appdistribution:distribute \
             dist/android-apk/app-release.apk \
             --app "${{ secrets.FIREBASE_APP_ID_ANDROID }}" \
             --groups "${{ vars.FIREBASE_TESTER_GROUP }}" \
             --release-notes-file dist/release-notes/release-notes.md
-          npx firebase-tools appdistribution:distribute \
+          npx firebase-tools@14 appdistribution:distribute \
             "$(ls dist/ios-ipa/*.ipa | head -1)" \
             --app "${{ secrets.FIREBASE_APP_ID_IOS }}" \
             --groups "${{ vars.FIREBASE_TESTER_GROUP }}" \
