@@ -26,6 +26,19 @@ SUFFIX='(\([^)]*\))?!?:'
 IMPROVE_RE="^${TICKET}(feat|perf|style|refactor)${SUFFIX}"
 BUGFIX_RE="^${TICKET}fix${SUFFIX}"
 
+# 테스터에게 보여줄 노트이므로 앱과 무관한 변경은 싣지 않는다.
+#  (1) 타입이 명확히 비기능인 커밋
+#  (2) 개발 도구 경로만 건드린 커밋 — 타입이 feat/fix여도 CI·문서 작업이면 제외된다
+#      (예: "feat: 드라이런 모드 추가"는 .github/만 바꾸므로 앱 변경이 아니다)
+CHORE_RE="^${TICKET}(chore|docs|ci|build|test)${SUFFIX}"
+
+# 개발 도구 디렉터리
+NON_APP_RE='^(\.github/|\.claude/|scripts/|docs/|\.superpowers/|__tests__/|__mocks__/)'
+# 의존성·패키지 매니페스트
+NON_APP_RE+='|(^|/)(Podfile|Gemfile)(\.lock)?$'
+# 문서, 그리고 네이티브 "빌드 설정"(소스가 아님 — .swift/.m/.mm/.java/.kt는 앱으로 친다)
+NON_APP_RE+='|\.(md|yml|yaml|pbxproj|xcscheme|xcworkspacedata|entitlements|plist|gradle|properties)$'
+
 NOTE_RE='^[[:space:]]*[Rr]elease-[Nn]ote:[[:space:]]*'
 DETAIL_RE='^[[:space:]]*[Rr]elease-[Nn]ote-[Dd]etail:[[:space:]]*'
 
@@ -72,6 +85,13 @@ while read -r hash; do
   subject=$(git log -1 --format='%s' "$hash")
   [[ "$subject" =~ $VERSION_RE ]] && continue
   [[ "$subject" == "$NATIVE_PREFIX"* ]] && continue
+  [[ "$subject" =~ $CHORE_RE ]] && continue
+
+  # 앱 경로를 하나도 건드리지 않은 커밋은 제외(빈 커밋도 여기서 걸러진다)
+  if ! git show --pretty=format: --name-only "$hash" | grep -qvE "$NON_APP_RE|^$"; then
+    continue
+  fi
+
   body=$(git log -1 --format='%b' "$hash")
   collected=1
 
