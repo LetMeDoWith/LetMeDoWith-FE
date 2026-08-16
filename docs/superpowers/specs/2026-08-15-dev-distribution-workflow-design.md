@@ -71,19 +71,19 @@ production 프로젝트용 워크플로우는 범위 외 (추후 별도 구성).
 
 ## GitHub Secrets / Vars
 
-| 이름                                              | 내용                                      |
-| ------------------------------------------------- | ----------------------------------------- |
-| `ENV_FILE`                                        | `.env` 전체 (ENABLE_DEVTOOLS=true 상태)   |
-| `GOOGLE_SERVICES_JSON_DEV`                        | Android dev용 google-services.json        |
-| `GOOGLE_SERVICE_INFO_PLIST_DEV`                   | iOS dev용 GoogleService-Info.plist        |
-| `FIREBASE_SERVICE_ACCOUNT`                        | App Distribution 권한 서비스 계정 키 JSON |
-| `FIREBASE_APP_ID_ANDROID` / `FIREBASE_APP_ID_IOS` | dev 프로젝트 앱 ID                        |
-| `IOS_DIST_CERT_P12` / `IOS_CERT_PASSWORD`         | 배포 인증서(base64) / 비밀번호            |
+| 이름                                              | 내용                                                  |
+| ------------------------------------------------- | ----------------------------------------------------- |
+| `ENV_FILE`                                        | `.env` 전체 (ENABLE_DEVTOOLS=true 상태)               |
+| `GOOGLE_SERVICES_JSON_DEV`                        | Android dev용 google-services.json                    |
+| `GOOGLE_SERVICE_INFO_PLIST_DEV`                   | iOS dev용 GoogleService-Info.plist                    |
+| `FIREBASE_SERVICE_ACCOUNT`                        | App Distribution 권한 서비스 계정 키 JSON             |
+| `FIREBASE_APP_ID_ANDROID` / `FIREBASE_APP_ID_IOS` | dev 프로젝트 앱 ID                                    |
+| `IOS_DIST_CERT_P12` / `IOS_CERT_PASSWORD`         | 배포 인증서(base64) / 비밀번호                        |
 | `ASC_API_KEY_P8` / `ASC_KEY_ID` / `ASC_ISSUER_ID` | App Store Connect API 키(base64) / Key ID / Issuer ID |
-| `DISCORD_WEBHOOK_URL`                             | 배포 알림 채널 webhook                    |
-| `NOTION_TOKEN`                                    | Notion integration 토큰                   |
-| `ANTHROPIC_API_KEY`                               | 출시 노트 생성용                          |
-| (vars) `NOTION_PAGE_ID`, `FIREBASE_TESTER_GROUP`  | 비밀 아님 — Variables로 관리              |
+| `DISCORD_WEBHOOK_URL`                             | 배포 알림 채널 webhook                                |
+| `NOTION_TOKEN`                                    | Notion integration 토큰                               |
+| `ANTHROPIC_API_KEY`                               | 출시 노트 생성용                                      |
+| (vars) `NOTION_PAGE_ID`, `FIREBASE_TESTER_GROUP`  | 비밀 아님 — Variables로 관리                          |
 
 ## 사용자 선행 준비 (구현과 병행 가능)
 
@@ -95,7 +95,7 @@ production 프로젝트용 워크플로우는 범위 외 (추후 별도 구성).
 
 ## 리스크 / 확인 사항
 
-- **iOS ad-hoc**: UDID 미등록 기기는 설치 불가. 테스터 추가 시 프로파일 재발급 + `IOS_ADHOC_PROFILE` 시크릿 갱신 필요 (운영 부담 — 커지면 TestFlight 전환 검토)
+- **iOS ad-hoc**: UDID 미등록 기기는 설치 불가. 테스터 추가 시 Apple Developer 포털에 UDID 등록 후 재배포 필요(프로파일은 CI가 자동 갱신). 운영 부담이 커지면 TestFlight 전환 검토
 - `LetMeDoWith.entitlements`의 `aps-environment: development` — ad-hoc 빌드에서 푸시 수신이 안 될 수 있는 지점. 구현 중 확인
 - macOS 러너 과금(리눅스의 10배 배율) — 빌드당 15~25분 소모. private repo 무료 분량 모니터링
 - Claude API 노트 생성은 비결정적 — 폴백 존재, 품질 문제 시 프롬프트 조정으로 대응
