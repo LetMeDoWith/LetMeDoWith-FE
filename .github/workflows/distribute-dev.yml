@@ -94,13 +94,17 @@ jobs:
       - run: yarn install --frozen-lockfile
 
       - name: .env 복원 (ENABLE_DEVTOOLS 켜고 PACKAGE_VERSION 동기화)
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
         run: |
-          printf '%s\n' "${{ secrets.ENV_FILE }}" > .env
+          printf '%s\n' "$ENV_FILE" > .env
           sed -i 's/^ENABLE_DEVTOOLS=.*/ENABLE_DEVTOOLS=true/' .env
           sed -i "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=${{ needs.version.outputs.version }}/" .env
 
       - name: google-services.json(dev) 복원
-        run: printf '%s\n' "${{ secrets.GOOGLE_SERVICES_JSON_DEV }}" > android/app/google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON_DEV }}
+        run: printf '%s\n' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
 
       - uses: actions/setup-java@v4
         with:
@@ -133,17 +137,22 @@ jobs:
       - run: yarn install --frozen-lockfile
 
       - name: .env / GoogleService-Info.plist(dev) 복원
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_DEV }}
         run: |
-          printf '%s\n' "${{ secrets.ENV_FILE }}" > .env
+          printf '%s\n' "$ENV_FILE" > .env
           sed -i '' 's/^ENABLE_DEVTOOLS=.*/ENABLE_DEVTOOLS=true/' .env
           sed -i '' "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=${{ needs.version.outputs.version }}/" .env
-          printf '%s\n' "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_DEV }}" > ios/GoogleService-Info.plist
+          printf '%s\n' "$GOOGLE_SERVICE_INFO_PLIST" > ios/GoogleService-Info.plist
 
       - name: 배포 인증서를 임시 키체인에 로드
+        env:
+          IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
         run: |
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
           KEYCHAIN_PASSWORD=$(uuidgen)
-          echo "${{ secrets.IOS_DIST_CERT_P12 }}" | base64 -d > "$RUNNER_TEMP/cert.p12"
+          echo "$IOS_DIST_CERT_P12" | base64 -d > "$RUNNER_TEMP/cert.p12"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
@@ -154,9 +163,11 @@ jobs:
           rm "$RUNNER_TEMP/cert.p12"
 
       - name: App Store Connect API 키 배치
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
         run: |
           mkdir -p "$RUNNER_TEMP/asc"
-          echo "${{ secrets.ASC_API_KEY_P8 }}" | base64 -d \
+          echo "$ASC_API_KEY_P8" | base64 -d \
             > "$RUNNER_TEMP/asc/AuthKey_${{ secrets.ASC_KEY_ID }}.p8"
 
       - uses: ruby/setup-ruby@v1
@@ -219,8 +230,10 @@ jobs:
 
       - name: Firebase App Distribution 배포 (Android + iOS)
         if: env.BUILDS_OK == 'true'
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          printf '%s\n' "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > "$RUNNER_TEMP/sa.json"
+          printf '%s\n' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
           npx firebase-tools appdistribution:distribute \
             dist/android-apk/app-release.apk \
