@@ -116,3 +116,85 @@ jobs:
           name: android-apk
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
+
+  ios:
+    needs: version
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - run: yarn install --frozen-lockfile
+
+      - name: .env / GoogleService-Info.plist(dev) 복원
+        run: |
+          printf '%s\n' "${{ secrets.ENV_FILE }}" > .env
+          sed -i '' 's/^ENABLE_DEVTOOLS=.*/ENABLE_DEVTOOLS=true/' .env
+          sed -i '' "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=${{ needs.version.outputs.version }}/" .env
+          printf '%s\n' "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_DEV }}" > ios/GoogleService-Info.plist
+
+      - name: 배포 인증서를 임시 키체인에 로드
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          echo "${{ secrets.IOS_DIST_CERT_P12 }}" | base64 -d > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN_PATH" \
+            -P "${{ secrets.IOS_CERT_PASSWORD }}" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+          rm "$RUNNER_TEMP/cert.p12"
+
+      - name: App Store Connect API 키 배치
+        run: |
+          mkdir -p "$RUNNER_TEMP/asc"
+          echo "${{ secrets.ASC_API_KEY_P8 }}" | base64 -d \
+            > "$RUNNER_TEMP/asc/AuthKey_${{ secrets.ASC_KEY_ID }}.p8"
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Pod install
+        run: cd ios && bundle exec pod install
+
+      - name: Archive (automatic signing + ASC 키)
+        run: |
+          cd ios && xcodebuild \
+            -workspace LetMeDoWith.xcworkspace \
+            -scheme LetMeDoWith \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/LetMeDoWith.xcarchive \
+            archive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/asc/AuthKey_${{ secrets.ASC_KEY_ID }}.p8" \
+            -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \
+            -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}"
+
+      - name: Export IPA (ad-hoc)
+        run: |
+          cd ios && xcodebuild \
+            -exportArchive \
+            -archivePath build/LetMeDoWith.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist ExportOptions-adhoc.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/asc/AuthKey_${{ secrets.ASC_KEY_ID }}.p8" \
+            -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \
+            -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: ios/build/ipa/*.ipa
+          if-no-files-found: error
