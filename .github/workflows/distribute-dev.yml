@@ -77,3 +77,42 @@ jobs:
         with:
           name: release-notes
           path: release-notes.md
+
+  android:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - run: yarn install --frozen-lockfile
+
+      - name: .env 복원 (ENABLE_DEVTOOLS 켜고 PACKAGE_VERSION 동기화)
+        run: |
+          printf '%s\n' "${{ secrets.ENV_FILE }}" > .env
+          sed -i 's/^ENABLE_DEVTOOLS=.*/ENABLE_DEVTOOLS=true/' .env
+          sed -i "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=${{ needs.version.outputs.version }}/" .env
+
+      - name: google-services.json(dev) 복원
+        run: printf '%s\n' "${{ secrets.GOOGLE_SERVICES_JSON_DEV }}" > android/app/google-services.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Android Release 빌드
+        run: cd android && ./gradlew assembleRelease --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
