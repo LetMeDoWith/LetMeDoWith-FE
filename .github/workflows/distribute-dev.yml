@@ -70,10 +70,8 @@ jobs:
           fetch-depth: 0
           ref: ${{ needs.version.outputs.sha }}
 
-      - name: 출시 노트 생성 (실패 시 스크립트 내부 폴백)
+      - name: 출시 노트 생성
         run: bash scripts/ci/release-notes.sh release-notes.md
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -265,9 +263,8 @@ jobs:
           git tag "$TAG"
           git push origin "$TAG"
 
-      # 아래 두 알림 스텝은 실패해도 잡을 실패시키지 않는다.
-      # 여기 도달한 시점엔 Firebase 배포·태그가 이미 끝나 되돌릴 수 없으므로,
-      # 알림 실패로 런이 빨개지면 "배포 실패"로 오인된다. 대신 경고로 남긴다.
+      # 알림 실패로 잡을 실패시키지 않는다. 여기 도달한 시점엔 Firebase 배포·태그가
+      # 이미 끝나 되돌릴 수 없으므로, 런이 빨개지면 "배포 실패"로 오인된다.
       - name: Discord 성공 알림
         if: env.BUILDS_OK == 'true'
         env:
@@ -275,20 +272,6 @@ jobs:
         run: |
           if ! bash scripts/ci/notify-discord.sh success "$VERSION" dist/release-notes/release-notes.md "$RUN_URL"; then
             echo "::warning::Discord 알림 전송 실패 — 배포 자체는 완료됨"
-          fi
-
-      - name: Notion 배포 기록 (선택)
-        if: env.BUILDS_OK == 'true'
-        env:
-          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-          NOTION_PAGE_ID: ${{ vars.NOTION_PAGE_ID }}
-        run: |
-          if [[ -z "${NOTION_TOKEN:-}" || -z "${NOTION_PAGE_ID:-}" ]]; then
-            echo "Notion 미설정 — 기록을 건너뜁니다."
-            exit 0
-          fi
-          if ! bash scripts/ci/notify-notion.sh "$VERSION" dist/release-notes/release-notes.md "$RUN_URL"; then
-            echo "::warning::Notion 기록 실패 — 배포 자체는 완료됨"
           fi
 
       - name: Discord 실패 알림
