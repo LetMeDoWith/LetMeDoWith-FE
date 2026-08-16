@@ -4,18 +4,18 @@
 <dict>
     <key>method</key>
     <string>development</string>
-    <!-- CI에는 개발자 계정 로그인이 없어, 시크릿으로 설치한 프로파일을 이름으로 명시해 결정적으로 서명한다 -->
+    <!--
+      signingStyle은 automatic이어야 한다.
+      이 프로젝트가 쓰는 "iOS Team Provisioning Profile"은 Xcode가 자동 관리하는
+      프로파일이라, manual로 지정하면
+      "profile is Xcode managed, but signing settings require a manually managed profile"
+      로 export가 실패한다. 프로파일 자체는 앞 단계에서 러너에 설치해 두므로,
+      automatic이어도 계정 로그인 없이 그것을 찾아 쓴다.
+    -->
     <key>signingStyle</key>
-    <string>manual</string>
+    <string>automatic</string>
     <key>teamID</key>
     <string>U3N4285KF6</string>
-    <key>provisioningProfiles</key>
-    <dict>
-        <key>com.teamdowith.letmedowith2</key>
-        <string>iOS Team Provisioning Profile: com.teamdowith.letmedowith2</string>
-        <key>com.teamdowith.letmedowith2.NotificationService</key>
-        <string>iOS Team Provisioning Profile: com.teamdowith.letmedowith2.NotificationService</string>
-    </dict>
     <key>destination</key>
     <string>export</string>
     <key>compileBitcode</key>
