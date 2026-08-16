@@ -165,13 +165,13 @@ jobs:
         with:
           ref: ${{ needs.version.outputs.sha }}
 
-      - name: Xcode 버전 선택 (로컬 빌드 환경과 정렬)
+      # Xcode를 로컬(16.2)에 맞춰 고정했더니 ibtool이 "iOS 18.2 Platform Not Installed"로
+      # 죽었다. 러너에는 여러 Xcode가 깔려 있지만 플랫폼 지원까지 온전한 건 기본값뿐이라,
+      # 버전을 고정하지 않고 기본 Xcode를 쓴다. 어떤 버전으로 빌드됐는지는 로그로 남긴다.
+      - name: 빌드 환경 기록
         run: |
-          # 로컬 수동 빌드는 Xcode 16.2 기준. 러너에 있으면 맞추고, 없으면 기본값(16.x)을 쓴다.
-          if [ -d /Applications/Xcode_16.2.app ]; then
-            sudo xcode-select -s /Applications/Xcode_16.2.app
-          fi
           xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
 
       - uses: actions/setup-node@v4
         with:
