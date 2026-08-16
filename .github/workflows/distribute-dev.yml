@@ -273,6 +273,7 @@ jobs:
           restore-keys: ccache-ios-
 
       - name: ccache 설정
+        id: ccache_setup
         run: |
           brew install ccache
           # Xcode가 쓸 컴파일러를 ccache 래퍼로 바꾼다. Podfile을 건드리지 않고
@@ -310,8 +311,10 @@ jobs:
             CXX="$RUNNER_TEMP/ccache-bin/clang++"
 
       # ccache가 실제로 먹었는지 확인용. hit이 0이면 CC/CXX가 무시된 것이다.
+      # 설정 스텝이 성공했을 때만 실행한다 — 그 전에 빌드가 죽으면 ccache가 없어
+      # 이 스텝까지 실패하면서 진짜 원인을 가린다.
       - name: ccache 통계
-        if: always()
+        if: always() && steps.ccache_setup.conclusion == 'success'
         run: ccache --show-stats
 
       - name: Export IPA (development)
