@@ -78,5 +78,7 @@ git push origin sandbox/X.Y.Z
 ## 배포 방법
 
 1. `sandbox/X.Y.Z` 브랜치 생성 후 push → 워크플로우 자동 실행
+   - 버전은 `package.json`의 현재 버전보다 **높아야** 한다. 같거나 낮으면 빌드 전에 중단된다.
+   - 배포가 성공하면 `package.json`이 그 버전으로 갱신·push되므로, **같은 버전으로 다시 배포할 수 없다.** 재배포는 버전을 올려서 한다.
 2. 버전 커밋이 자동 추가되므로 push 후에는 `git pull`로 로컬을 갱신할 것
 3. 결과는 Discord 채널 / Actions 탭에서 확인

@@ -54,6 +54,21 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
+      # 빌드에 들어가기 전에 막아 러너 분을 아낀다.
+      # 주의: 배포가 성공하면 아래 단계에서 package.json이 그 버전으로 갱신·push되므로,
+      # 같은 sandbox 브랜치에 다시 push하면 여기서 막힌다. 재배포는 버전을 올려서 한다.
+      - name: 이전 배포 버전보다 높은지 검증
+        run: |
+          VERSION="${{ steps.extract.outputs.version }}"
+          PREV=$(node -p "require('./package.json').version")
+          # sort -V(버전 정렬)로 비교한다. 문자열 비교로는 0.10.0 < 0.9.9가 되어 틀린다.
+          HIGHEST=$(printf '%s\n%s\n' "$VERSION" "$PREV" | sort -V | tail -1)
+          if [[ "$VERSION" == "$PREV" || "$HIGHEST" != "$VERSION" ]]; then
+            echo "::error::브랜치 버전 ${VERSION}이(가) 현재 버전 ${PREV}보다 높지 않습니다. 더 높은 버전으로 sandbox 브랜치를 만들어주세요."
+            exit 1
+          fi
+          echo "버전 검증 통과: ${PREV} → ${VERSION}"
+
       - run: yarn install --frozen-lockfile
 
       - name: 버전 불일치 시 자동 커밋(기존 관례 2커밋) 후 push
