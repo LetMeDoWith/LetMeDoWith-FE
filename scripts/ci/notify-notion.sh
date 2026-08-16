@@ -12,8 +12,8 @@ RUN_URL="${3:?run-url 필요}"
 HEADING="v${VERSION} ($(date +%Y-%m-%d))"
 
 # Notion children 한도(100블록) 보호: heading+링크 2블록 제외 최대 90줄
-# rich_text 한도(2000자) 보호: 줄당 1900자 절단
-PAYLOAD=$(head -90 "$NOTES_FILE" | cut -c1-1900 | jq -R -s \
+# rich_text 한도(2000자) 보호: 줄당 1900자 절단(UTF-8 safe)
+PAYLOAD=$(head -90 "$NOTES_FILE" | jq -R -s \
   --arg heading "$HEADING" \
   --arg url "$RUN_URL" \
   '{
@@ -26,7 +26,7 @@ PAYLOAD=$(head -90 "$NOTES_FILE" | cut -c1-1900 | jq -R -s \
       + (split("\n") | map(select(length > 0) | {
           object: "block",
           type: "paragraph",
-          paragraph: {rich_text: [{type: "text", text: {content: .}}]}
+          paragraph: {rich_text: [{type: "text", text: {content: .[0:1900]}}]}
         }))
       + [{
         object: "block",
