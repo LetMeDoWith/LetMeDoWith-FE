@@ -18,7 +18,6 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		8EE8CD98353289FEDEAFA635 /* NotificationService.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 68887D3D9E31F0F66EB58DBF /* NotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E72FBCE5B643443495B04653 /* Roboto-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 73B5124B38724A98A52D9706 /* Roboto-Medium.ttf */; };
-		F61F819E2B77759C00AB4F5F /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = F61F819D2B77759C00AB4F5F /* main.jsbundle */; };
 		F669D01B2E2CDE0000EDA9CA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F669D01A2E2CDE0000EDA9CA /* GoogleService-Info.plist */; };
 		F67547132BDD3A06001B263D /* Fontisto.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F67547002BDD3A06001B263D /* Fontisto.ttf */; };
 		F67547142BDD3A06001B263D /* Octicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F67547012BDD3A06001B263D /* Octicons.ttf */; };
@@ -94,9 +93,8 @@
 		DF69191BA7F1986BE24D42B8 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F32FFC3A59ED3CFAC6278DD4 /* Pods_LetMeDoWith.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LetMeDoWith.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		F61F819D2B77759C00AB4F5F /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		F62296E52E507CA200C65FFB /* LetMeDoWithDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = LetMeDoWithDebug.entitlements; path = LetMeDoWith/LetMeDoWithDebug.entitlements; sourceTree = "<group>"; };
-		F669D01A2E2CDE0000EDA9CA /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../GoogleService-Info.plist"; sourceTree = "<group>"; };
+		F669D01A2E2CDE0000EDA9CA /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		F67547002BDD3A06001B263D /* Fontisto.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fontisto.ttf; sourceTree = "<group>"; };
 		F67547012BDD3A06001B263D /* Octicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Octicons.ttf; sourceTree = "<group>"; };
 		F67547022BDD3A06001B263D /* Feather.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Feather.ttf; sourceTree = "<group>"; };
@@ -231,7 +229,6 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				F61F819D2B77759C00AB4F5F /* main.jsbundle */,
 				F67BE2A12B7678F4006D11D9 /* Config.xcconfig */,
 				13B07FAE1A68108700A75B9A /* LetMeDoWith */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
@@ -301,7 +298,7 @@
 				F67547122BDD3A06001B263D /* MaterialIcons.ttf */,
 			);
 			name = Fonts;
-			path = ../../../Fonts;
+			path = ../node_modules/react-native-vector-icons/Fonts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -423,7 +420,6 @@
 				F675471B2BDD3A06001B263D /* Foundation.ttf in Resources */,
 				F67547202BDD3A06001B263D /* Zocial.ttf in Resources */,
 				F67547132BDD3A06001B263D /* Fontisto.ttf in Resources */,
-				F61F819E2B77759C00AB4F5F /* main.jsbundle in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				F675471F2BDD3A06001B263D /* FontAwesome.ttf in Resources */,
 				F675471C2BDD3A06001B263D /* Ionicons.ttf in Resources */,
