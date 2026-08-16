@@ -39,8 +39,10 @@ CI 러너에는 개발자 계정 로그인이 없으므로, **로컬 맥의 프�
 
 ```bash
 cd ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
-tar czf - *.mobileprovision | base64 | tr -d '\n' | pbcopy
+COPYFILE_DISABLE=1 tar cf - *.mobileprovision | gzip -9 | base64 | tr -d '\n' | pbcopy
 ```
+
+> `tar czf`로 한 번에 압축하지 않는 이유: macOS tar는 압축을 마친 뒤 출력을 블록 경계까지 0으로 패딩해, base64 끝에 불필요한 `A`가 길게 붙고 크기가 두 배가 된다(동작에는 지장 없음). tar와 gzip을 분리하면 패딩이 압축돼 사라진다.
 
 > Xcode 15 이하를 쓴다면 프로파일 경로가 `~/Library/MobileDevice/Provisioning Profiles`다.
 
