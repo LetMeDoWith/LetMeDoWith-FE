@@ -22,7 +22,7 @@ build_payload() {
       '{
         content: (
           "@here\n"
-          + "🟦 테스트앱 배포 완료 - `v" + $version + "`\n"
+          + "📱 테스트앱 배포 완료 - `v" + $version + "`\n"
           + "📗 AOS\n"
           + "🍎 iOS\n\n"
           + "```\n" + ($notes | .[0:1800]) + "\n```"

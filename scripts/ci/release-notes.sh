@@ -44,21 +44,63 @@ RANGE=$(resolve_range)
 echo "출시 노트 수집 범위: $RANGE" >&2
 
 # ── 2. 커밋 수집 (버전 커밋 2종 제외) ─────────────────────────
-SUBJECTS_FILE=$(mktemp)
-COMMITS_FILE=$(mktemp)
-trap 'rm -f "$SUBJECTS_FILE" "$COMMITS_FILE"' EXIT
+# 커밋 제목은 `[TAS-123]feat(scope)!: 요약` 형태까지 허용한다.
+# 어느 그룹에도 걸리지 않은 제목은 "기타"가 거둬가므로 노트에서 유실되지 않는다.
+TICKET='(\[[^]]*\])?'
+SUFFIX='(\([^)]*\))?!?:'
+IMPROVE_RE="^${TICKET}(feat|perf|style|refactor)${SUFFIX}"
+BUGFIX_RE="^${TICKET}fix${SUFFIX}"
+
+# 커밋 본문에 아래 트레일러를 쓰면 폴백이 그 문장을 그대로 노트에 싣는다.
+#   Release-Note: 알림 화면에서 아래로 당겨 새로고침할 수 있어요     → 메인 항목(•)
+#   Release-Note-Detail: 알림 리스트·빈 상태에 PTR 추가              → 하위 항목(-), 여러 줄 가능
+# 트레일러가 없으면 타입을 뗀 커밋 제목이 메인 항목이 된다.
+NOTE_RE='^[[:space:]]*[Rr]elease-[Nn]ote:[[:space:]]*'
+DETAIL_RE='^[[:space:]]*[Rr]elease-[Nn]ote-[Dd]etail:[[:space:]]*'
+
+WORK_DIR=$(mktemp -d)
+trap 'rm -rf "$WORK_DIR"' EXIT
+COMMITS_FILE="$WORK_DIR/commits"
+G_IMPROVE="$WORK_DIR/improve"
+G_BUGFIX="$WORK_DIR/bugfix"
+G_OTHER="$WORK_DIR/other"
+: > "$COMMITS_FILE"; : > "$G_IMPROVE"; : > "$G_BUGFIX"; : > "$G_OTHER"
 
 while read -r hash; do
   subject=$(git log -1 --format='%s' "$hash")
   [[ "$subject" =~ $VERSION_RE ]] && continue
   [[ "$subject" == "$NATIVE_PREFIX"* ]] && continue
-  echo "$subject" >> "$SUBJECTS_FILE"
+  body=$(git log -1 --format='%b' "$hash")
+
+  # Claude API 프롬프트용 원본(제목+본문 그대로)
   {
     echo "- $subject"
-    body=$(git log -1 --format='%b' "$hash")
     [[ -n "$body" ]] && printf '%s\n' "$body" | sed 's/^/  /'
     echo
   } >> "$COMMITS_FILE"
+
+  # 폴백 메인 항목 (Detail 트레일러가 Note 패턴에도 걸리므로 먼저 걸러낸다)
+  note=$(printf '%s\n' "$body" | grep -Ev "$DETAIL_RE" | grep -E "$NOTE_RE" | head -1 | sed -E "s/$NOTE_RE//" || true)
+  if [[ -n "$note" ]]; then
+    main="$note"
+  else
+    main=$(printf '%s' "$subject" | sed -E "s/^${TICKET}[a-zA-Z]+${SUFFIX} *//")
+  fi
+
+  details=$(printf '%s\n' "$body" | grep -E "$DETAIL_RE" | sed -E "s/$DETAIL_RE//" || true)
+
+  if [[ "$subject" =~ $IMPROVE_RE ]]; then
+    group="$G_IMPROVE"
+  elif [[ "$subject" =~ $BUGFIX_RE ]]; then
+    group="$G_BUGFIX"
+  else
+    group="$G_OTHER"
+  fi
+
+  {
+    echo "  • $main"
+    [[ -n "$details" ]] && printf '%s\n' "$details" | sed 's/^/    - /'
+  } >> "$group"
 done < <(git log --format='%H' "$RANGE" 2>/dev/null || true)
 
 if [[ ! -s "$COMMITS_FILE" ]]; then
@@ -67,47 +109,22 @@ if [[ ! -s "$COMMITS_FILE" ]]; then
   exit 0
 fi
 
-# ── 3. 폴백: 타입별 그룹핑 ────────────────────────────────────
-# 커밋 제목은 `[TAS-123]feat(scope)!: 요약` 형태까지 허용한다.
-# 티켓 프리픽스와 스코프는 선택이며, 어느 그룹에도 걸리지 않은 커밋은
-# 마지막 "기타"가 전부 거둬가므로 노트에서 유실되지 않는다.
-TICKET='(\[[^]]*\])?'
-SUFFIX='(\([^)]*\))?!?:'
-IMPROVE_RE="^${TICKET}(feat|perf|style|refactor)${SUFFIX}"
-BUGFIX_RE="^${TICKET}fix${SUFFIX}"
+# ── 3. 폴백: 수집 단계에서 만든 그룹 파일을 이어붙인다 ────────
+print_group() {
+  local title="$1" file="$2"
+  if [[ -s "$file" ]]; then
+    echo "$title"
+    cat "$file"
+    echo
+  fi
+}
 
 fallback_notes() {
   {
-    print_group "개선" "$IMPROVE_RE"
-    print_group "버그 수정" "$BUGFIX_RE"
-    print_rest "기타" "${IMPROVE_RE}|${BUGFIX_RE}"
+    print_group "개선" "$G_IMPROVE"
+    print_group "버그 수정" "$G_BUGFIX"
+    print_group "기타" "$G_OTHER"
   } > "$OUT"
-}
-
-# 제목에서 타입 프리픽스를 떼어 불릿으로 변환. 관례를 따르지 않는 제목은 원문 유지.
-strip_prefix() {
-  sed -E "s/^${TICKET}[a-zA-Z]+${SUFFIX} *//" | sed 's/^/  • /'
-}
-
-print_group() {
-  local title="$1" pattern="$2" lines
-  lines=$(grep -E "$pattern" "$SUBJECTS_FILE" || true)
-  if [[ -n "$lines" ]]; then
-    echo "$title"
-    printf '%s\n' "$lines" | strip_prefix
-    echo
-  fi
-}
-
-# 앞선 그룹에 속하지 않은 나머지 전부(chore/docs/ci + 관례 미준수 제목)
-print_rest() {
-  local title="$1" claimed="$2" lines
-  lines=$(grep -Ev "$claimed" "$SUBJECTS_FILE" || true)
-  if [[ -n "$lines" ]]; then
-    echo "$title"
-    printf '%s\n' "$lines" | strip_prefix
-    echo
-  fi
 }
 
 # ── 4. Claude API 호출 ────────────────────────────────────────
