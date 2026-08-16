@@ -12,32 +12,35 @@ VERSION="${2:?버전 필요}"
 build_payload() {
   if [[ "$MODE" == "success" ]]; then
     local notes_file="${3:?notes-file 필요}" run_url="${4:?run-url 필요}"
-    # Discord embed description 한도(4096) 보호를 위해 3500자(UTF-8 safe)로 절단
+    # 성공 알림은 embed가 아니라 본문(content)으로 보낸다 — @here 멘션이
+    # embed 안에서는 동작하지 않기 때문이다. content 한도는 2000자라,
+    # 머리말·코드펜스 오버헤드를 뺀 1800자로 노트를 절단한다
+    # (jq 슬라이스는 코드포인트 기준이라 한글이 깨지지 않는다).
     jq -n \
-      --arg title "🚀 v${VERSION} dev 배포 완료" \
+      --arg version "$VERSION" \
       --rawfile notes "$notes_file" \
-      --arg url "$run_url" \
       '{
-        embeds: [{
-          title: $title,
-          description: ($notes | .[0:3500]),
-          url: $url,
-          color: 5763719,
-          footer: {text: "Firebase App Distribution · 테스터 그룹에 발송됨"}
-        }]
+        content: (
+          "@here\n"
+          + "🟦 테스트앱 배포 완료 - `v" + $version + "`\n"
+          + "📗 AOS\n"
+          + "🍎 iOS\n\n"
+          + "```\n" + ($notes | .[0:1800]) + "\n```"
+        ),
+        allowed_mentions: {parse: ["everyone"]}
       }'
   else
     local run_url="${3:?run-url 필요}"
     jq -n \
-      --arg title "❌ v${VERSION} dev 배포 실패" \
+      --arg version "$VERSION" \
       --arg url "$run_url" \
       '{
-        embeds: [{
-          title: $title,
-          description: "워크플로우 로그를 확인해주세요.",
-          url: $url,
-          color: 15548997
-        }]
+        content: (
+          "@here\n"
+          + "🔴 테스트앱 배포 실패 - `v" + $version + "`\n"
+          + "워크플로우 로그를 확인해주세요: " + $url
+        ),
+        allowed_mentions: {parse: ["everyone"]}
       }'
   fi
 }

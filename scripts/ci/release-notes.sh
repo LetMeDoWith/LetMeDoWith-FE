@@ -68,12 +68,25 @@ if [[ ! -s "$COMMITS_FILE" ]]; then
 fi
 
 # ── 3. 폴백: 타입별 그룹핑 ────────────────────────────────────
+# 커밋 제목은 `[TAS-123]feat(scope)!: 요약` 형태까지 허용한다.
+# 티켓 프리픽스와 스코프는 선택이며, 어느 그룹에도 걸리지 않은 커밋은
+# 마지막 "기타"가 전부 거둬가므로 노트에서 유실되지 않는다.
+TICKET='(\[[^]]*\])?'
+SUFFIX='(\([^)]*\))?!?:'
+IMPROVE_RE="^${TICKET}(feat|perf|style|refactor)${SUFFIX}"
+BUGFIX_RE="^${TICKET}fix${SUFFIX}"
+
 fallback_notes() {
   {
-    print_group "개선" '^(feat|perf|style|refactor)'
-    print_group "버그 수정" '^fix'
-    print_group "기타" '^(chore|docs|test|build|ci)'
+    print_group "개선" "$IMPROVE_RE"
+    print_group "버그 수정" "$BUGFIX_RE"
+    print_rest "기타" "${IMPROVE_RE}|${BUGFIX_RE}"
   } > "$OUT"
+}
+
+# 제목에서 타입 프리픽스를 떼어 불릿으로 변환. 관례를 따르지 않는 제목은 원문 유지.
+strip_prefix() {
+  sed -E "s/^${TICKET}[a-zA-Z]+${SUFFIX} *//" | sed 's/^/  • /'
 }
 
 print_group() {
@@ -81,7 +94,18 @@ print_group() {
   lines=$(grep -E "$pattern" "$SUBJECTS_FILE" || true)
   if [[ -n "$lines" ]]; then
     echo "$title"
-    printf '%s\n' "$lines" | sed -E 's/^[a-z]+(\([^)]*\))?: */  • /'
+    printf '%s\n' "$lines" | strip_prefix
+    echo
+  fi
+}
+
+# 앞선 그룹에 속하지 않은 나머지 전부(chore/docs/ci + 관례 미준수 제목)
+print_rest() {
+  local title="$1" claimed="$2" lines
+  lines=$(grep -Ev "$claimed" "$SUBJECTS_FILE" || true)
+  if [[ -n "$lines" ]]; then
+    echo "$title"
+    printf '%s\n' "$lines" | strip_prefix
     echo
   fi
 }
