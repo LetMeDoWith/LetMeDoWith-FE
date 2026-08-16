@@ -152,12 +152,12 @@ jobs:
 
       - name: 배포 인증서를 임시 키체인에 로드
         env:
-          IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          IOS_CERT_P12: ${{ secrets.IOS_CERT_P12 }}
           IOS_CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
         run: |
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
           KEYCHAIN_PASSWORD=$(uuidgen)
-          echo "$IOS_DIST_CERT_P12" | base64 -d > "$RUNNER_TEMP/cert.p12"
+          echo "$IOS_CERT_P12" | base64 -d > "$RUNNER_TEMP/cert.p12"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
@@ -197,13 +197,13 @@ jobs:
             -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \
             -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}"
 
-      - name: Export IPA (ad-hoc)
+      - name: Export IPA (development)
         run: |
           cd ios && xcodebuild \
             -exportArchive \
             -archivePath build/LetMeDoWith.xcarchive \
             -exportPath build/ipa \
-            -exportOptionsPlist ExportOptions-adhoc.plist \
+            -exportOptionsPlist ExportOptions-ci.plist \
             -allowProvisioningUpdates \
             -authenticationKeyPath "$RUNNER_TEMP/asc/AuthKey_${{ secrets.ASC_KEY_ID }}.p8" \
             -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \

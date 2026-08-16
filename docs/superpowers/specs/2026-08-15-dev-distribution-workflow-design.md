@@ -56,7 +56,7 @@ production 프로젝트용 워크플로우는 범위 외 (추후 별도 구성).
 - **서명은 automatic signing + App Store Connect API 키** (`-allowProvisioningUpdates`) — 앱 외에 NotificationService 확장 타깃이 있어 수동 프로파일 관리(2개 유지·갱신)보다 자동 서명이 안전하다. 테스터 UDID 추가 시 포털 등록만 하면 CI가 프로파일을 자동 갱신
 - `bundle exec pod install` (Gemfile 기반)
 - 시크릿 복원: `.env`, `ios/GoogleService-Info.plist`(dev 프로젝트용 — pbxproj가 참조하는 실제 경로)
-- `xcodebuild archive` → ad-hoc export로 IPA 생성. 기존 `ExportOptions.plist`는 `method: development`라 CI 전용 `ios/ExportOptions-adhoc.plist` 추가
+- `xcodebuild archive` → **development export**로 IPA 생성 (`ios/ExportOptions-ci.plist`). 현재 팀에 배포(Distribution) 인증서가 없고 기존 테스트 배포도 development 서명으로 운영해 왔으며, ad-hoc으로 바꾸면 `aps-environment: development` 엔타이틀먼트와 어긋나 푸시가 깨질 수 있어 현행 방식을 유지한다
 - IPA artifact 업로드
 
 ### [5] distribute-notify — 배포·태그·알림
@@ -78,7 +78,7 @@ production 프로젝트용 워크플로우는 범위 외 (추후 별도 구성).
 | `GOOGLE_SERVICE_INFO_PLIST_DEV`                   | iOS dev용 GoogleService-Info.plist                    |
 | `FIREBASE_SERVICE_ACCOUNT`                        | App Distribution 권한 서비스 계정 키 JSON             |
 | `FIREBASE_APP_ID_ANDROID` / `FIREBASE_APP_ID_IOS` | dev 프로젝트 앱 ID                                    |
-| `IOS_DIST_CERT_P12` / `IOS_CERT_PASSWORD`         | 배포 인증서(base64) / 비밀번호                        |
+| `IOS_CERT_P12` / `IOS_CERT_PASSWORD`              | Apple Development 인증서(base64) / 비밀번호           |
 | `ASC_API_KEY_P8` / `ASC_KEY_ID` / `ASC_ISSUER_ID` | App Store Connect API 키(base64) / Key ID / Issuer ID |
 | `DISCORD_WEBHOOK_URL`                             | 배포 알림 채널 webhook                                |
 | `NOTION_TOKEN`                                    | Notion integration 토큰                               |
@@ -95,8 +95,9 @@ production 프로젝트용 워크플로우는 범위 외 (추후 별도 구성).
 
 ## 리스크 / 확인 사항
 
-- **iOS ad-hoc**: UDID 미등록 기기는 설치 불가. 테스터 추가 시 Apple Developer 포털에 UDID 등록 후 재배포 필요(프로파일은 CI가 자동 갱신). 운영 부담이 커지면 TestFlight 전환 검토
-- `LetMeDoWith.entitlements`의 `aps-environment: development` — ad-hoc 빌드에서 푸시 수신이 안 될 수 있는 지점. 구현 중 확인
+- **iOS development 서명**: UDID 미등록 기기는 설치 불가. 테스터 추가 시 Apple Developer 포털에 UDID 등록 후 재배포 필요(프로파일은 CI가 자동 갱신). 기기 100대 한도가 차거나 운영 부담이 커지면 ad-hoc/TestFlight 전환 검토
+- 인증서는 **Apple Development**를 사용한다(팀에 Distribution 인증서 없음). 만료 시 재발급 후 `IOS_CERT_P12`·`IOS_CERT_PASSWORD` 갱신 필요
+- 향후 ad-hoc/App Store로 전환할 경우 `aps-environment`를 `production`으로 바꾸고 푸시 수신을 재검증해야 한다
 - macOS 러너 과금(리눅스의 10배 배율) — 빌드당 15~25분 소모. private repo 무료 분량 모니터링
 - Claude API 노트 생성은 비결정적 — 폴백 존재, 품질 문제 시 프롬프트 조정으로 대응
 - 같은 브랜치 반복 push는 같은 버전으로 재배포 — Firebase App Distribution은 동일 버전 재업로드 허용이므로 문제없음
@@ -108,7 +109,7 @@ production 프로젝트용 워크플로우는 범위 외 (추후 별도 구성).
 scripts/ci/release-notes.sh        # 커밋 수집 + Claude API 호출 + 폴백
 scripts/ci/notify-discord.sh
 scripts/ci/notify-notion.sh
-ios/ExportOptions-adhoc.plist      # 필요 시
+ios/ExportOptions-ci.plist         # CI 전용 development export 설정
 ```
 
 ## 범위 외
