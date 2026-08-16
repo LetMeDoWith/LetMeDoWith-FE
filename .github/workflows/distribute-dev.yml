@@ -241,6 +241,17 @@ jobs:
           # bundler-cache를 끈다 — 캐시가 lockfile 기준이라 레거시 bundler를 되살린다.
           bundler-cache: false
 
+      # Pod install 230초 중 3분이 Pods 다운로드·설치였다. Podfile.lock이 커밋돼 있어
+      # 이걸 키로 쓰면 의존성이 바뀔 때만 다시 받는다.
+      - name: Pods 캐시
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+          key: pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: pods-
+
       - name: Pod install
         run: |
           # 이 리포의 Gemfile.lock은 Ruby 2.6.10 / Bundler 1.17.2로 생성돼 있어
@@ -252,6 +263,40 @@ jobs:
           bundle install
           cd ios && bundle exec pod install
 
+      # Archive 12분의 대부분은 앱 코드가 아니라 Pods 컴파일이다
+      # (RCT-Folly 766파일, React-Core 506파일 …). 대부분 C/C++/ObjC라 ccache가 잘 듣는다.
+      - name: ccache 캐시
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-ios-${{ github.sha }}
+          restore-keys: ccache-ios-
+
+      - name: ccache 설정
+        run: |
+          brew install ccache
+          # Xcode가 쓸 컴파일러를 ccache 래퍼로 바꾼다. Podfile을 건드리지 않고
+          # xcodebuild에 CC/CXX를 넘기면 Pods를 포함한 모든 타깃에 적용된다.
+          mkdir -p "$RUNNER_TEMP/ccache-bin"
+          cat > "$RUNNER_TEMP/ccache-bin/clang" <<EOF
+          #!/bin/sh
+          exec ccache "$(xcrun -f clang)" "\$@"
+          EOF
+          cat > "$RUNNER_TEMP/ccache-bin/clang++" <<EOF
+          #!/bin/sh
+          exec ccache "$(xcrun -f clang++)" "\$@"
+          EOF
+          chmod +x "$RUNNER_TEMP/ccache-bin/clang" "$RUNNER_TEMP/ccache-bin/clang++"
+          # sloppiness가 없으면 Xcode의 모듈·헤더 타임스탬프 때문에 거의 전부 miss가 난다.
+          {
+            echo "CCACHE_DIR=$HOME/.ccache"
+            echo "CCACHE_MAXSIZE=3G"
+            echo "CCACHE_SLOPPINESS=clang_index_store,file_stat_matches,include_file_ctime,include_file_mtime,ivfsoverlay,pch_defines,modules,system_headers,time_macros"
+            echo "CCACHE_FILECLONE=true"
+            echo "CCACHE_DEPEND=true"
+          } >> "$GITHUB_ENV"
+          ccache --zero-stats || true
+
       - name: Archive
         run: |
           cd ios && xcodebuild \
@@ -260,7 +305,14 @@ jobs:
             -configuration Release \
             -sdk iphoneos \
             -archivePath build/LetMeDoWith.xcarchive \
-            archive
+            archive \
+            CC="$RUNNER_TEMP/ccache-bin/clang" \
+            CXX="$RUNNER_TEMP/ccache-bin/clang++"
+
+      # ccache가 실제로 먹었는지 확인용. hit이 0이면 CC/CXX가 무시된 것이다.
+      - name: ccache 통계
+        if: always()
+        run: ccache --show-stats
 
       - name: Export IPA (development)
         run: |
