@@ -1,6 +1,6 @@
 # dev 배포 워크플로우 셋업 가이드
 
-`test/X.Y.Z` 브랜치 push 시 자동 배포가 동작하려면 아래 GitHub Secrets/Vars 등록이 선행돼야 한다.
+`sandbox/X.Y.Z` 브랜치 push 시 자동 배포가 동작하려면 아래 GitHub Secrets/Vars 등록이 선행돼야 한다.
 (Settings → Secrets and variables → Actions)
 
 ## Secrets
@@ -58,7 +58,7 @@ ad-hoc 방식으로 전환하려면 Apple Distribution 인증서 발급 + `aps-e
 
 ```bash
 git commit --allow-empty -m "chore: 배포 파이프라인 점검 [dry-run]"
-git push origin test/X.Y.Z
+git push origin sandbox/X.Y.Z
 ```
 
 | 단계                      | 드라이런                          |
@@ -77,6 +77,6 @@ git push origin test/X.Y.Z
 
 ## 배포 방법
 
-1. `test/X.Y.Z` 브랜치 생성 후 push → 워크플로우 자동 실행
+1. `sandbox/X.Y.Z` 브랜치 생성 후 push → 워크플로우 자동 실행
 2. 버전 커밋이 자동 추가되므로 push 후에는 `git pull`로 로컬을 갱신할 것
 3. 결과는 Discord 채널 / Actions 탭에서 확인

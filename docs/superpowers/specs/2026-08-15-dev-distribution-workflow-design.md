@@ -5,14 +5,14 @@
 
 ## 목표
 
-`test/*` 브랜치 push 시 Android·iOS 앱을 자동 빌드하여 **Firebase App Distribution(dev 프로젝트)** 으로 배포하고, 커밋 로그에서 출시 노트를 만들어 **Discord 알림**까지 자동화한다.
+`sandbox/*` 브랜치 push 시 Android·iOS 앱을 자동 빌드하여 **Firebase App Distribution(dev 프로젝트)** 으로 배포하고, 커밋 로그에서 출시 노트를 만들어 **Discord 알림**까지 자동화한다.
 
 production 프로젝트용 워크플로우는 범위 외 (추후 별도 구성).
 
 ## 트리거 / 동시성
 
-- `push` : `test/**` 브랜치
-- 브랜치명 `test/<version>`의 `<version>`이 배포 버전의 단일 소스
+- `push` : `sandbox/**` 브랜치
+- 브랜치명 `sandbox/<version>`의 `<version>`이 배포 버전의 단일 소스
 - concurrency: 브랜치 단위 그룹, `cancel-in-progress: true` (연속 push 시 이전 실행 취소)
 
 ## 잡 구성
