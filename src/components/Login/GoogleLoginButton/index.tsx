@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import Config from 'react-native-config';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -10,7 +10,22 @@ import { ProviderEnum } from 'schemes/auth/enum';
 const GoogleLoginButton = () => {
   const [_, setIdToken] = useAuthToken(ProviderEnum.enum.GOOGLE);
 
+  /*
+    계정 선택 창이 떠 있는 동안 버튼이 다시 눌리면 signIn이 중복 호출되어
+    "Sign-in in progress"로 거부되고 앞선 promise도 유실된다.
+    ref는 연타를 동기적으로 막고(상태 갱신은 비동기라 연타에서 두 번 통과한다),
+    state는 버튼 비활성화 표시에만 쓴다.
+  */
+  const isSigningInRef = useRef(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
   const signInWithGoogle = async () => {
+    if (isSigningInRef.current) {
+      return;
+    }
+    isSigningInRef.current = true;
+    setIsSigningIn(true);
+
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const result = await GoogleSignin.signIn();
@@ -21,6 +36,9 @@ const GoogleLoginButton = () => {
       setIdToken(result.idToken);
     } catch (error) {
       console.error('구글 로그인에서 에러가 발생했습니다.: ', error);
+    } finally {
+      isSigningInRef.current = false;
+      setIsSigningIn(false);
     }
   };
 
@@ -31,7 +49,7 @@ const GoogleLoginButton = () => {
   }, []);
 
   return (
-    <Pressable style={styles.container} onPress={signInWithGoogle}>
+    <Pressable style={styles.container} onPress={signInWithGoogle} disabled={isSigningIn}>
       <GoogleSymbol width={18} height={18} />
       <Text style={styles.label}>구글 계정으로 로그인</Text>
     </Pressable>
