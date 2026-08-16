@@ -52,8 +52,10 @@ production 프로젝트용 워크플로우는 범위 외 (추후 별도 구성).
 
 ### [4] ios — 빌드 (macOS 러너)
 
-- 배포 인증서(.p12)를 임시 키체인에 로드
-- **서명은 automatic signing + App Store Connect API 키** (`-allowProvisioningUpdates`) — 앱 외에 NotificationService 확장 타깃이 있어 수동 프로파일 관리(2개 유지·갱신)보다 자동 서명이 안전하다. 테스터 UDID 추가 시 포털 등록만 하면 CI가 프로파일을 자동 갱신
+- Apple Development 인증서(.p12)를 임시 키체인에 로드
+- **프로비저닝 프로파일은 시크릿으로 전달**(로컬 맥의 것을 tar+base64) 후 러너에 설치. ASC API 키 발급(Admin 권한 필요)이라는 선행 작업을 없애기 위한 선택으로, 대신 테스터 UDID 추가·프로파일 만료 시 시크릿을 수동 갱신해야 한다. 갱신 빈도가 늘면 ASC 키 방식으로 전환
+- export는 `signingStyle: manual` + 번들 ID→프로파일 이름 매핑으로 결정적 서명 (러너에 개발자 계정 로그인이 없으므로)
+- 러너는 `macos-15`, Xcode는 로컬(16.2)에 맞춰 선택
 - `bundle exec pod install` (Gemfile 기반)
 - 시크릿 복원: `.env`, `ios/GoogleService-Info.plist`(dev 프로젝트용 — pbxproj가 참조하는 실제 경로)
 - `xcodebuild archive` → **development export**로 IPA 생성 (`ios/ExportOptions-ci.plist`). 현재 팀에 배포(Distribution) 인증서가 없고 기존 테스트 배포도 development 서명으로 운영해 왔으며, ad-hoc으로 바꾸면 `aps-environment: development` 엔타이틀먼트와 어긋나 푸시가 깨질 수 있어 현행 방식을 유지한다
@@ -71,23 +73,23 @@ production 프로젝트용 워크플로우는 범위 외 (추후 별도 구성).
 
 ## GitHub Secrets / Vars
 
-| 이름                                              | 내용                                                  |
-| ------------------------------------------------- | ----------------------------------------------------- |
-| `ENV_FILE`                                        | `.env` 전체 (ENABLE_DEVTOOLS=true 상태)               |
-| `GOOGLE_SERVICES_JSON_DEV`                        | Android dev용 google-services.json                    |
-| `GOOGLE_SERVICE_INFO_PLIST_DEV`                   | iOS dev용 GoogleService-Info.plist                    |
-| `FIREBASE_SERVICE_ACCOUNT`                        | App Distribution 권한 서비스 계정 키 JSON             |
-| `FIREBASE_APP_ID_ANDROID` / `FIREBASE_APP_ID_IOS` | dev 프로젝트 앱 ID                                    |
-| `IOS_CERT_P12` / `IOS_CERT_PASSWORD`              | Apple Development 인증서(base64) / 비밀번호           |
-| `ASC_API_KEY_P8` / `ASC_KEY_ID` / `ASC_ISSUER_ID` | App Store Connect API 키(base64) / Key ID / Issuer ID |
-| `DISCORD_WEBHOOK_URL`                             | 배포 알림 채널 webhook                                |
-| `NOTION_TOKEN`                                    | Notion integration 토큰                               |
-| `ANTHROPIC_API_KEY`                               | 출시 노트 생성용                                      |
-| (vars) `NOTION_PAGE_ID`, `FIREBASE_TESTER_GROUP`  | 비밀 아님 — Variables로 관리                          |
+| 이름                                              | 내용                                        |
+| ------------------------------------------------- | ------------------------------------------- |
+| `ENV_FILE`                                        | `.env` 전체 (ENABLE_DEVTOOLS=true 상태)     |
+| `GOOGLE_SERVICES_JSON_DEV`                        | Android dev용 google-services.json          |
+| `GOOGLE_SERVICE_INFO_PLIST_DEV`                   | iOS dev용 GoogleService-Info.plist          |
+| `FIREBASE_SERVICE_ACCOUNT`                        | App Distribution 권한 서비스 계정 키 JSON   |
+| `FIREBASE_APP_ID_ANDROID` / `FIREBASE_APP_ID_IOS` | dev 프로젝트 앱 ID                          |
+| `IOS_CERT_P12` / `IOS_CERT_PASSWORD`              | Apple Development 인증서(base64) / 비밀번호 |
+| `IOS_PROVISIONING_PROFILES`                       | 프로비저닝 프로파일 2개 tar+base64          |
+| `DISCORD_WEBHOOK_URL`                             | 배포 알림 채널 webhook                      |
+| `NOTION_TOKEN`                                    | Notion integration 토큰                     |
+| `ANTHROPIC_API_KEY`                               | 출시 노트 생성용                            |
+| (vars) `NOTION_PAGE_ID`, `FIREBASE_TESTER_GROUP`  | 비밀 아님 — Variables로 관리                |
 
 ## 사용자 선행 준비 (구현과 병행 가능)
 
-1. Apple Developer: 배포 인증서 .p12 내보내기, 테스터 기기 UDID 등록, App Store Connect API 키 발급 (프로파일 수동 생성은 불필요 — CI가 자동 관리)
+1. 로컬 맥: Apple Development 인증서 .p12 내보내기, 프로비저닝 프로파일 2개 tar+base64 (Apple 포털 작업 불필요)
 2. Firebase 콘솔(dev): App Distribution 활성화, 테스터 그룹 생성, 서비스 계정 키 발급
 3. Discord: 알림 채널 webhook 생성
 4. Notion: integration 생성 + 배포 기록 페이지 connect

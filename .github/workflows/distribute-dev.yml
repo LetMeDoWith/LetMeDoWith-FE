@@ -126,12 +126,20 @@ jobs:
 
   ios:
     needs: version
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.version.outputs.sha }}
+
+      - name: Xcode 버전 선택 (로컬 빌드 환경과 정렬)
+        run: |
+          # 로컬 수동 빌드는 Xcode 16.2 기준. 러너에 있으면 맞추고, 없으면 기본값(16.x)을 쓴다.
+          if [ -d /Applications/Xcode_16.2.app ]; then
+            sudo xcode-select -s /Applications/Xcode_16.2.app
+          fi
+          xcodebuild -version
 
       - uses: actions/setup-node@v4
         with:
@@ -167,13 +175,17 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
           rm "$RUNNER_TEMP/cert.p12"
 
-      - name: App Store Connect API 키 배치
+      - name: 프로비저닝 프로파일 설치
         env:
-          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          IOS_PROVISIONING_PROFILES: ${{ secrets.IOS_PROVISIONING_PROFILES }}
         run: |
-          mkdir -p "$RUNNER_TEMP/asc"
-          echo "$ASC_API_KEY_P8" | base64 -d \
-            > "$RUNNER_TEMP/asc/AuthKey_${{ secrets.ASC_KEY_ID }}.p8"
+          # Xcode 버전에 따라 참조 경로가 달라 두 곳 모두에 설치한다
+          LEGACY_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          MODERN_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+          mkdir -p "$LEGACY_DIR" "$MODERN_DIR"
+          echo "$IOS_PROVISIONING_PROFILES" | base64 -d | tar xzf - -C "$LEGACY_DIR"
+          cp "$LEGACY_DIR"/*.mobileprovision "$MODERN_DIR/"
+          echo "설치된 프로파일 $(ls "$LEGACY_DIR"/*.mobileprovision | wc -l)개"
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -183,7 +195,7 @@ jobs:
       - name: Pod install
         run: cd ios && bundle exec pod install
 
-      - name: Archive (automatic signing + ASC 키)
+      - name: Archive
         run: |
           cd ios && xcodebuild \
             -workspace LetMeDoWith.xcworkspace \
@@ -191,11 +203,7 @@ jobs:
             -configuration Release \
             -sdk iphoneos \
             -archivePath build/LetMeDoWith.xcarchive \
-            archive \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/asc/AuthKey_${{ secrets.ASC_KEY_ID }}.p8" \
-            -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \
-            -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}"
+            archive
 
       - name: Export IPA (development)
         run: |
@@ -203,11 +211,7 @@ jobs:
             -exportArchive \
             -archivePath build/LetMeDoWith.xcarchive \
             -exportPath build/ipa \
-            -exportOptionsPlist ExportOptions-ci.plist \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/asc/AuthKey_${{ secrets.ASC_KEY_ID }}.p8" \
-            -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \
-            -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}"
+            -exportOptionsPlist ExportOptions-ci.plist
 
       - uses: actions/upload-artifact@v4
         with:

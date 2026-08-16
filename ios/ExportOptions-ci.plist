@@ -4,8 +4,18 @@
 <dict>
     <key>method</key>
     <string>development</string>
+    <!-- CI에는 개발자 계정 로그인이 없어, 시크릿으로 설치한 프로파일을 이름으로 명시해 결정적으로 서명한다 -->
     <key>signingStyle</key>
-    <string>automatic</string>
+    <string>manual</string>
+    <key>teamID</key>
+    <string>U3N4285KF6</string>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.teamdowith.letmedowith2</key>
+        <string>iOS Team Provisioning Profile: com.teamdowith.letmedowith2</string>
+        <key>com.teamdowith.letmedowith2.NotificationService</key>
+        <string>iOS Team Provisioning Profile: com.teamdowith.letmedowith2.NotificationService</string>
+    </dict>
     <key>destination</key>
     <string>export</string>
     <key>compileBitcode</key>

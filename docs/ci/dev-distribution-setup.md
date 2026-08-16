@@ -5,20 +5,19 @@
 
 ## Secrets
 
-| 이름                                              | 얻는 방법                                                                                                                     |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `ENV_FILE`                                        | 로컬 `.env` 파일 내용 전체를 붙여넣기 (`ENABLE_DEVTOOLS` 값은 워크플로우가 true로 덮어씀)                                     |
-| `GOOGLE_SERVICES_JSON_DEV`                        | Firebase 콘솔(dev) → 프로젝트 설정 → Android 앱 → `google-services.json` 다운로드 후 내용 붙여넣기                            |
-| `GOOGLE_SERVICE_INFO_PLIST_DEV`                   | Firebase 콘솔(dev) → iOS 앱 → `GoogleService-Info.plist` 내용 붙여넣기                                                        |
-| `FIREBASE_SERVICE_ACCOUNT`                        | GCP 콘솔(dev 프로젝트) → 서비스 계정 생성 → 역할 "Firebase App Distribution 관리자" → JSON 키 발급 후 내용 붙여넣기           |
-| `FIREBASE_APP_ID_ANDROID` / `FIREBASE_APP_ID_IOS` | Firebase 콘솔 → 프로젝트 설정 → 앱별 "앱 ID" (`1:xxxx:android:xxxx` 형식)                                                     |
-| `IOS_CERT_P12`                                    | 키체인 접근 → **내 인증서** → `Apple Development: <이름>` 우클릭 → 내보내기(.p12) 후 `base64 -i cert.p12 \| pbcopy`           |
-| `IOS_CERT_PASSWORD`                               | 위 .p12 내보낼 때 지정한 비밀번호                                                                                             |
-| `ASC_API_KEY_P8`                                  | App Store Connect → 사용자 및 액세스 → 통합 → API 키 생성(App Manager) → .p8 다운로드 후 `base64 -i AuthKey_XXX.p8 \| pbcopy` |
-| `ASC_KEY_ID` / `ASC_ISSUER_ID`                    | 위 API 키 페이지에 표시되는 Key ID / Issuer ID                                                                                |
-| `DISCORD_WEBHOOK_URL`                             | Discord 채널 설정 → 연동 → 웹후크 생성 → URL 복사                                                                             |
-| `NOTION_TOKEN`                                    | notion.so/my-integrations → integration 생성 → 토큰 복사. **배포 기록 페이지에서 해당 integration을 연결(⋯ → 연결)해야 함**   |
-| `ANTHROPIC_API_KEY`                               | console.anthropic.com → API Keys                                                                                              |
+| 이름                                              | 얻는 방법                                                                                                                   |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `ENV_FILE`                                        | 로컬 `.env` 파일 내용 전체를 붙여넣기 (`ENABLE_DEVTOOLS` 값은 워크플로우가 true로 덮어씀)                                   |
+| `GOOGLE_SERVICES_JSON_DEV`                        | Firebase 콘솔(dev) → 프로젝트 설정 → Android 앱 → `google-services.json` 다운로드 후 내용 붙여넣기                          |
+| `GOOGLE_SERVICE_INFO_PLIST_DEV`                   | Firebase 콘솔(dev) → iOS 앱 → `GoogleService-Info.plist` 내용 붙여넣기                                                      |
+| `FIREBASE_SERVICE_ACCOUNT`                        | GCP 콘솔(dev 프로젝트) → 서비스 계정 생성 → 역할 "Firebase App Distribution 관리자" → JSON 키 발급 후 내용 붙여넣기         |
+| `FIREBASE_APP_ID_ANDROID` / `FIREBASE_APP_ID_IOS` | Firebase 콘솔 → 프로젝트 설정 → 앱별 "앱 ID" (`1:xxxx:android:xxxx` 형식)                                                   |
+| `IOS_CERT_P12`                                    | 키체인 접근 → **내 인증서** → `Apple Development: <이름>` 우클릭 → 내보내기(.p12) 후 `base64 -i cert.p12 \| pbcopy`         |
+| `IOS_CERT_PASSWORD`                               | 위 .p12 내보낼 때 지정한 비밀번호                                                                                           |
+| `IOS_PROVISIONING_PROFILES`                       | 로컬의 프로파일 2개를 묶어 인코딩 (아래 명령 참고)                                                                          |
+| `DISCORD_WEBHOOK_URL`                             | Discord 채널 설정 → 연동 → 웹후크 생성 → URL 복사                                                                           |
+| `NOTION_TOKEN`                                    | notion.so/my-integrations → integration 생성 → 토큰 복사. **배포 기록 페이지에서 해당 integration을 연결(⋯ → 연결)해야 함** |
+| `ANTHROPIC_API_KEY`                               | console.anthropic.com → API Keys                                                                                            |
 
 ## Variables
 
@@ -36,7 +35,21 @@
 
 CI는 **development 서명**으로 IPA를 만든다(`ios/ExportOptions-ci.plist`). 기존 수동 배포와 동일한 방식이라 `aps-environment: development` 엔타이틀먼트와 맞아 푸시 알림이 그대로 동작한다.
 
-프로비저닝 프로파일은 ASC API 키를 통해 CI가 자동 생성·갱신하므로 수동 관리가 필요 없다. 테스터를 추가할 때는 포털에 UDID만 등록하고 재배포하면 된다.
+CI 러너에는 개발자 계정 로그인이 없으므로, **로컬 맥의 프로비저닝 프로파일을 시크릿으로 전달**한다. 인코딩 명령:
+
+```bash
+cd ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
+tar czf - *.mobileprovision | base64 | tr -d '\n' | pbcopy
+```
+
+> Xcode 15 이하를 쓴다면 프로파일 경로가 `~/Library/MobileDevice/Provisioning Profiles`다.
+
+**프로파일 갱신이 필요한 시점** (둘 중 하나라도 해당되면 위 명령을 다시 실행해 시크릿을 교체):
+
+- 테스터 기기(UDID)를 추가한 뒤 — 포털 등록 후 Xcode에서 한 번 빌드하면 프로파일이 갱신된다
+- 프로파일 만료 전 (현재 것은 2027-07-12 만료)
+
+수동 갱신이 번거로워지면 App Store Connect API 키(`-allowProvisioningUpdates`) 방식으로 전환해 CI가 자동 발급하도록 바꿀 수 있다.
 
 ad-hoc 방식으로 전환하려면 Apple Distribution 인증서 발급 + `aps-environment`를 `production`으로 변경 + 푸시 재검증이 필요하다. 등록 기기 100대 한도에 근접하거나 배포 대상이 넓어질 때 검토한다.
 
