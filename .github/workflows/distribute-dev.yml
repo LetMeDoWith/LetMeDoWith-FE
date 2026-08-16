@@ -1,0 +1,79 @@
+name: distribute-dev
+
+on:
+  push:
+    branches:
+      - 'test/**'
+
+concurrency:
+  group: distribute-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 브랜치명에서 버전 추출 및 semver 검증
+        id: extract
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          VERSION="${BRANCH#test/}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::브랜치명 '${BRANCH}'에서 semver를 추출할 수 없습니다. 'test/X.Y.Z' 형식으로 브랜치를 만들어주세요."
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - run: yarn install --frozen-lockfile
+
+      - name: 버전 불일치 시 자동 커밋(기존 관례 2커밋) 후 push
+        id: commit
+        run: |
+          VERSION="${{ steps.extract.outputs.version }}"
+          CURRENT=$(node -p "require('./package.json').version")
+          if [[ "$CURRENT" != "$VERSION" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            npm version "$VERSION" --no-git-tag-version
+            npx react-native-version --never-amend --skip-tag
+            git add android ios
+            git commit -m "chore: native version 업데이트(${VERSION})"
+            git add package.json
+            git commit -m "${VERSION}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  release-notes:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.version.outputs.sha }}
+
+      - name: 출시 노트 생성 (실패 시 스크립트 내부 폴백)
+        run: bash scripts/ci/release-notes.sh release-notes.md
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
