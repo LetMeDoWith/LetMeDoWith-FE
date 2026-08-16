@@ -52,6 +52,29 @@ COPYFILE_DISABLE=1 tar cf - *.mobileprovision | gzip -9 | base64 | tr -d '\n' | 
 
 ad-hoc 방식으로 전환하려면 Apple Distribution 인증서 발급 + `aps-environment`를 `production`으로 변경 + 푸시 재검증이 필요하다. 등록 기기 100대 한도에 근접하거나 배포 대상이 넓어질 때 검토한다.
 
+## 드라이런 (실제 배포 없이 검증)
+
+시크릿을 처음 등록했거나 워크플로우를 고쳤을 때, **테스터에게 앱을 뿌리지 않고** 전 구간을 확인할 수 있다. 커밋 메시지에 `[dry-run]`을 넣어 push하면 된다.
+
+```bash
+git commit --allow-empty -m "chore: 배포 파이프라인 점검 [dry-run]"
+git push origin test/X.Y.Z
+```
+
+| 단계                      | 드라이런                          |
+| ------------------------- | --------------------------------- |
+| semver 검증 / 시크릿 복원 | 실행                              |
+| 출시 노트 생성            | 실행                              |
+| Android·iOS 빌드 및 서명  | 실행 ← 가장 깨지기 쉬운 구간      |
+| 버전 자동 커밋 push       | **건너뜀**                        |
+| Firebase 배포             | **건너뜀**                        |
+| `dist-dev/*` 태그         | **건너뜀**                        |
+| Discord 알림              | 실행 (맨 위에 "⚠️ 드라이런" 표시) |
+
+워크플로우가 기본 브랜치에 머지된 뒤에는 Actions 탭 → **Run workflow** 버튼으로도 드라이런을 켤 수 있다(입력값 `dry_run`, 기본 켜짐).
+
+> macOS 러너 분은 그대로 소모된다(빌드를 실제로 하므로). 그 비용을 치르고 사는 게 **iOS 서명이 CI에서 되는지**에 대한 확답이다 — 첫 실행에서 가장 자주 깨지는 지점이다.
+
 ## 배포 방법
 
 1. `test/X.Y.Z` 브랜치 생성 후 push → 워크플로우 자동 실행

@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - 'test/**'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '드라이런 — 빌드·알림까지만 하고 배포·태그·버전커밋은 건너뜀'
+        type: boolean
+        default: true
 
 concurrency:
   group: distribute-dev-${{ github.ref }}
@@ -11,6 +17,13 @@ concurrency:
 
 permissions:
   contents: write
+
+# 드라이런: 실제 배포 없이 시크릿·빌드·서명·알림을 끝까지 검증한다.
+# push로도 쓸 수 있게 커밋 메시지에 [dry-run]이 있으면 켜진다
+# (workflow_dispatch는 워크플로우 파일이 기본 브랜치에 있어야 UI에 뜨므로,
+#  머지 전에는 커밋 메시지 방식만 동작한다).
+env:
+  DRY_RUN: ${{ inputs.dry_run || contains(github.event.head_commit.message, '[dry-run]') }}
 
 jobs:
   version:
@@ -48,15 +61,19 @@ jobs:
           VERSION="${{ steps.extract.outputs.version }}"
           CURRENT=$(node -p "require('./package.json').version")
           if [[ "$CURRENT" != "$VERSION" ]]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            npm version "$VERSION" --no-git-tag-version
-            npx react-native-version --never-amend --skip-tag
-            git add android ios
-            git commit -m "chore: native version 업데이트(${VERSION})"
-            git add package.json
-            git commit -m "${VERSION}"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
+            if [[ "$DRY_RUN" == "true" ]]; then
+              echo "::notice::드라이런 — 버전 커밋을 만들지 않습니다 (${CURRENT} → ${VERSION} 예정)"
+            else
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              npm version "$VERSION" --no-git-tag-version
+              npx react-native-version --never-amend --skip-tag
+              git add android ios
+              git commit -m "chore: native version 업데이트(${VERSION})"
+              git add package.json
+              git commit -m "${VERSION}"
+              git push origin "HEAD:${GITHUB_REF_NAME}"
+            fi
           fi
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
@@ -237,7 +254,7 @@ jobs:
           path: dist
 
       - name: Firebase App Distribution 배포 (Android + iOS)
-        if: env.BUILDS_OK == 'true'
+        if: env.BUILDS_OK == 'true' && env.DRY_RUN != 'true'
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
@@ -255,7 +272,7 @@ jobs:
             --release-notes-file dist/release-notes/release-notes.md
 
       - name: 배포 기준 태그 push
-        if: env.BUILDS_OK == 'true'
+        if: env.BUILDS_OK == 'true' && env.DRY_RUN != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -270,7 +287,12 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          if ! bash scripts/ci/notify-discord.sh success "$VERSION" dist/release-notes/release-notes.md "$RUN_URL"; then
+          NOTES=dist/release-notes/release-notes.md
+          if [[ "$DRY_RUN" == "true" ]]; then
+            # 드라이런임을 노트 맨 위에 박아 실제 배포 알림과 헷갈리지 않게 한다
+            printf '⚠️ 드라이런 — 실제 배포되지 않았습니다\n\n%s\n' "$(cat "$NOTES")" > "$NOTES"
+          fi
+          if ! bash scripts/ci/notify-discord.sh success "$VERSION" "$NOTES" "$RUN_URL"; then
             echo "::warning::Discord 알림 전송 실패 — 배포 자체는 완료됨"
           fi
 
