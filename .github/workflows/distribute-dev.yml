@@ -224,9 +224,12 @@ jobs:
           ruby-version: '3.2'
           # Gemfile.lock의 `BUNDLED WITH 1.17.2`를 그대로 따르면 Bundler 1.x가 쓰는
           # String#untaint가 Ruby 3.2에서 제거돼 NoMethodError로 죽는다.
-          # Bundler 2로 고정해 Gemfile 제약(cocoapods >= 1.13, < 1.15) 안에서 재해석한다.
-          bundler: '2'
+          # Bundler 2를 명시해 Gemfile 제약(cocoapods >= 1.13, < 1.15) 안에서 재해석한다.
+          bundler: 'latest'
           bundler-cache: true
+          # 캐시 키에 lockfile 해시만 들어가므로, 예전 캐시에 남은 bundler 1.17.2가
+          # 그대로 복원돼 위 설정을 무력화했다. 버전을 올려 캐시를 갈아엎는다.
+          cache-version: 2
 
       - name: Pod install
         run: cd ios && bundle exec pod install
