@@ -12,17 +12,15 @@ VERSION="${2:?버전 필요}"
 build_payload() {
   if [[ "$MODE" == "success" ]]; then
     local notes_file="${3:?notes-file 필요}" run_url="${4:?run-url 필요}"
-    # Discord embed description 한도(4096) 보호를 위해 3500자로 절단
-    local notes
-    notes=$(head -c 3500 "$notes_file")
+    # Discord embed description 한도(4096) 보호를 위해 3500자(UTF-8 safe)로 절단
     jq -n \
       --arg title "🚀 v${VERSION} dev 배포 완료" \
-      --arg notes "$notes" \
+      --rawfile notes "$notes_file" \
       --arg url "$run_url" \
       '{
         embeds: [{
           title: $title,
-          description: $notes,
+          description: ($notes | .[0:3500]),
           url: $url,
           color: 5763719,
           footer: {text: "Firebase App Distribution · 테스터 그룹에 발송됨"}
