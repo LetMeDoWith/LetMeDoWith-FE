@@ -83,7 +83,16 @@ jobs:
               git config user.name "github-actions[bot]"
               git config user.email "github-actions[bot]@users.noreply.github.com"
               npm version "$VERSION" --no-git-tag-version
-              npx react-native-version --never-amend --skip-tag
+              # react-native-version에는 Android만 맡긴다. iOS 기본 모드는 Info.plist의
+              # $(CURRENT_PROJECT_VERSION)·$(MARKETING_VERSION) 참조를 리터럴로 덮어쓰는데,
+              # 참조 문자열은 parseInt가 NaN이라 빌드 번호가 1로 초기화된다(0.9.9 배포 때
+              # 27 → 1로 떨어진 원인). agvtool을 쓰는 --legacy는 macOS 전용이라 못 쓴다.
+              npx react-native-version --never-amend --skip-tag --target android
+              # iOS는 pbxproj 빌드 세팅만 갱신한다. plist는 참조를 그대로 두면 빌드 시 해석된다.
+              # 빌드 번호는 Android versionCode와 같은 값으로 맞춘다(0.9.8까지의 관례).
+              VERSION_CODE=$(grep -oE 'versionCode [0-9]+' android/app/build.gradle | awk '{print $2}')
+              sed -i "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = ${VERSION_CODE};/g" ios/LetMeDoWith.xcodeproj/project.pbxproj
+              sed -i "s/MARKETING_VERSION = [0-9.]*;/MARKETING_VERSION = ${VERSION};/g" ios/LetMeDoWith.xcodeproj/project.pbxproj
               git add android ios
               git commit -m "chore: native version 업데이트(${VERSION})"
               git add package.json
