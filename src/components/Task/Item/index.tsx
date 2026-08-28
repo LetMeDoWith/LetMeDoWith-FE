@@ -23,8 +23,6 @@ import { TaskFail } from 'components/common/icons/TaskFail';
 import { UploadImage } from 'components/common/icons/UploadImage';
 import { isNil } from 'utils/index';
 import { useUpdateTodoTaskStatus } from 'hooks/queries/task/useUpdateTodoTaskStatus';
-import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
-import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { Camera } from 'components/common/icons/Camera';
@@ -44,6 +42,7 @@ interface Props {
   year: number;
   month: number;
   selectedDate: string;
+  isRoutine: boolean;
   successImageUrls?: string[] | null;
   feedBackCount?: number | null;
 }
@@ -58,6 +57,7 @@ const Item = memo(function Item({
   year,
   month,
   selectedDate,
+  isRoutine: isRoutineTask,
   successImageUrls,
   feedBackCount,
 }: Props) {
@@ -72,20 +72,6 @@ const Item = memo(function Item({
   }, [status]);
 
   const [showUploadImageBottomSheet, setShowUploadImageBottomSheet] = useState(false);
-  // 상세(루틴 정보)는 관리 시트를 열 때만 조회한다. 리스트 렌더 시 항목마다 상세 쿼리를 실행하던 비용 제거.
-  const [isDetailEnabled, setIsDetailEnabled] = useState(false);
-
-  const { data: todoTaskData } = useFetchTodoTask(
-    { todoTaskId: id },
-    { enabled: mode === 'TODO' && id !== -1 && isDetailEnabled },
-  );
-  const { data: dowithTaskData } = useFetchDowithTask(
-    { dowithTaskId: id },
-    { enabled: !isTodoMode && id !== -1 && isDetailEnabled },
-  );
-
-  const data = id && mode ? todoTaskData ?? dowithTaskData : null;
-  const isRoutineTask = !isNil(data?.routineCondition);
 
   // 두윗이고, 시작 시간으로부터 1시간을 초과했을 경우 (list의 selectedDate=task 날짜, startTime은 prop이라 상세 조회 불필요)
   const isInvalidUpdateDowithTask =
@@ -134,7 +120,6 @@ const Item = memo(function Item({
   };
 
   const handleBottomSheet = () => {
-    setIsDetailEnabled(true); // 관리 시트에서 루틴 정보가 필요하므로 이때 상세 조회 활성화
     setShowUploadImageBottomSheet(false);
     taskManagementBottomSheetModalRef.current?.present();
   };
@@ -345,7 +330,8 @@ const Item = memo(function Item({
             >
               {title}
             </Text>
-            {(startTime || taskCategoryName) && (
+            {/* 루틴 아이콘도 이 줄에 있으므로, 시간·카테고리가 없어도 루틴이면 줄을 렌더한다 */}
+            {(startTime || taskCategoryName || isRoutineTask) && (
               <View style={styles.option}>
                 {startTime && (
                   <Text

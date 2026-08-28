@@ -31,6 +31,7 @@ const todoTaskScheme = z.object({
   status: TASK_STATUS_ENUM.describe('테스크 상태'),
   date: z.string().describe('테스크 수행일자'),
   startTime: z.string().nullable().describe('테스크 시작시간'),
+  isRoutine: z.boolean().describe('루틴 설정 여부'),
 });
 
 const dowithTaskScheme = todoTaskScheme.omit({ startTime: true }).extend({
@@ -56,9 +57,12 @@ const fetchTaskListResponseScheme = BaseResponseScheme.extend({
   }),
 });
 
-const addTaskRequestScheme = todoTaskScheme.omit({ id: true, status: true, taskCategoryName: true }).extend({
-  routineCondition: taskRoutineConditionScheme.nullable(),
-});
+/* isRoutine은 목록 응답 전용 필드라 요청 페이로드에서는 제외한다 */
+const addTaskRequestScheme = todoTaskScheme
+  .omit({ id: true, status: true, taskCategoryName: true, isRoutine: true })
+  .extend({
+    routineCondition: taskRoutineConditionScheme.nullable(),
+  });
 
 const taskFormScheme = addTaskRequestScheme.omit({ routineCondition: true }).extend({
   routineCondition: taskRoutineConditionScheme.omit({ startDate: true, endDate: true, cycle: true }).extend({
@@ -76,7 +80,7 @@ const fetchTodoTaskRequestScheme = z.object({
   todoTaskId: z.number().describe('투두 task id'),
 });
 
-const fetchTodoTaskResponseDataScheme = todoTaskScheme.extend({
+const fetchTodoTaskResponseDataScheme = todoTaskScheme.omit({ isRoutine: true }).extend({
   routineCondition: taskRoutineConditionScheme.nullable(),
 });
 
@@ -86,7 +90,7 @@ const fetchDowithTaskRequestScheme = z.object({
   dowithTaskId: z.number().describe('두윗 task id'),
 });
 
-const fetchDowithTaskResponseDataScheme = dowithTaskScheme.extend({
+const fetchDowithTaskResponseDataScheme = dowithTaskScheme.omit({ isRoutine: true }).extend({
   routineCondition: taskRoutineConditionScheme.nullable(),
 });
 
