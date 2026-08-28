@@ -1,0 +1,256 @@
+name: build-apps
+
+# Android·iOS 빌드를 한 곳에 둔다.
+# 배포(distribute-dev)와 주기 검증(verify-build)이 같은 빌드를 써야 하는데,
+# 각자 복제하면 시간이 지나며 갈라진다. 재사용 워크플로우로 호출한다.
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: '.env의 PACKAGE_VERSION에 주입할 버전'
+        type: string
+        required: true
+      ref:
+        description: '체크아웃할 커밋'
+        type: string
+        required: true
+      upload-artifacts:
+        description: 'APK·IPA를 아티팩트로 올릴지(배포에 쓸 때만 필요)'
+        type: boolean
+        default: false
+      notify-on-failure:
+        description: '빌드 실패 시 Discord 알림 후 런 전체 취소'
+        type: boolean
+        default: false
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - run: yarn install --frozen-lockfile
+
+      - name: .env 복원 (ENABLE_DEVTOOLS 켜고 PACKAGE_VERSION 동기화)
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          printf '%s\n' "$ENV_FILE" > .env
+          sed -i 's/^ENABLE_DEVTOOLS=.*/ENABLE_DEVTOOLS=true/' .env
+          sed -i "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=${{ inputs.version }}/" .env
+
+      - name: google-services.json(dev) 복원
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON_DEV }}
+        run: printf '%s\n' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Android Release 빌드
+        run: cd android && ./gradlew assembleRelease --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.upload-artifacts
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
+      # 알림을 먼저 보내고 취소한다. 순서를 바꾸면 distribute-notify까지 취소돼
+      # (!cancelled() 가드) 실패 알림이 아예 나가지 않는다.
+      - name: 실패 시 알림 후 워크플로우 중단
+        if: failure() && inputs.notify-on-failure
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ inputs.version }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
+          echo "::error::Android 빌드 실패 — 나머지 잡을 중단합니다"
+          gh run cancel "${{ github.run_id }}"
+
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      # Xcode를 로컬(16.2)에 맞춰 고정했더니 ibtool이 "iOS 18.2 Platform Not Installed"로
+      # 죽었다. 러너에는 여러 Xcode가 깔려 있지만 플랫폼 지원까지 온전한 건 기본값뿐이라,
+      # 버전을 고정하지 않고 기본 Xcode를 쓴다. 어떤 버전으로 빌드됐는지는 로그로 남긴다.
+      - name: 빌드 환경 기록
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - run: yarn install --frozen-lockfile
+
+      - name: .env / GoogleService-Info.plist(dev) 복원
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_DEV }}
+        run: |
+          printf '%s\n' "$ENV_FILE" > .env
+          sed -i '' 's/^ENABLE_DEVTOOLS=.*/ENABLE_DEVTOOLS=true/' .env
+          sed -i '' "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=${{ inputs.version }}/" .env
+          printf '%s\n' "$GOOGLE_SERVICE_INFO_PLIST" > ios/GoogleService-Info.plist
+
+      - name: 배포 인증서를 임시 키체인에 로드
+        env:
+          IOS_CERT_P12: ${{ secrets.IOS_CERT_P12 }}
+          IOS_CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          echo "$IOS_CERT_P12" | base64 -d > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN_PATH" \
+            -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+          rm "$RUNNER_TEMP/cert.p12"
+
+      - name: 프로비저닝 프로파일 설치
+        env:
+          IOS_PROVISIONING_PROFILES: ${{ secrets.IOS_PROVISIONING_PROFILES }}
+        run: |
+          # Xcode 버전에 따라 참조 경로가 달라 두 곳 모두에 설치한다
+          LEGACY_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          MODERN_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+          mkdir -p "$LEGACY_DIR" "$MODERN_DIR"
+          echo "$IOS_PROVISIONING_PROFILES" | base64 -d | tar xzf - -C "$LEGACY_DIR"
+          cp "$LEGACY_DIR"/*.mobileprovision "$MODERN_DIR/"
+          echo "설치된 프로파일 $(ls "$LEGACY_DIR"/*.mobileprovision | wc -l)개"
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler: '2'
+          # bundler-cache를 끈다 — 캐시가 lockfile 기준이라 레거시 bundler를 되살린다.
+          bundler-cache: false
+
+      # Pod install 230초 중 3분이 Pods 다운로드·설치였다. Podfile.lock이 커밋돼 있어
+      # 이걸 키로 쓰면 의존성이 바뀔 때만 다시 받는다.
+      - name: Pods 캐시
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+          key: pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: pods-
+
+      - name: Pod install
+        run: |
+          # 이 리포의 Gemfile.lock은 Ruby 2.6.10 / Bundler 1.17.2로 생성돼 있어
+          # 최신 Ruby에서 깨진다(Bundler 1.x가 쓰는 String#untaint가 Ruby 3.2에서 제거됨).
+          # CI에서는 lockfile을 버리고 Gemfile의 제약만으로 새로 해석한다
+          # — cocoapods >= 1.13 < 1.15, activesupport < 7.1 같은 의도는 그대로 지켜진다.
+          # (체크아웃본에서만 지우는 것이라 리포의 lockfile은 그대로다)
+          rm -f Gemfile.lock
+          bundle install
+          cd ios && bundle exec pod install
+
+      # Archive 12분의 대부분은 앱 코드가 아니라 Pods 컴파일이다
+      # (RCT-Folly 766파일, React-Core 506파일 …). 대부분 C/C++/ObjC라 ccache가 잘 듣는다.
+      - name: ccache 캐시
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-ios-${{ github.sha }}
+          restore-keys: ccache-ios-
+
+      - name: ccache 설정
+        id: ccache_setup
+        run: |
+          brew install ccache
+          # Xcode가 쓸 컴파일러를 ccache 래퍼로 바꾼다. Podfile을 건드리지 않고
+          # xcodebuild에 CC/CXX를 넘기면 Pods를 포함한 모든 타깃에 적용된다.
+          mkdir -p "$RUNNER_TEMP/ccache-bin"
+          cat > "$RUNNER_TEMP/ccache-bin/clang" <<EOF
+          #!/bin/sh
+          exec ccache "$(xcrun -f clang)" "\$@"
+          EOF
+          cat > "$RUNNER_TEMP/ccache-bin/clang++" <<EOF
+          #!/bin/sh
+          exec ccache "$(xcrun -f clang++)" "\$@"
+          EOF
+          chmod +x "$RUNNER_TEMP/ccache-bin/clang" "$RUNNER_TEMP/ccache-bin/clang++"
+          # sloppiness가 없으면 Xcode의 모듈·헤더 타임스탬프 때문에 거의 전부 miss가 난다.
+          {
+            echo "CCACHE_DIR=$HOME/.ccache"
+            echo "CCACHE_MAXSIZE=3G"
+            echo "CCACHE_SLOPPINESS=clang_index_store,file_stat_matches,include_file_ctime,include_file_mtime,ivfsoverlay,pch_defines,modules,system_headers,time_macros"
+            echo "CCACHE_FILECLONE=true"
+            echo "CCACHE_DEPEND=true"
+          } >> "$GITHUB_ENV"
+          ccache --zero-stats || true
+
+      - name: Archive
+        run: |
+          cd ios && xcodebuild \
+            -workspace LetMeDoWith.xcworkspace \
+            -scheme LetMeDoWith \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/LetMeDoWith.xcarchive \
+            archive \
+            CC="$RUNNER_TEMP/ccache-bin/clang" \
+            CXX="$RUNNER_TEMP/ccache-bin/clang++"
+
+      # ccache가 실제로 먹었는지 확인용. hit이 0이면 CC/CXX가 무시된 것이다.
+      # 설정 스텝이 성공했을 때만 실행한다 — 그 전에 빌드가 죽으면 ccache가 없어
+      # 이 스텝까지 실패하면서 진짜 원인을 가린다.
+      - name: ccache 통계
+        if: always() && steps.ccache_setup.conclusion == 'success'
+        run: ccache --show-stats
+
+      - name: Export IPA (development)
+        run: |
+          cd ios && xcodebuild \
+            -exportArchive \
+            -archivePath build/LetMeDoWith.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist ExportOptions-ci.plist
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.upload-artifacts
+        with:
+          name: ios-ipa
+          path: ios/build/ipa/*.ipa
+          if-no-files-found: error
+
+      # Android 잡과 동일 — 알림 먼저, 그다음 취소
+      - name: 실패 시 알림 후 워크플로우 중단
+        if: failure() && inputs.notify-on-failure
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ inputs.version }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
+          echo "::error::iOS 빌드 실패 — 나머지 잡을 중단합니다"
+          gh run cancel "${{ github.run_id }}"

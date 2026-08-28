@@ -1,0 +1,46 @@
+name: verify-build
+
+# 주기적으로 develop을 빌드해 깨짐을 확인하고 빌드 캐시를 갱신한다.
+#
+# GitHub 캐시는 7일간 미접근 시 삭제되고 그 값은 조정할 수 없다.
+# develop 머지가 주 1~2회라 배포 실행만으로는 캐시가 만료되므로, 5일 주기로 돌려
+# 항상 웜 상태를 유지한다(실측: iOS 잡 콜드 13분 1초 → 웜 4분 28초).
+#
+# 크론은 항상 기본 브랜치에서 실행되므로 캐시가 develop 스코프에 쌓이고,
+# 모든 브랜치가 그것을 읽을 수 있다.
+#
+# 산출물은 배포에 재활용할 수 없다 — 버전이 빌드 시점에 바이너리에 박히기 때문에,
+# 나중에 버전을 올려 배포하려면 어차피 다시 빌드해야 한다. 그래서 아티팩트를 올리지 않는다.
+on:
+  schedule:
+    - cron: '0 0 */5 * *'
+  workflow_dispatch:
+
+concurrency:
+  group: verify-build
+  cancel-in-progress: true
+
+jobs:
+  read-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.read.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: package.json 버전 읽기
+        id: read
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: read-version
+    uses: ./.github/workflows/build-apps.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.read-version.outputs.version }}
+      ref: ${{ github.sha }}
+      # 검증·캐시 갱신이 목적이라 산출물은 버린다.
+      upload-artifacts: false
+      # 실패는 Actions 실행 결과로 남긴다. 여기서 취소하면 실패가 '취소됨'으로 가려진다.
+      notify-on-failure: false

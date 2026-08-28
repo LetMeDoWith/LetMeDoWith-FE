@@ -49,7 +49,9 @@ resolve_range() {
     return
   fi
   local last_tag
-  last_tag=$(git tag --list 'dist-dev/*' --sort=-creatordate | head -1)
+  # 버전 태그는 v0.9.11 형식. 소급 생성분은 만든 시각이 모두 같아 creatordate 정렬이
+  # 무의미하므로 버전 정렬을 쓴다(문자열 정렬로는 0.10.0 < 0.9.9가 되어 틀린다).
+  last_tag=$(git tag --list 'v*' --sort=-v:refname | head -1)
   if [[ -n "$last_tag" ]]; then
     echo "${last_tag}..HEAD"
     return

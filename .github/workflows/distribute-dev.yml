@@ -1,111 +1,102 @@
 name: distribute-dev
 
+# 테스터 배포는 develop에서 수동으로 실행한다.
+# 릴리즈마다 브랜치를 파던 방식은 기본 브랜치를 방치시키고 빌드 캐시를 매번 콜드로 만들었다.
+# 설계 배경은 docs/superpowers/specs/2026-08-28-develop-trunk-release-strategy-design.md 참조.
 on:
-  push:
-    branches:
-      - 'sandbox/**'
   workflow_dispatch:
     inputs:
+      bump:
+        description: '올릴 버전 단위'
+        type: choice
+        options: [patch, minor, major]
+        default: patch
       dry_run:
-        description: '드라이런 — 빌드·알림까지만 하고 배포·태그·버전커밋은 건너뜀'
+        description: '드라이런 — 빌드까지만 하고 배포·태그·버전커밋은 건너뜀'
         type: boolean
-        default: true
+        default: false
 
 concurrency:
-  group: distribute-dev-${{ github.ref }}
-  cancel-in-progress: true
+  group: distribute-dev
+  cancel-in-progress: false
 
 permissions:
   contents: write
   actions: write # 빌드 실패 시 런 전체를 취소(fail-fast)하기 위해 필요
 
-# 드라이런: 실제 배포 없이 시크릿·빌드·서명·알림을 끝까지 검증한다.
-# push로도 쓸 수 있게 커밋 메시지에 [dry-run]이 있으면 켜진다
-# (workflow_dispatch는 워크플로우 파일이 기본 브랜치에 있어야 UI에 뜨므로,
-#  머지 전에는 커밋 메시지 방식만 동작한다).
 env:
-  DRY_RUN: ${{ inputs.dry_run || contains(github.event.head_commit.message, '[dry-run]') }}
+  DRY_RUN: ${{ inputs.dry_run }}
 
 jobs:
   version:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
-      version: ${{ steps.extract.outputs.version }}
+      version: ${{ steps.bump.outputs.version }}
       sha: ${{ steps.commit.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 브랜치명에서 버전 추출 및 semver 검증
-        id: extract
-        run: |
-          BRANCH="${GITHUB_REF_NAME}"
-          VERSION="${BRANCH#sandbox/}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::브랜치명 '${BRANCH}'에서 semver를 추출할 수 없습니다. 'sandbox/X.Y.Z' 형식으로 브랜치를 만들어주세요."
-            exit 1
-          fi
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
-      # 빌드에 들어가기 전에 막아 러너 분을 아낀다.
-      # 주의: 배포가 성공하면 아래 단계에서 package.json이 그 버전으로 갱신·push되므로,
-      # 같은 sandbox 브랜치에 다시 push하면 여기서 막힌다. 재배포는 버전을 올려서 한다.
-      - name: 이전 배포 버전보다 높은지 검증
+      - name: 다음 버전 계산
+        id: bump
         run: |
-          VERSION="${{ steps.extract.outputs.version }}"
-          PREV=$(node -p "require('./package.json').version")
-          # sort -V(버전 정렬)로 비교한다. 문자열 비교로는 0.10.0 < 0.9.9가 되어 틀린다.
-          HIGHEST=$(printf '%s\n%s\n' "$VERSION" "$PREV" | sort -V | tail -1)
-          if [[ "$VERSION" == "$PREV" || "$HIGHEST" != "$VERSION" ]]; then
-            echo "::error::브랜치 버전 ${VERSION}이(가) 현재 버전 ${PREV}보다 높지 않습니다. 더 높은 버전으로 sandbox 브랜치를 만들어주세요."
-            exit 1
-          fi
-          echo "버전 검증 통과: ${PREV} → ${VERSION}"
+          CURRENT=$(node -p "require('./package.json').version")
+          VERSION=$(npx --yes semver "$CURRENT" -i "${{ inputs.bump }}")
+          echo "버전 ${CURRENT} → ${VERSION} (${{ inputs.bump }})"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - run: yarn install --frozen-lockfile
 
-      - name: 버전 불일치 시 자동 커밋(기존 관례 2커밋) 후 push
+      - name: 버전 커밋(기존 관례 2커밋) 후 push
         id: commit
         run: |
-          VERSION="${{ steps.extract.outputs.version }}"
-          CURRENT=$(node -p "require('./package.json').version")
-          if [[ "$CURRENT" != "$VERSION" ]]; then
-            if [[ "$DRY_RUN" == "true" ]]; then
-              echo "::notice::드라이런 — 버전 커밋을 만들지 않습니다 (${CURRENT} → ${VERSION} 예정)"
-            else
-              git config user.name "github-actions[bot]"
-              git config user.email "github-actions[bot]@users.noreply.github.com"
-              npm version "$VERSION" --no-git-tag-version
-              # react-native-version에는 Android만 맡긴다. iOS 기본 모드는 Info.plist의
-              # $(CURRENT_PROJECT_VERSION)·$(MARKETING_VERSION) 참조를 리터럴로 덮어쓰는데,
-              # 참조 문자열은 parseInt가 NaN이라 빌드 번호가 1로 초기화된다(0.9.9 배포 때
-              # 27 → 1로 떨어진 원인). agvtool을 쓰는 --legacy는 macOS 전용이라 못 쓴다.
-              npx react-native-version --never-amend --skip-tag --target android
-              # iOS는 pbxproj 빌드 세팅만 갱신한다. plist는 참조를 그대로 두면 빌드 시 해석된다.
-              # 빌드 번호는 Android versionCode와 같은 값으로 맞춘다(0.9.8까지의 관례).
-              VERSION_CODE=$(grep -oE 'versionCode [0-9]+' android/app/build.gradle | awk '{print $2}')
-              sed -i "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = ${VERSION_CODE};/g" ios/LetMeDoWith.xcodeproj/project.pbxproj
-              sed -i "s/MARKETING_VERSION = [0-9.]*;/MARKETING_VERSION = ${VERSION};/g" ios/LetMeDoWith.xcodeproj/project.pbxproj
-              git add android ios
-              git commit -m "chore: native version 업데이트(${VERSION})"
-              git add package.json
-              git commit -m "${VERSION}"
-              git push origin "HEAD:${GITHUB_REF_NAME}"
-            fi
+          VERSION="${{ steps.bump.outputs.version }}"
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "::notice::드라이런 — 버전 커밋을 만들지 않습니다 (${VERSION} 예정)"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            npm version "$VERSION" --no-git-tag-version
+            # react-native-version에는 Android만 맡긴다. iOS 기본 모드는 Info.plist의
+            # $(CURRENT_PROJECT_VERSION)·$(MARKETING_VERSION) 참조를 리터럴로 덮어쓰는데,
+            # 참조 문자열은 parseInt가 NaN이라 빌드 번호가 1로 초기화된다(0.9.9 배포 때
+            # 27 → 1로 떨어진 원인). agvtool을 쓰는 --legacy는 macOS 전용이라 못 쓴다.
+            npx react-native-version --never-amend --skip-tag --target android
+            # iOS는 pbxproj 빌드 세팅만 갱신한다. plist는 참조를 그대로 두면 빌드 시 해석된다.
+            # 빌드 번호는 Android versionCode와 같은 값으로 맞춘다(0.9.8까지의 관례).
+            VERSION_CODE=$(grep -oE 'versionCode [0-9]+' android/app/build.gradle | awk '{print $2}')
+            sed -i "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = ${VERSION_CODE};/g" ios/LetMeDoWith.xcodeproj/project.pbxproj
+            sed -i "s/MARKETING_VERSION = [0-9.]*;/MARKETING_VERSION = ${VERSION};/g" ios/LetMeDoWith.xcodeproj/project.pbxproj
+            git add android ios
+            git commit -m "chore: native version 업데이트(${VERSION})"
+            git add package.json
+            git commit -m "${VERSION}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
+  build:
+    needs: version
+    uses: ./.github/workflows/build-apps.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.version.outputs.version }}
+      ref: ${{ needs.version.outputs.sha }}
+      upload-artifacts: true
+      # 드라이런은 검증용이라 Discord로 내보내지 않는다.
+      notify-on-failure: ${{ inputs.dry_run == false }}
+
   # 빌드가 모두 성공한 뒤에만 노트를 만든다.
-  # android/ios 중 하나라도 실패하면 이 잡은 자동으로 스킵되고 파이프라인이 멈춘다.
+  # 빌드가 실패하면 이 잡은 자동으로 스킵되고 파이프라인이 멈춘다.
   release-notes:
-    needs: [version, android, ios]
+    needs: [version, build]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -122,252 +113,15 @@ jobs:
           name: release-notes
           path: release-notes.md
 
-  android:
-    needs: version
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.version.outputs.sha }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
-
-      - run: yarn install --frozen-lockfile
-
-      - name: .env 복원 (ENABLE_DEVTOOLS 켜고 PACKAGE_VERSION 동기화)
-        env:
-          ENV_FILE: ${{ secrets.ENV_FILE }}
-        run: |
-          printf '%s\n' "$ENV_FILE" > .env
-          sed -i 's/^ENABLE_DEVTOOLS=.*/ENABLE_DEVTOOLS=true/' .env
-          sed -i "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=${{ needs.version.outputs.version }}/" .env
-
-      - name: google-services.json(dev) 복원
-        env:
-          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON_DEV }}
-        run: printf '%s\n' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-          cache: 'gradle'
-
-      - name: Android Release 빌드
-        run: cd android && ./gradlew assembleRelease --no-daemon
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
-          if-no-files-found: error
-
-      # 알림을 먼저 보내고 취소한다. 순서를 바꾸면 distribute-notify까지 취소돼
-      # (!cancelled() 가드) 실패 알림이 아예 나가지 않는다.
-      - name: 실패 시 알림 후 워크플로우 중단
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          VERSION: ${{ needs.version.outputs.version }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          # 드라이런은 검증용이라 Discord로 내보내지 않는다
-          if [[ "$DRY_RUN" != "true" ]]; then
-            bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
-          fi
-          echo "::error::Android 빌드 실패 — 나머지 잡을 중단합니다"
-          gh run cancel "${{ github.run_id }}"
-
-  ios:
-    needs: version
-    runs-on: macos-15
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.version.outputs.sha }}
-
-      # Xcode를 로컬(16.2)에 맞춰 고정했더니 ibtool이 "iOS 18.2 Platform Not Installed"로
-      # 죽었다. 러너에는 여러 Xcode가 깔려 있지만 플랫폼 지원까지 온전한 건 기본값뿐이라,
-      # 버전을 고정하지 않고 기본 Xcode를 쓴다. 어떤 버전으로 빌드됐는지는 로그로 남긴다.
-      - name: 빌드 환경 기록
-        run: |
-          xcodebuild -version
-          xcrun --sdk iphoneos --show-sdk-version
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
-
-      - run: yarn install --frozen-lockfile
-
-      - name: .env / GoogleService-Info.plist(dev) 복원
-        env:
-          ENV_FILE: ${{ secrets.ENV_FILE }}
-          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_DEV }}
-        run: |
-          printf '%s\n' "$ENV_FILE" > .env
-          sed -i '' 's/^ENABLE_DEVTOOLS=.*/ENABLE_DEVTOOLS=true/' .env
-          sed -i '' "s/^PACKAGE_VERSION=.*/PACKAGE_VERSION=${{ needs.version.outputs.version }}/" .env
-          printf '%s\n' "$GOOGLE_SERVICE_INFO_PLIST" > ios/GoogleService-Info.plist
-
-      - name: 배포 인증서를 임시 키체인에 로드
-        env:
-          IOS_CERT_P12: ${{ secrets.IOS_CERT_P12 }}
-          IOS_CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
-        run: |
-          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
-          KEYCHAIN_PASSWORD=$(uuidgen)
-          echo "$IOS_CERT_P12" | base64 -d > "$RUNNER_TEMP/cert.p12"
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN_PATH" \
-            -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
-          rm "$RUNNER_TEMP/cert.p12"
-
-      - name: 프로비저닝 프로파일 설치
-        env:
-          IOS_PROVISIONING_PROFILES: ${{ secrets.IOS_PROVISIONING_PROFILES }}
-        run: |
-          # Xcode 버전에 따라 참조 경로가 달라 두 곳 모두에 설치한다
-          LEGACY_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
-          MODERN_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
-          mkdir -p "$LEGACY_DIR" "$MODERN_DIR"
-          echo "$IOS_PROVISIONING_PROFILES" | base64 -d | tar xzf - -C "$LEGACY_DIR"
-          cp "$LEGACY_DIR"/*.mobileprovision "$MODERN_DIR/"
-          echo "설치된 프로파일 $(ls "$LEGACY_DIR"/*.mobileprovision | wc -l)개"
-
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler: '2'
-          # bundler-cache를 끈다 — 캐시가 lockfile 기준이라 레거시 bundler를 되살린다.
-          bundler-cache: false
-
-      # Pod install 230초 중 3분이 Pods 다운로드·설치였다. Podfile.lock이 커밋돼 있어
-      # 이걸 키로 쓰면 의존성이 바뀔 때만 다시 받는다.
-      - name: Pods 캐시
-        uses: actions/cache@v4
-        with:
-          path: |
-            ios/Pods
-            ~/Library/Caches/CocoaPods
-          key: pods-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: pods-
-
-      - name: Pod install
-        run: |
-          # 이 리포의 Gemfile.lock은 Ruby 2.6.10 / Bundler 1.17.2로 생성돼 있어
-          # 최신 Ruby에서 깨진다(Bundler 1.x가 쓰는 String#untaint가 Ruby 3.2에서 제거됨).
-          # CI에서는 lockfile을 버리고 Gemfile의 제약만으로 새로 해석한다
-          # — cocoapods >= 1.13 < 1.15, activesupport < 7.1 같은 의도는 그대로 지켜진다.
-          # (체크아웃본에서만 지우는 것이라 리포의 lockfile은 그대로다)
-          rm -f Gemfile.lock
-          bundle install
-          cd ios && bundle exec pod install
-
-      # Archive 12분의 대부분은 앱 코드가 아니라 Pods 컴파일이다
-      # (RCT-Folly 766파일, React-Core 506파일 …). 대부분 C/C++/ObjC라 ccache가 잘 듣는다.
-      - name: ccache 캐시
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ccache-ios-${{ github.sha }}
-          restore-keys: ccache-ios-
-
-      - name: ccache 설정
-        id: ccache_setup
-        run: |
-          brew install ccache
-          # Xcode가 쓸 컴파일러를 ccache 래퍼로 바꾼다. Podfile을 건드리지 않고
-          # xcodebuild에 CC/CXX를 넘기면 Pods를 포함한 모든 타깃에 적용된다.
-          mkdir -p "$RUNNER_TEMP/ccache-bin"
-          cat > "$RUNNER_TEMP/ccache-bin/clang" <<EOF
-          #!/bin/sh
-          exec ccache "$(xcrun -f clang)" "\$@"
-          EOF
-          cat > "$RUNNER_TEMP/ccache-bin/clang++" <<EOF
-          #!/bin/sh
-          exec ccache "$(xcrun -f clang++)" "\$@"
-          EOF
-          chmod +x "$RUNNER_TEMP/ccache-bin/clang" "$RUNNER_TEMP/ccache-bin/clang++"
-          # sloppiness가 없으면 Xcode의 모듈·헤더 타임스탬프 때문에 거의 전부 miss가 난다.
-          {
-            echo "CCACHE_DIR=$HOME/.ccache"
-            echo "CCACHE_MAXSIZE=3G"
-            echo "CCACHE_SLOPPINESS=clang_index_store,file_stat_matches,include_file_ctime,include_file_mtime,ivfsoverlay,pch_defines,modules,system_headers,time_macros"
-            echo "CCACHE_FILECLONE=true"
-            echo "CCACHE_DEPEND=true"
-          } >> "$GITHUB_ENV"
-          ccache --zero-stats || true
-
-      - name: Archive
-        run: |
-          cd ios && xcodebuild \
-            -workspace LetMeDoWith.xcworkspace \
-            -scheme LetMeDoWith \
-            -configuration Release \
-            -sdk iphoneos \
-            -archivePath build/LetMeDoWith.xcarchive \
-            archive \
-            CC="$RUNNER_TEMP/ccache-bin/clang" \
-            CXX="$RUNNER_TEMP/ccache-bin/clang++"
-
-      # ccache가 실제로 먹었는지 확인용. hit이 0이면 CC/CXX가 무시된 것이다.
-      # 설정 스텝이 성공했을 때만 실행한다 — 그 전에 빌드가 죽으면 ccache가 없어
-      # 이 스텝까지 실패하면서 진짜 원인을 가린다.
-      - name: ccache 통계
-        if: always() && steps.ccache_setup.conclusion == 'success'
-        run: ccache --show-stats
-
-      - name: Export IPA (development)
-        run: |
-          cd ios && xcodebuild \
-            -exportArchive \
-            -archivePath build/LetMeDoWith.xcarchive \
-            -exportPath build/ipa \
-            -exportOptionsPlist ExportOptions-ci.plist
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ios-ipa
-          path: ios/build/ipa/*.ipa
-          if-no-files-found: error
-
-      # Android 잡과 동일 — 알림 먼저, 그다음 취소
-      - name: 실패 시 알림 후 워크플로우 중단
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          VERSION: ${{ needs.version.outputs.version }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          # 드라이런은 검증용이라 Discord로 내보내지 않는다
-          if [[ "$DRY_RUN" != "true" ]]; then
-            bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
-          fi
-          echo "::error::iOS 빌드 실패 — 나머지 잡을 중단합니다"
-          gh run cancel "${{ github.run_id }}"
-
   distribute-notify:
-    needs: [version, release-notes, android, ios]
+    needs: [version, release-notes, build]
     if: ${{ !cancelled() && needs.version.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       VERSION: ${{ needs.version.outputs.version }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      BUILDS_OK: ${{ needs.android.result == 'success' && needs.ios.result == 'success' && needs.release-notes.result == 'success' }}
+      BUILDS_OK: ${{ needs.build.result == 'success' && needs.release-notes.result == 'success' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -396,12 +150,14 @@ jobs:
             --groups "${{ vars.FIREBASE_TESTER_GROUP }}" \
             --release-notes-file dist/release-notes/release-notes.md
 
+      # 태그는 배포가 끝난 뒤에 만든다. 버전 커밋 시점에 만들면
+      # release-notes.sh가 "가장 최근 v* 태그"를 방금 만든 태그로 잡아 범위가 비어버린다.
       - name: 배포 기준 태그 push
         if: env.BUILDS_OK == 'true' && env.DRY_RUN != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          TAG="dist-dev/${VERSION}-${{ github.run_number }}"
+          TAG="v${VERSION}"
           git tag "$TAG"
           git push origin "$TAG"
 
@@ -423,5 +179,5 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL"
-          echo "::error::빌드/노트 잡 실패 — android=${{ needs.android.result }}, ios=${{ needs.ios.result }}, release-notes=${{ needs.release-notes.result }}"
+          echo "::error::빌드/노트 잡 실패 — build=${{ needs.build.result }}, release-notes=${{ needs.release-notes.result }}"
           exit 1
