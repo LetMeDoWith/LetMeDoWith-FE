@@ -21,3 +21,15 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+/*
+ * 동적 버전(+)의 해석 결과를 기본값 24시간이 아니라 30일간 캐시한다.
+ * notifee의 app.notifee:core:+ 때문에 배포마다 jitpack을 다시 조회하는데,
+ * 배포 주기가 주 단위라 캐시가 아무리 따뜻해도 항상 만료된 상태로 네트워크를 탄다.
+ * 새 core 버전이 필요하면 --refresh-dependencies로 갱신한다.
+ */
+allprojects {
+    configurations.all {
+        resolutionStrategy.cacheDynamicVersionsFor 30, 'days'
+    }
+}

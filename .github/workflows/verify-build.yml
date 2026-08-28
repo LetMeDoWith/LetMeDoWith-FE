@@ -42,5 +42,7 @@ jobs:
       ref: ${{ github.sha }}
       # 검증·캐시 갱신이 목적이라 산출물은 버린다.
       upload-artifacts: false
-      # 실패는 Actions 실행 결과로 남긴다. 여기서 취소하면 실패가 '취소됨'으로 가려진다.
       notify-on-failure: false
+      # 한쪽이 깨져도 반대쪽은 끝까지 돌린다. 취소하면 실패가 '취소됨'으로 가려지고,
+      # 무엇보다 살아있는 플랫폼의 캐시 갱신까지 함께 날아간다.
+      cancel-on-failure: false

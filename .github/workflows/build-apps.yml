@@ -18,8 +18,14 @@ on:
         description: 'APK·IPA를 아티팩트로 올릴지(배포에 쓸 때만 필요)'
         type: boolean
         default: false
+      # 알림과 취소는 반드시 별도 입력으로 둔다. 한 플래그로 묶으면
+      # "드라이런은 Discord로 안 보낸다"가 fail-fast까지 꺼버린다.
       notify-on-failure:
-        description: '빌드 실패 시 Discord 알림 후 런 전체 취소'
+        description: '빌드 실패 시 Discord로 알릴지'
+        type: boolean
+        default: false
+      cancel-on-failure:
+        description: '한쪽 빌드가 깨지면 런 전체를 취소할지(반대쪽 빌드 시간 낭비 방지)'
         type: boolean
         default: false
 
@@ -70,15 +76,19 @@ jobs:
 
       # 알림을 먼저 보내고 취소한다. 순서를 바꾸면 distribute-notify까지 취소돼
       # (!cancelled() 가드) 실패 알림이 아예 나가지 않는다.
-      - name: 실패 시 알림 후 워크플로우 중단
+      - name: 실패 시 Discord 알림
         if: failure() && inputs.notify-on-failure
         env:
-          GH_TOKEN: ${{ github.token }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           VERSION: ${{ inputs.version }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
+
+      - name: 실패 시 워크플로우 중단
+        if: failure() && inputs.cancel-on-failure
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
           echo "::error::Android 빌드 실패 — 나머지 잡을 중단합니다"
           gh run cancel "${{ github.run_id }}"
 
@@ -243,14 +253,18 @@ jobs:
           if-no-files-found: error
 
       # Android 잡과 동일 — 알림 먼저, 그다음 취소
-      - name: 실패 시 알림 후 워크플로우 중단
+      - name: 실패 시 Discord 알림
         if: failure() && inputs.notify-on-failure
         env:
-          GH_TOKEN: ${{ github.token }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           VERSION: ${{ inputs.version }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
+
+      - name: 실패 시 워크플로우 중단
+        if: failure() && inputs.cancel-on-failure
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
           echo "::error::iOS 빌드 실패 — 나머지 잡을 중단합니다"
           gh run cancel "${{ github.run_id }}"

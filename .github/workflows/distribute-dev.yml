@@ -92,6 +92,9 @@ jobs:
       upload-artifacts: true
       # 드라이런은 검증용이라 Discord로 내보내지 않는다.
       notify-on-failure: ${{ inputs.dry_run == false }}
+      # 취소는 드라이런에서도 켠다. 한쪽이 깨진 시점에 반대쪽을 끝까지 돌려봐야
+      # 배포로 이어지지 않으므로 러너 시간만 버린다(iOS 콜드 빌드 13분).
+      cancel-on-failure: true
 
   # 빌드가 모두 성공한 뒤에만 노트를 만든다.
   # 빌드가 실패하면 이 잡은 자동으로 스킵되고 파이프라인이 멈춘다.
