@@ -23,12 +23,25 @@ buildscript {
 apply plugin: "com.facebook.react.rootproject"
 
 /*
- * 동적 버전(+)의 해석 결과를 기본값 24시간이 아니라 30일간 캐시한다.
- * notifee의 app.notifee:core:+ 때문에 배포마다 jitpack을 다시 조회하는데,
- * 배포 주기가 주 단위라 캐시가 아무리 따뜻해도 항상 만료된 상태로 네트워크를 탄다.
- * 새 core 버전이 필요하면 --refresh-dependencies로 갱신한다.
+ * notifee는 app.notifee:core를 동적 버전(+)으로 선언하고, 실제 AAR은 npm 패키지 안
+ * node_modules/@notifee/react-native/android/libs에 maven 레이아웃으로 동봉돼 있다.
+ * 그런데 동적 버전은 Gradle이 "가장 높은 버전"을 고르려고 등록된 저장소를 전부 조회한다.
+ * 저장소 목록에는 masked-view가 추가한 jitpack이 들어 있고, jitpack이 죽으면
+ * 로컬에 AAR이 멀쩡히 있어도 조회 단계에서 빌드 전체가 실패한다.
+ * jitpack은 app.notifee를 호스팅하지 않으므로 아예 묻지 않도록 제외한다.
  */
 allprojects {
+    repositories {
+        all { repo ->
+            if (repo instanceof MavenArtifactRepository && repo.url.toString().contains('jitpack.io')) {
+                repo.content {
+                    excludeGroup 'app.notifee'
+                }
+            }
+        }
+    }
+
+    /* 조회에 성공한 동적 버전은 기본값 24시간 대신 30일간 캐시한다. */
     configurations.all {
         resolutionStrategy.cacheDynamicVersionsFor 30, 'days'
     }
