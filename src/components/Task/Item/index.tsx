@@ -5,7 +5,7 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import dayjs from 'dayjs';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { launchCamera } from 'react-native-image-picker';
 
 import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
@@ -28,7 +28,6 @@ import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { Camera } from 'components/common/icons/Camera';
-import { Gallery } from 'components/common/icons/Gallery';
 import { RoutineArrow } from 'components/common/icons/RoutineArrow';
 import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetchUploadTaskSuccessImageUrlList';
 import { isAos } from 'utils/device';
@@ -120,9 +119,9 @@ const Item = memo(function Item({
   };
 
   const getSnapPoints = () => {
-    // 카메라/갤러리 선택
+    // 사진 찍기 한 항목만 노출
     if (showUploadImageBottomSheet) {
-      return [`${(220 / SCREEN_HEIGHT) * 100}%`];
+      return [`${(180 / SCREEN_HEIGHT) * 100}%`];
     }
 
     // 루틴 아닌 task 설정 선택
@@ -160,25 +159,25 @@ const Item = memo(function Item({
     }
   };
 
-  const handleUploadImage = (type: 'CAMERA' | 'GALLERY') => async () => {
+  /* 두윗 인증은 즉석 촬영만 허용한다(갤러리 선택 불가) */
+  const handleUploadImage = async () => {
     const options = {
       mediaType: 'photo' as const,
       quality: 0.7 as const,
     };
 
     try {
-      // 카메라 촬영 또는 갤러리에서 선택
-      const result = type === 'CAMERA' ? await launchCamera(options) : await launchImageLibrary(options);
+      const result = await launchCamera(options);
 
       // 사용자가 취소한 경우
       if (result.didCancel) {
-        console.log(`사용자가 ${type === 'CAMERA' ? '카메라' : '갤러리'} 접근 권한을 취소했습니다`);
+        console.log('사용자가 카메라 접근 권한을 취소했습니다');
         return;
       }
 
       // 권한 거부 또는 에러 처리
       if (result.errorCode) {
-        console.error(`[${type === 'CAMERA' ? '카메라' : '갤러리'} 에러]:`, result.errorCode, result.errorMessage);
+        console.error('[카메라 에러]:', result.errorCode, result.errorMessage);
         // 권한 거부 에러인 경우만 다이얼로그 표시
         const isPermissionDenied =
           result.errorCode === 'permission' ||
@@ -187,10 +186,8 @@ const Item = memo(function Item({
 
         if (isPermissionDenied) {
           showDialog({
-            title: `${type === 'CAMERA' ? '카메라' : '갤러리'} 접근 권한 필요`,
-            content: `${
-              type === 'CAMERA' ? '카메라 ' : '갤러리'
-            } 접근 권한을 허용해야 해요!\n기기 설정에서 권한을 변경할 수 있어요`,
+            title: '카메라 접근 권한 필요',
+            content: '카메라 접근 권한을 허용해야 해요!\n기기 설정에서 권한을 변경할 수 있어요',
             leftButtonText: '취소',
             rightButtonText: '설정 바로가기',
             handleLeftButton: () => hideDialog,
@@ -202,7 +199,7 @@ const Item = memo(function Item({
         }
 
         // iOS 시뮬레이터에서 카메라 사용 시 에러 처리
-        if (type === 'CAMERA' && !isAos && result.errorCode === 'camera_unavailable') {
+        if (!isAos && result.errorCode === 'camera_unavailable') {
           Alert.alert(
             '카메라 사용 불가',
             'iOS 시뮬레이터에서는 카메라를 사용할 수 없습니다.\n실제 기기에서 테스트해주세요.',
@@ -232,7 +229,7 @@ const Item = memo(function Item({
         });
       }
     } catch (e) {
-      console.error(`이미지 ${type === 'CAMERA' ? '촬영' : '선택'} 중 에러 발생:`, e);
+      console.error('이미지 촬영 중 에러 발생:', e);
     }
 
     taskManagementBottomSheetModalRef.current?.dismiss();
@@ -240,16 +237,10 @@ const Item = memo(function Item({
 
   const renderBottomSheetContent = () => {
     return showUploadImageBottomSheet ? (
-      <>
-        <Pressable style={styles.modalContentRow} onPress={handleUploadImage('GALLERY')}>
-          <Gallery />
-          <Text style={styles.modalContentText}>라이브러리에서 선택</Text>
-        </Pressable>
-        <Pressable style={styles.modalContentRow} onPress={handleUploadImage('CAMERA')}>
-          <Camera />
-          <Text style={styles.modalContentText}>사진 찍기</Text>
-        </Pressable>
-      </>
+      <Pressable style={styles.modalContentRow} onPress={handleUploadImage}>
+        <Camera />
+        <Text style={styles.modalContentText}>사진 찍기</Text>
+      </Pressable>
     ) : (
       <>
         <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT', isRoutineTask })}>
