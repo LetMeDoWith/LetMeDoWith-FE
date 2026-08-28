@@ -48,6 +48,14 @@ const Feed = () => {
     [queryClient],
   );
 
+  /*
+   * 빈 상태는 2열 그리드라 자체 FlatList로 스크롤한다.
+   * ScrollView 안에 두면 같은 방향의 VirtualizedList가 중첩돼 가상화가 무력화된다.
+   */
+  if (!isLoading && !hasNagTasks) {
+    return <FeedNagEmpty onRefresh={onRefresh} />;
+  }
+
   return (
     <ScrollView
       ref={scrollRef}
@@ -61,7 +69,6 @@ const Feed = () => {
           <SuccessTaskImageList />
         </>
       )}
-      {!isLoading && !hasNagTasks && <FeedNagEmpty />}
     </ScrollView>
   );
 };

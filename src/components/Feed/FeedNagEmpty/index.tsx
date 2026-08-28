@@ -1,8 +1,10 @@
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { memo, useCallback } from 'react';
+import { Dimensions, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { ProfileImage } from 'components/common/ProfileImage';
+import { PullToRefreshControl } from 'components/common/PullToRefreshControl';
 import { useFetchSuccessDowithTasks } from 'hooks/queries/task/useFetchSuccessDowithTasks';
 import { useSuccessTaskImageDetail } from 'hooks/shared/useSuccessTaskImageDetail';
 import { theme } from 'styles/theme';
@@ -11,18 +13,26 @@ import type { successDowithTaskSchemeType } from 'types/task/scheme/api';
 import nagCompleteImage from 'assets/images/nag_complete.png';
 import sweatDropsImage from 'assets/images/sweat_drops.png';
 
-const CARD_WIDTH = 135;
-const CARD_HEIGHT = 180;
-const CARD_GAP = 16;
+/* 2열 그리드. 카드 비율은 기존 135:180(3:4)을 유지한 채 폭만 화면에 맞춘다. */
+const HORIZONTAL_PADDING = 20;
+const COLUMN_GAP = 24;
+const ROW_GAP = 24;
+const CARD_WIDTH = (Dimensions.get('window').width - HORIZONTAL_PADDING * 2 - COLUMN_GAP) / 2;
+const CARD_HEIGHT = (CARD_WIDTH * 4) / 3;
 
 const ROTATIONS = ['-3deg', '2deg', '-2deg', '3deg', '-1deg'];
 
-const FeedNagEmpty = () => {
-  const { data: successTasks = [] } = useFetchSuccessDowithTasks();
-  const { openDetail, detailModal } = useSuccessTaskImageDetail(successTasks);
+interface CardProps {
+  item: successDowithTaskSchemeType;
+  index: number;
+  onPress: (index: number) => void;
+}
 
-  const renderCard = ({ item, index }: { item: successDowithTaskSchemeType; index: number }) => (
-    <Pressable style={[styles.cardWrapper, { marginRight: CARD_GAP }]} onPress={() => openDetail(index)}>
+const SuccessCard = memo(function SuccessCard({ item, index, onPress }: CardProps) {
+  const handlePress = useCallback(() => onPress(index), [onPress, index]);
+
+  return (
+    <Pressable style={styles.cardWrapper} onPress={handlePress}>
       <View style={[styles.card, { transform: [{ rotate: ROTATIONS[index % ROTATIONS.length] }] }]}>
         <FastImage source={{ uri: item.successImageUrl }} style={styles.cardImage} />
         <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.6)']} style={styles.cardOverlay}>
@@ -34,43 +44,84 @@ const FeedNagEmpty = () => {
       </View>
     </Pressable>
   );
+});
+
+const ListHeader = () => (
+  <View style={styles.textSection}>
+    <View style={styles.titleRow}>
+      <Text style={styles.title}>휴, 잡도리 완료</Text>
+      <Image source={sweatDropsImage} style={styles.sweatDrops} />
+    </View>
+    <View style={styles.descriptionWrap}>
+      <Text style={styles.description}>모든 리스트에 잡도리했어요!</Text>
+      <Text style={styles.description}>다음 리스트까지 구경해 보아요.</Text>
+    </View>
+  </View>
+);
+
+/*
+ * 인증샷이 하나도 없으면 제목·설명만 남아 화면이 비어 보인다.
+ * 시안은 카드가 있는 경우만 다루므로, 카드가 없을 때는 기존 일러스트로 자리를 채운다.
+ */
+const ListEmpty = () => <Image source={nagCompleteImage} style={styles.nagCompleteImage} />;
+
+interface Props {
+  /*
+   * 빈 상태에서는 이 목록이 화면의 스크롤 컨테이너라, 당겨서 새로고침도 여기에 붙는다.
+   * 실시간 잔소리하기 화면처럼 당겨서 새로고침이 없는 곳에서는 넘기지 않는다.
+   */
+  onRefresh?: () => Promise<unknown>;
+}
+
+const FeedNagEmpty = ({ onRefresh }: Props) => {
+  const { data: successTasks = [] } = useFetchSuccessDowithTasks();
+  const { openDetail, detailModal } = useSuccessTaskImageDetail(successTasks);
+
+  const renderCard = useCallback(
+    ({ item, index }: { item: successDowithTaskSchemeType; index: number }) => (
+      <SuccessCard item={item} index={index} onPress={openDetail} />
+    ),
+    [openDetail],
+  );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.textSection}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>휴, 잔소리 완료</Text>
-          <Image source={sweatDropsImage} style={styles.sweatDrops} />
-        </View>
-        <View style={styles.descriptionWrap}>
-          <Text style={styles.description}>모든 두윗러를 격려했네요!</Text>
-          <Text style={styles.description}>다음 두윗이 올 때 까지 구경해 보아요.</Text>
-        </View>
-      </View>
-      <Image source={nagCompleteImage} style={styles.nagCompleteImage} />
-      {successTasks.length > 0 && (
-        <View style={styles.cardListWrapper}>
-          <FlatList
-            data={successTasks}
-            renderItem={renderCard}
-            keyExtractor={item => item.id.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.cardList}
-          />
-        </View>
-      )}
+    <>
+      <FlatList
+        data={successTasks}
+        renderItem={renderCard}
+        keyExtractor={item => item.id.toString()}
+        numColumns={2}
+        ListHeaderComponent={ListHeader}
+        ListEmptyComponent={ListEmpty}
+        columnWrapperStyle={styles.columnWrapper}
+        contentContainerStyle={styles.listContent}
+        refreshControl={onRefresh ? <PullToRefreshControl onRefresh={onRefresh} /> : undefined}
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        updateCellsBatchingPeriod={50}
+        removeClippedSubviews
+      />
       {detailModal}
-    </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {},
+  listContent: {
+    paddingHorizontal: HORIZONTAL_PADDING,
+    paddingBottom: 40,
+  },
+  columnWrapper: {
+    gap: COLUMN_GAP,
+    marginBottom: ROW_GAP,
+  },
   textSection: {
     alignItems: 'center',
     gap: 12,
     paddingTop: 40,
+    paddingBottom: 32,
   },
   titleRow: {
     flexDirection: 'row',
@@ -96,23 +147,14 @@ const styles = StyleSheet.create({
     width: 137,
     height: 157,
     alignSelf: 'center',
-    marginTop: 32,
-  },
-  cardListWrapper: {
-    marginVertical: 77,
-  },
-  cardList: {
-    paddingHorizontal: 37,
   },
   cardWrapper: {
-    width: CARD_WIDTH + 10,
-    height: CARD_HEIGHT + 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
+  },
+  card: {
+    width: '100%',
+    height: '100%',
     borderRadius: 12,
     overflow: 'hidden',
   },
