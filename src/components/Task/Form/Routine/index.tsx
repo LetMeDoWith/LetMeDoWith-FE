@@ -44,6 +44,16 @@ const CALENDAR_LIST_STYLE = { paddingLeft: 0, paddingRight: 0 };
 const CALENDAR_HEADER_STYLE = { paddingHorizontal: 15 };
 const MemoizedCalendarList = memo(CalendarList);
 
+/*
+ * 저장 버튼은 ScrollView 위에 absolute로 떠 있다.
+ * 버튼이 콘텐츠를 가리지 않도록 스크롤 하단 패딩을 버튼 높이·위치에서 파생시킨다.
+ * 하단 여백은 앱의 다른 하단 버튼들과 같은 관례를 따른다(iOS는 홈 인디케이터 높이 + 24).
+ */
+const SAVE_BUTTON_HEIGHT = 64;
+const SAVE_BUTTON_BOTTOM = isAos ? 24 : getBottomSpace() + 24;
+const SAVE_BUTTON_CONTENT_GAP = 16;
+const SCROLL_BOTTOM_PADDING = SAVE_BUTTON_HEIGHT + SAVE_BUTTON_BOTTOM + SAVE_BUTTON_CONTENT_GAP;
+
 // 요일/비활성 상태에 따른 날짜 텍스트 색. 순수 함수라 모듈 레벨로 올려 렌더 콜백을 안정적으로 memo할 수 있게 한다.
 const getDayTextColor = (dateString: string, state?: string) => {
   // 선택할 수 없는 요일은 회색 처리
@@ -578,7 +588,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
       <>
         <ScrollView
           style={styles.container}
-          contentContainerStyle={isRoutineEditScreen && { paddingHorizontal: 20, paddingBottom: 134 }}
+          contentContainerStyle={isRoutineEditScreen && { paddingHorizontal: 20, paddingBottom: SCROLL_BOTTOM_PADDING }}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.dateSection}>
@@ -792,27 +802,25 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
           </View>
         </ScrollView>
         {isRoutineEditScreen && (
-          <Pressable
-            style={[
-              styles.button,
-              { bottom: isAos ? 20 : getBottomSpace() },
-              !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_60 },
-            ]}
-            disabled={isButtonDisabled}
-            onPress={formContextHandleSubmit?.(onSubmit)}
-          >
-            <Text
-              style={[
-                theme.TYPOGRAPHY.TITLE_2,
-                { color: theme.COLORS.DEFAULT.WHITE },
-                isUpdateTaskRoutineLoading && {
-                  backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
-                },
-              ]}
+          <View style={styles.buttonContainer}>
+            <Pressable
+              style={[styles.button, !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_60 }]}
+              disabled={isButtonDisabled}
+              onPress={formContextHandleSubmit?.(onSubmit)}
             >
-              저장하기
-            </Text>
-          </Pressable>
+              <Text
+                style={[
+                  theme.TYPOGRAPHY.TITLE_2,
+                  { color: theme.COLORS.DEFAULT.WHITE },
+                  isUpdateTaskRoutineLoading && {
+                    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
+                  },
+                ]}
+              >
+                저장하기
+              </Text>
+            </Pressable>
+          </View>
         )}
       </>
     );
@@ -876,14 +884,24 @@ const styles = StyleSheet.create({
     gap: 4,
     alignItems: 'center',
   },
-  button: {
+  /*
+   * 버튼이 ScrollView 위에 떠 있어, 바운스 스크롤 시 버튼 주변(좌우 여백·아래 공간)으로
+   * 컨텐츠가 비친다. 화면 폭 전체를 덮는 흰 배경 컨테이너로 가린다.
+   */
+  buttonContainer: {
     position: 'absolute',
-    left: 20,
-    right: 20,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingBottom: SAVE_BUTTON_BOTTOM,
+    backgroundColor: theme.COLORS.DEFAULT.WHITE,
+  },
+  button: {
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    height: 64,
+    height: SAVE_BUTTON_HEIGHT,
     backgroundColor: theme.COLORS.PRIMARY.RED_95,
   },
   buttonText: {
