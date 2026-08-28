@@ -176,7 +176,10 @@ jobs:
           VERSION: ${{ needs.version.outputs.version }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
+          # 드라이런은 검증용이라 Discord로 내보내지 않는다
+          if [[ "$DRY_RUN" != "true" ]]; then
+            bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
+          fi
           echo "::error::Android 빌드 실패 — 나머지 잡을 중단합니다"
           gh run cancel "${{ github.run_id }}"
 
@@ -349,7 +352,10 @@ jobs:
           VERSION: ${{ needs.version.outputs.version }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
+          # 드라이런은 검증용이라 Discord로 내보내지 않는다
+          if [[ "$DRY_RUN" != "true" ]]; then
+            bash scripts/ci/notify-discord.sh failure "$VERSION" "$RUN_URL" || true
+          fi
           echo "::error::iOS 빌드 실패 — 나머지 잡을 중단합니다"
           gh run cancel "${{ github.run_id }}"
 
@@ -402,21 +408,17 @@ jobs:
       # 알림 실패로 잡을 실패시키지 않는다. 여기 도달한 시점엔 Firebase 배포·태그가
       # 이미 끝나 되돌릴 수 없으므로, 런이 빨개지면 "배포 실패"로 오인된다.
       - name: Discord 성공 알림
-        if: env.BUILDS_OK == 'true'
+        if: env.BUILDS_OK == 'true' && env.DRY_RUN != 'true'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           NOTES=dist/release-notes/release-notes.md
-          if [[ "$DRY_RUN" == "true" ]]; then
-            # 드라이런임을 노트 맨 위에 박아 실제 배포 알림과 헷갈리지 않게 한다
-            printf '⚠️ 드라이런 — 실제 배포되지 않았습니다\n\n%s\n' "$(cat "$NOTES")" > "$NOTES"
-          fi
           if ! bash scripts/ci/notify-discord.sh success "$VERSION" "$NOTES" "$RUN_URL"; then
             echo "::warning::Discord 알림 전송 실패 — 배포 자체는 완료됨"
           fi
 
       - name: Discord 실패 알림
-        if: env.BUILDS_OK != 'true'
+        if: env.BUILDS_OK != 'true' && env.DRY_RUN != 'true'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
