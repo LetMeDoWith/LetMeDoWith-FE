@@ -8,6 +8,7 @@ import { PullToRefreshControl } from 'components/common/PullToRefreshControl';
 import { useScheduledRefetch } from 'hooks/shared/useScheduledRefetch';
 import { useFetchFeedbackAvailableDowithTasksInfinite } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasksInfinite';
 import { TASK_QUERY_KEY } from 'constants/queries';
+import { getRevealScrollOffset } from 'utils/scroll';
 
 const Feed = () => {
   // 정시 기준 5분 간격(1분, 6분, ..., 56분)으로 피드 데이터 자동 refetch
@@ -28,12 +29,14 @@ const Feed = () => {
   // 이모지 바 하단(window 기준 Y)이 탭바 위 보이는 영역을 넘으면(가려지면) 그만큼 스크롤해 다 보이게 한다.
   const handleItemExpand = useCallback(
     (reactionBarBottomY: number) => {
-      const visibleBottom = Dimensions.get('window').height - tabBarHeight;
-      const REVEAL_MARGIN = 16;
-      const overflow = reactionBarBottomY - visibleBottom + REVEAL_MARGIN;
+      const offset = getRevealScrollOffset({
+        elementBottomY: reactionBarBottomY,
+        visibleBottom: Dimensions.get('window').height - tabBarHeight,
+        currentOffset: scrollY.current,
+      });
 
-      if (overflow > 0) {
-        scrollRef.current?.scrollTo({ y: scrollY.current + overflow, animated: true });
+      if (offset !== null) {
+        scrollRef.current?.scrollTo({ y: offset, animated: true });
       }
     },
     [tabBarHeight],

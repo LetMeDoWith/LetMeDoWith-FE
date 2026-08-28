@@ -1,10 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, InteractionManager, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  InteractionManager,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
 
 import { FeedNagItem } from 'components/Feed/FeedNagItem';
 import { FeedNagEmpty } from 'components/Feed/FeedNagEmpty';
+import { getRevealScrollOffset } from 'utils/scroll';
 import { useFetchFeedbackAvailableDowithTasksInfinite } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasksInfinite';
 import type { feedbackAvailableDowithTaskSchemeType } from 'types/task/scheme/api';
 
@@ -15,6 +26,12 @@ const RealtimeNag = () => {
   const dowithTasks = data?.pages.flatMap(page => page.data.dowithTasks) ?? [];
 
   const listRef = useRef<FlatList<feedbackAvailableDowithTaskSchemeType>>(null);
+  const scrollY = useRef(0);
+  const insets = useSafeAreaInsets();
+
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    scrollY.current = event.nativeEvent.contentOffset.y;
+  }, []);
 
   // 무거운 리스트를 화면 전환 애니메이션이 끝난 뒤에 마운트해 전환을 매끄럽게 한다(전환 중엔 스피너).
   const [isReady, setIsReady] = useState(false);
@@ -30,17 +47,28 @@ const RealtimeNag = () => {
   };
 
   /*
-   * 잔소리 이모지가 펼쳐지면 해당 항목 하단을 뷰포트 하단에 맞춰(viewPosition:1) 이모지가 가려지지 않게 한다.
-   * 레이아웃이 반영된 뒤 스크롤하도록 rAF로 한 프레임 지연.
+   * 이모지 바가 화면 아래로 가려질 때만, 가려진 만큼 스크롤한다(둘러보기 화면과 동일한 방식).
+   * 이전에는 항목 위치와 무관하게 뷰포트 하단에 정렬해(scrollToIndex viewPosition:1)
+   * 이미 보이는 항목을 펼쳐도 목록이 위로 튀었다.
+   * 이 화면은 탭 네비게이터 밖(루트 스택)이라 탭바가 없어 safe area만 뺀다.
    */
-  const handleItemExpand = useCallback((index: number) => {
-    requestAnimationFrame(() => {
-      listRef.current?.scrollToIndex({ index, viewPosition: 1, animated: true });
-    });
-  }, []);
+  const handleItemExpand = useCallback(
+    (reactionBarBottomY: number) => {
+      const offset = getRevealScrollOffset({
+        elementBottomY: reactionBarBottomY,
+        visibleBottom: Dimensions.get('window').height - insets.bottom,
+        currentOffset: scrollY.current,
+      });
+
+      if (offset !== null) {
+        listRef.current?.scrollToOffset({ offset, animated: true });
+      }
+    },
+    [insets.bottom],
+  );
 
   const renderItem = useCallback(
-    ({ item, index }: { item: feedbackAvailableDowithTaskSchemeType; index: number }) => (
+    ({ item }: { item: feedbackAvailableDowithTaskSchemeType }) => (
       <FeedNagItem
         taskId={item.id}
         profileImageUrl={item.profileImageUrl}
@@ -51,7 +79,7 @@ const RealtimeNag = () => {
         status={item.status}
         feedbackCount={item.feedbackCount}
         myFeedbacks={item.myFeedbacks}
-        onExpand={() => handleItemExpand(index)}
+        onExpand={handleItemExpand}
       />
     ),
     [handleItemExpand],
@@ -82,12 +110,10 @@ const RealtimeNag = () => {
       windowSize={10}
       updateCellsBatchingPeriod={50}
       removeClippedSubviews
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.5}
-      // 펼침 직후 프레임 미측정 등으로 실패 시 대략 위치로 재시도(뷰포트 내 항목이라 대부분 성공)
-      onScrollToIndexFailed={({ index }) => {
-        setTimeout(() => listRef.current?.scrollToIndex({ index, viewPosition: 1, animated: true }), 100);
-      }}
       ListFooterComponent={isFetchingNextPage ? <ActivityIndicator style={styles.footer} /> : null}
     />
   );
