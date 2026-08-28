@@ -23,25 +23,32 @@ buildscript {
 apply plugin: "com.facebook.react.rootproject"
 
 /*
- * notifee는 app.notifee:core를 동적 버전(+)으로 선언하고, 실제 AAR은 npm 패키지 안
- * node_modules/@notifee/react-native/android/libs에 maven 레이아웃으로 동봉돼 있다.
- * 그런데 동적 버전은 Gradle이 "가장 높은 버전"을 고르려고 등록된 저장소를 전부 조회한다.
- * 저장소 목록에는 masked-view가 추가한 jitpack이 들어 있고, jitpack이 죽으면
- * 로컬에 AAR이 멀쩡히 있어도 조회 단계에서 빌드 전체가 실패한다.
- * jitpack은 app.notifee를 호스팅하지 않으므로 아예 묻지 않도록 제외한다.
+ * jitpack을 의존성 해석에서 완전히 배제한다.
+ *
+ * jitpack은 @react-native-masked-view가 추가하는데, 정작 이 프로젝트가 jitpack에서
+ * 받아오는 의존성은 하나도 없다(전부 google/mavenCentral/npm 동봉 저장소에 있다).
+ * 문제는 Gradle이 저장소 오류를 만나면 다음 저장소로 넘어가지 않고 그 자리에서
+ * 해석을 실패시킨다는 점이다. 게다가 masked-view는 jitpack을 mavenCentral보다
+ * 앞에 선언해서, jitpack이 죽으면 mavenCentral에 있는 의존성조차 도달하지 못한다.
+ * 실제로 jitpack 장애 때 notifee(동적 버전 조회)와 카카오 SDK(정적 버전 조회)가
+ * 연달아 깨졌다.
+ *
+ * 저장소를 제거하려면 masked-view를 patch-package로 손봐야 하므로, 대신 모든 그룹을
+ * 제외해 조회 대상에서 빼는 방식을 쓴다. jitpack에서만 받을 수 있는 의존성이 생기면
+ * "not found"로 명확히 드러난다.
  */
 allprojects {
     repositories {
         all { repo ->
             if (repo instanceof MavenArtifactRepository && repo.url.toString().contains('jitpack.io')) {
                 repo.content {
-                    excludeGroup 'app.notifee'
+                    excludeGroupByRegex '.*'
                 }
             }
         }
     }
 
-    /* 조회에 성공한 동적 버전은 기본값 24시간 대신 30일간 캐시한다. */
+    /* 동적 버전(notifee의 app.notifee:core:+) 조회 결과를 기본 24시간 대신 30일간 캐시한다. */
     configurations.all {
         resolutionStrategy.cacheDynamicVersionsFor 30, 'days'
     }
