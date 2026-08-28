@@ -19,6 +19,7 @@ import { FeedbackNotification } from 'components/common/icons/FeedbackNotificati
 import { CustomCalendarHeader } from 'components/Task';
 import { TaskStatusMarking } from 'components/common/icons/TaskStatusMarking';
 import { useFetchTaskList } from 'hooks/queries/task/useFetchTaskList';
+import { buildCalendarMarkedDates, getSurroundingMonths, mergeTasksByDate } from 'utils/task';
 import { useFetchMyDowithInfo } from 'hooks/queries/member/useFetchMyDowithInfo';
 import { useScheduledRefetch } from 'hooks/shared/useScheduledRefetch';
 import { TASK_QUERY_KEY } from 'constants/queries';
@@ -56,8 +57,9 @@ interface CalendarDayProps {
 const CalendarDay = memo(({ day, dateString, isSelected, isDisabled, status, onPress }: CalendarDayProps) => (
   <TouchableOpacity style={styles.dayWrap} onPress={() => onPress(dateString)}>
     <View style={[styles.calendarDay, isSelected && styles.selectedDay]}>
+      {/* 선택 스타일을 뒤에 둬야 달력 밖 날짜(disabled)를 선택했을 때 회색에 덮이지 않는다 */}
       <Text
-        style={[theme.TYPOGRAPHY.CAPTION_2, isSelected && styles.selectedDayText, isDisabled && styles.disabledDayText]}
+        style={[theme.TYPOGRAPHY.CAPTION_2, isDisabled && styles.disabledDayText, isSelected && styles.selectedDayText]}
       >
         {day}
       </Text>
@@ -106,39 +108,35 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
   const monthViewBottomMargin = MONTH_VIEW_BASE_MARGIN - (6 - weeksInCurrentMonth) * WEEK_HEIGHT_PX;
   const selectedDateKoreanString = dayjs(selectedDate).format('YYYY년 MM월 DD일 dddd');
 
+  /*
+   * 조회 기준은 선택 날짜가 아니라 달력에 보이는 달(currentDate)이다.
+   * 선택 날짜로 조회하면 달만 넘겼을 때 화면과 데이터의 달이 어긋나 마킹이 통째로 비었다.
+   * 달력이 앞뒤 달 날짜까지 그리므로 3개월을 받아 합친다(목록 API에 기간 조회가 없다).
+   * 쿼리 키가 월별이라 달을 넘겨도 새로 필요한 한 달만 요청된다.
+   */
+  const [prevMonth, currentMonth, nextMonth] = useMemo(() => getSurroundingMonths(currentDate), [currentDate]);
+
+  const { data: prevMonthTaskList } = useFetchTaskList(prevMonth);
+  const { data: currentMonthTaskList } = useFetchTaskList(currentMonth);
+  const { data: nextMonthTaskList } = useFetchTaskList(nextMonth);
+  const { data: myDowithInfo } = useFetchMyDowithInfo();
+
+  /*
+   * 태스크 변경 훅에 넘길 값. 낙관적 업데이트·무효화가 [...LIST, year, month] 캐시를 겨냥하므로
+   * 보이는 달이 아니라 변경 대상이 속한 달(= 선택 날짜의 달)이어야 한다.
+   */
   const year = dayjs(selectedDate).year();
   const month = dayjs(selectedDate).month() + 1;
-  const yearMonth = useMemo(() => ({ year, month }), [year, month]);
-
-  const { data: taskList } = useFetchTaskList(yearMonth);
-  const { data: myDowithInfo } = useFetchMyDowithInfo();
 
   // 날짜별로 태스크를 한 번만 그룹핑해두고, 달력 셀·선택 날짜·아이콘 판정에서 O(1)로 조회한다.
   // (기존에는 셀마다 전체 목록을 filter → O(보이는 날짜 × 태스크 수))
-  const tasksByDate = useMemo(() => {
-    const map = new Map<string, fetchTaskListResponseSchemeDataType>();
-    if (!taskList) {
-      return map;
-    }
+  const tasksByDate = useMemo(
+    () => mergeTasksByDate([prevMonthTaskList, currentMonthTaskList, nextMonthTaskList]),
+    [prevMonthTaskList, currentMonthTaskList, nextMonthTaskList],
+  );
 
-    const getOrCreate = (date: string) => {
-      const existing = map.get(date);
-      if (existing) {
-        return existing;
-      }
-
-      const created: fetchTaskListResponseSchemeDataType = { dowithTasks: [], todoTasks: [] };
-      map.set(date, created);
-      return created;
-    };
-
-    taskList.dowithTasks.forEach(task => getOrCreate(task.date).dowithTasks.push(task));
-    taskList.todoTasks.forEach(task => getOrCreate(task.date).todoTasks.push(task));
-
-    return map;
-  }, [taskList]);
-
-  const selectedDateTaskList = taskList ? tasksByDate.get(selectedDate) ?? EMPTY_TASK_LIST : null;
+  const hasAnyTaskList = !!(prevMonthTaskList || currentMonthTaskList || nextMonthTaskList);
+  const selectedDateTaskList = hasAnyTaskList ? tasksByDate.get(selectedDate) ?? EMPTY_TASK_LIST : null;
 
   const handleBadge = () => {
     console.log('대표 뱃지 클릭');
@@ -274,7 +272,10 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
     [statusByDate, handleDayPress],
   );
 
-  const markedDates = useMemo(() => ({ [selectedDate]: { selected: true } }), [selectedDate]);
+  const markedDates = useMemo(
+    () => buildCalendarMarkedDates({ selectedDate, visibleDate: currentDate }),
+    [selectedDate, currentDate],
+  );
 
   const renderCustomHeader = useCallback(
     (date: Date) => (
