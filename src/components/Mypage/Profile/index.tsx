@@ -1,9 +1,9 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
+import { ProfileImage } from 'components/common/ProfileImage';
 import { EditIcon } from 'components/common/icons/EditIcon';
 import { theme } from 'styles/theme';
 import type { RootStackParamList } from 'types/shared';
@@ -18,11 +18,7 @@ const Profile = ({ data }: Props) => {
 
   return (
     <View style={styles.container}>
-      {data.profileImageUrl ? (
-        <FastImage style={styles.profileImage} source={{ uri: data.profileImageUrl }} />
-      ) : (
-        <View style={styles.profileImage} />
-      )}
+      <ProfileImage uri={data.profileImageUrl} size={107} style={styles.profileImage} />
       <Pressable style={styles.nicknameRow} onPress={() => navigation.navigate('MYINFO')}>
         <Text style={styles.nickname}>{data.nickname}</Text>
         <EditIcon />

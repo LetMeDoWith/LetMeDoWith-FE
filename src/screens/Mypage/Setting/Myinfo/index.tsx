@@ -23,6 +23,7 @@ import { isAos } from 'utils/device';
 import { useValidNickname } from 'hooks/queries/member/useValidNickname';
 import { StatusCodeEnum } from 'schemes/shared/enum';
 import { Camera } from 'components/common/icons/Camera';
+import { DefaultProfile } from 'components/common/icons/DefaultProfile';
 import { useUpdateMember } from 'hooks/queries/member/useUpdateMember';
 import { useFetchMyDowithInfo } from 'hooks/queries/member/useFetchMyDowithInfo';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -196,7 +197,7 @@ const Myinfo = ({ navigation: { goBack } }: SettingStackScreenProps<'MYINFO'>) =
                     }}
                   />
                 ) : (
-                  <View style={[styles.image, { backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96 }]} />
+                  <DefaultProfile width={120} height={120} rx={(40 * 107) / 120} />
                 )}
                 <View style={{ position: 'absolute', right: -8, bottom: -8 }}>
                   <Camera width={32} height={32} />

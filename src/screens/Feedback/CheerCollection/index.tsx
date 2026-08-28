@@ -5,6 +5,7 @@ import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
 import FastImage from 'react-native-fast-image';
 import { Freeze } from 'react-freeze';
 
+import { ProfileImage } from 'components/common/ProfileImage';
 import { Thunder } from 'components/common/icons/Thunder';
 import { LikeIcon } from 'components/common/icons/LikeIcon';
 import { ReceivedFeedbackContent } from 'components/Feedback/ReceivedFeedbackContent';
@@ -47,7 +48,7 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
     ({ item }: { item: dowithTaskLikerSchemeType }) => (
       <View style={styles.likeRow}>
         {item.profileImageUrl ? (
-          <FastImage source={{ uri: item.profileImageUrl }} style={styles.likeImage} />
+          <ProfileImage uri={item.profileImageUrl} size={36} style={styles.likeImage} />
         ) : (
           <View style={styles.likeImage} />
         )}

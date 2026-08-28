@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 
+import { ProfileImage } from 'components/common/ProfileImage';
 import { theme } from 'styles/theme';
 import { SUCCESS_TASK_IMAGE_ITEM_WIDTH } from 'constants/Feed';
 
@@ -24,7 +25,7 @@ const SuccessTaskImageCard = ({ successImageUrl, title, profileImageUrl, nicknam
         {title}
       </Text>
       <View style={styles.profileRow}>
-        <FastImage source={{ uri: profileImageUrl }} style={styles.profileImage} />
+        <ProfileImage uri={profileImageUrl} size={24} style={styles.profileImage} />
         <Text style={[theme.TYPOGRAPHY.CAPTION_2, { color: theme.COLORS.GRAY_SCALE.GRAY_70 }]}>{nickname}</Text>
       </View>
     </LinearGradient>

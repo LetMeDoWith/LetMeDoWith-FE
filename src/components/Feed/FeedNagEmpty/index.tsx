@@ -2,6 +2,7 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native
 import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 
+import { ProfileImage } from 'components/common/ProfileImage';
 import { useFetchSuccessDowithTasks } from 'hooks/queries/task/useFetchSuccessDowithTasks';
 import { useSuccessTaskImageDetail } from 'hooks/shared/useSuccessTaskImageDetail';
 import { theme } from 'styles/theme';
@@ -26,7 +27,7 @@ const FeedNagEmpty = () => {
         <FastImage source={{ uri: item.successImageUrl }} style={styles.cardImage} />
         <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.6)']} style={styles.cardOverlay}>
           <View style={styles.cardProfileRow}>
-            <FastImage source={{ uri: item.profileImageUrl }} style={styles.cardProfileImage} />
+            <ProfileImage uri={item.profileImageUrl} size={28} style={styles.cardProfileImage} />
             <Text style={styles.cardNickname}>{item.nickname}</Text>
           </View>
         </LinearGradient>

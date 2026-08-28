@@ -4,6 +4,7 @@ import FastImage from 'react-native-fast-image';
 import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming } from 'react-native-reanimated';
 
 import { theme } from 'styles/theme';
+import { ProfileImage } from 'components/common/ProfileImage';
 import { LikeIcon } from 'components/common/icons/LikeIcon';
 import { useLikeDowithTask } from 'hooks/queries/task/useLikeDowithTask';
 import { useUnLikeDowithTask } from 'hooks/queries/task/useUnLikeDowithTask';
@@ -82,7 +83,7 @@ const SuccessTaskImageDetailItem = ({
         </Text>
         <View style={styles.bottomRow}>
           <View style={styles.profileRow}>
-            <FastImage source={{ uri: profileImageUrl }} style={styles.profileImage} />
+            <ProfileImage uri={profileImageUrl} size={24} style={styles.profileImage} />
             <Text style={styles.userName}>{nickname}</Text>
           </View>
           <Pressable style={styles.likeButton} onPress={handleLike}>

@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import dayjs from 'dayjs';
 import { Divider } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +10,7 @@ import type { DayProps } from 'react-native-calendars/src/calendar/day';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { theme } from 'styles/theme';
+import { ProfileImage } from 'components/common/ProfileImage';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { ListContainerView } from 'components/Task/ListContainerView';
@@ -316,11 +316,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
             </View>
             <View style={styles.profileContent}>
               <Pressable onPress={handleBadge}>
-                {myDowithInfo?.profileImageUrl ? (
-                  <FastImage style={styles.badgeImage} source={{ uri: myDowithInfo.profileImageUrl }} />
-                ) : (
-                  <View style={styles.badgeImage} />
-                )}
+                <ProfileImage uri={myDowithInfo?.profileImageUrl} size={50} style={styles.badgeImage} />
               </Pressable>
               <View style={styles.titleWrap}>
                 <Text style={styles.title}>{myDowithInfo?.nickname ?? ''}</Text>

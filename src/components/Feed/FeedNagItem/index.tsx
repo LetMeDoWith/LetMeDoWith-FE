@@ -1,11 +1,11 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import Animated from 'react-native-reanimated';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
 import { FeedbackEmoji } from 'components/Feedback/FeedbackEmoji';
+import { ProfileImage } from 'components/common/ProfileImage';
 import { Clock } from 'components/common/icons/Clock';
 import { Thunder } from 'components/common/icons/Thunder';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
@@ -186,7 +186,7 @@ const FeedNagItem = ({
       <Animated.View style={contentAnimatedStyle}>
         <View style={styles.contentInner}>
           <View style={styles.topRow}>
-            <FastImage style={styles.image} source={{ uri: profileImageUrl }} />
+            <ProfileImage uri={profileImageUrl} size={24} style={styles.image} />
             <Text style={styles.nickname}>{nickname}</Text>
           </View>
           <Text style={styles.taskDescription}>{title}</Text>

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
-import FastImage from 'react-native-fast-image';
 
+import { ProfileImage } from 'components/common/ProfileImage';
 import { theme } from 'styles/theme';
 import { formatTimeAgo } from 'utils/date';
 
@@ -23,7 +23,7 @@ const ReceivedComment = ({
 }: Props) => {
   return (
     <View style={[styles.container, isLast && styles.noBorder]}>
-      <FastImage style={styles.image} source={{ uri: profileImageUrl }} />
+      <ProfileImage uri={profileImageUrl} size={40} style={styles.image} />
       <View style={styles.content}>
         <Text style={styles.message}>{message}</Text>
         {dowithTaskTitle && (
