@@ -13,16 +13,19 @@ import { useFetchDowithTaskFeedbackAggregates } from 'hooks/queries/feedback/use
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { useFetchDowithTaskLikers } from 'hooks/queries/task/useFetchDowithTaskLikers';
 import { theme } from 'styles/theme';
-import type { RootStackScreenProps } from 'types/shared';
+import type { CheerCollectionTabType, RootStackScreenProps } from 'types/shared';
 import type { dowithTaskLikerSchemeType } from 'types/task/scheme/api';
-
-type Tab = 'FEEDBACK' | 'LIKE';
 
 const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) => {
   const { successImageUrl: successImageUrlParam } = route.params;
   // 딥링크로 진입하면 dowithTaskId가 문자열로 전달될 수 있어 숫자로 보정
   const dowithTaskId = Number(route.params.dowithTaskId);
-  const [activeTab, setActiveTab] = useState<Tab>('FEEDBACK');
+  /*
+   * 공감 알림 딥링크(tab=like)로 들어오면 좋아요 탭을 연다.
+   * 딥링크 값은 서버가 보내는 문자열이라 예상 밖 값이 올 수 있으므로 ?? 대신 화이트리스트로 비교한다.
+   * ??를 쓰면 대문자 LIKE처럼 어긋난 값이 그대로 상태에 들어가 두 탭 모두 비활성인 화면이 된다.
+   */
+  const [activeTab, setActiveTab] = useState<CheerCollectionTabType>(route.params.tab === 'like' ? 'like' : 'feedback');
 
   // Item 진입 시에는 params로 받은 이미지로 즉시 렌더, 딥링크 진입 시에는 상세 조회로 보완
   const { data: dowithTask } = useFetchDowithTask({ dowithTaskId }, { enabled: !successImageUrlParam });
@@ -67,30 +70,30 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
       />
       <View style={styles.tabRow}>
         <Pressable
-          style={[styles.tabButton, activeTab === 'FEEDBACK' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('FEEDBACK')}
+          style={[styles.tabButton, activeTab === 'feedback' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('feedback')}
         >
           <Thunder
             width={14}
             height={14}
-            fill={activeTab === 'FEEDBACK' ? theme.COLORS.DEFAULT.WHITE : theme.COLORS.GRAY_SCALE.GRAY_40}
+            fill={activeTab === 'feedback' ? theme.COLORS.DEFAULT.WHITE : theme.COLORS.GRAY_SCALE.GRAY_40}
           />
-          <Text style={[styles.tabButtonText, activeTab === 'FEEDBACK' && styles.tabButtonTextActive]}>
+          <Text style={[styles.tabButtonText, activeTab === 'feedback' && styles.tabButtonTextActive]}>
             잔소리 {feedbackCount}
           </Text>
         </Pressable>
         <Pressable
-          style={[styles.tabButton, activeTab === 'LIKE' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('LIKE')}
+          style={[styles.tabButton, activeTab === 'like' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('like')}
         >
           <LikeIcon
             width={14}
             height={14}
-            {...(activeTab === 'LIKE'
+            {...(activeTab === 'like'
               ? { fill: theme.COLORS.DEFAULT.WHITE, stroke: theme.COLORS.DEFAULT.WHITE }
               : { fill: theme.COLORS.GRAY_SCALE.GRAY_40, stroke: theme.COLORS.GRAY_SCALE.GRAY_40 })}
           />
-          <Text style={[styles.tabButtonText, activeTab === 'LIKE' && styles.tabButtonTextActive]}>
+          <Text style={[styles.tabButtonText, activeTab === 'like' && styles.tabButtonTextActive]}>
             좋아요 {likeCount}
           </Text>
         </Pressable>
@@ -107,10 +110,10 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
        * 비활성 탭은 Freeze로 감싸 마운트(스크롤 위치)는 유지하되 리렌더는 정지시켜 오버헤드를 줄인다.
        */}
       <View
-        style={[styles.tabContent, activeTab !== 'FEEDBACK' && styles.hiddenTab]}
-        pointerEvents={activeTab === 'FEEDBACK' ? 'auto' : 'none'}
+        style={[styles.tabContent, activeTab !== 'feedback' && styles.hiddenTab]}
+        pointerEvents={activeTab === 'feedback' ? 'auto' : 'none'}
       >
-        <Freeze freeze={activeTab !== 'FEEDBACK'}>
+        <Freeze freeze={activeTab !== 'feedback'}>
           <ReceivedFeedbackContent
             dowithTaskId={dowithTaskId}
             showTotalCount={false}
@@ -120,10 +123,10 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
         </Freeze>
       </View>
       <View
-        style={[styles.tabContent, activeTab !== 'LIKE' && styles.hiddenTab]}
-        pointerEvents={activeTab === 'LIKE' ? 'auto' : 'none'}
+        style={[styles.tabContent, activeTab !== 'like' && styles.hiddenTab]}
+        pointerEvents={activeTab === 'like' ? 'auto' : 'none'}
       >
-        <Freeze freeze={activeTab !== 'LIKE'}>
+        <Freeze freeze={activeTab !== 'like'}>
           <FlatList
             data={likers}
             renderItem={renderLikerItem}
