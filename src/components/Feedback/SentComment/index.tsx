@@ -15,7 +15,7 @@ interface Props {
 }
 
 const STATUS_CONFIG: Record<DowithTaskStatusType, { label: string; backgroundColor: string; color: string }> = {
-  WAIT: { label: '달성 전', backgroundColor: theme.COLORS.PRIMARY.RED_95, color: theme.COLORS.PRIMARY.RED_60 },
+  WAIT: { label: '달성 전', backgroundColor: theme.COLORS.PRIMARY.RED_92, color: theme.COLORS.PRIMARY.RED_60 },
   SUCCESS: { label: '달성', backgroundColor: theme.COLORS.SECONDARY.BLUE_95, color: theme.COLORS.SECONDARY.BLUE_50 },
   FAIL: { label: '미달성', backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_92, color: theme.COLORS.GRAY_SCALE.GRAY_50 },
 };

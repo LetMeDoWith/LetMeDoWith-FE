@@ -6,7 +6,7 @@ const theme = {
     },
     PRIMARY: {
       RED_98: '#FFF3F0',
-      RED_95: '#FDE1D8',
+      RED_92: '#FDE1D8',
       RED_60: '#FF5F33',
     },
     SECONDARY: {

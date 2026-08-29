@@ -28,26 +28,29 @@ const FeedNagList = ({ onItemExpand }: Props) => {
     <View style={styles.container}>
       <View style={styles.titleSection}>
         <DoubleThunder width={16} height={16} />
-        <Text style={theme.TYPOGRAPHY.TITLE_2}>실시간 잔소리하기</Text>
+        <Text style={theme.TYPOGRAPHY.TITLE_1}>실시간 잔소리하기</Text>
       </View>
       {isLoading && <ActivityIndicator />}
       {!isLoading && dowithTasks.length > 0 && (
         <>
           <View style={styles.list}>
-            {dowithTasks.map(item => (
-              <FeedNagItem
-                key={item.id}
-                taskId={item.id}
-                profileImageUrl={item.profileImageUrl}
-                nickname={item.nickname}
-                title={item.title}
-                date={item.date}
-                startTime={item.startTime}
-                status={item.status}
-                feedbackCount={item.feedbackCount}
-                myFeedbacks={item.myFeedbacks}
-                onExpand={onItemExpand}
-              />
+            {dowithTasks.map((item, index) => (
+              <React.Fragment key={item.id}>
+                {/* 항목 사이에만 구분선을 둔다. 마지막 뒤에는 넣지 않는다. */}
+                {index > 0 && <View style={styles.divider} />}
+                <FeedNagItem
+                  taskId={item.id}
+                  profileImageUrl={item.profileImageUrl}
+                  nickname={item.nickname}
+                  title={item.title}
+                  date={item.date}
+                  startTime={item.startTime}
+                  status={item.status}
+                  feedbackCount={item.feedbackCount}
+                  myFeedbacks={item.myFeedbacks}
+                  onExpand={onItemExpand}
+                />
+              </React.Fragment>
             ))}
           </View>
           {hasMore && (
@@ -72,8 +75,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  list: {
-    gap: 16,
+  /* 항목이 자체 상하 여백을 가지므로 리스트는 간격을 두지 않는다(구분선이 붙어야 한다). */
+  list: {},
+  divider: {
+    height: 1,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_92,
   },
   moreButton: {
     marginTop: 20,

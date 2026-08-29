@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     height: 64,
-    backgroundColor: theme.COLORS.PRIMARY.RED_95,
+    backgroundColor: theme.COLORS.PRIMARY.RED_92,
   },
 });
 

@@ -902,7 +902,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     height: SAVE_BUTTON_HEIGHT,
-    backgroundColor: theme.COLORS.PRIMARY.RED_95,
+    backgroundColor: theme.COLORS.PRIMARY.RED_92,
   },
   buttonText: {
     fontSize: 18,

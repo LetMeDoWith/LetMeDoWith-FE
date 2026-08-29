@@ -17,7 +17,7 @@ import { useFetchFeedbackTemplates } from 'hooks/queries/feedback/useFetchFeedba
 import { useSendFeedback } from 'hooks/queries/feedback/useSendFeedback';
 import { useFeedbackBarSwap } from 'hooks/shared/useFeedbackBarSwap';
 import { theme } from 'styles/theme';
-import { formatRemainingTime } from 'utils/date';
+import { formatRemainingTime, getRemainingMinutes } from 'utils/date';
 import type { taskFeedbackTemplateSchemeType } from 'types/feedback/scheme/api';
 import type { myFeedbackSchemeType, feedbackAvailableDowithTaskSchemeType } from 'types/task/scheme/api';
 
@@ -42,6 +42,9 @@ interface Props {
 const SENT_LABEL_WIDTH = 70;
 const SENT_EMOJI_SIZE = 24;
 const SENT_EMOJI_GAP = 8;
+
+/* 이하로 남으면 남은 시간을 강조 색으로 표시한다. */
+const URGENT_THRESHOLD_MINUTES = 5;
 
 /* contentInner의 자식 간 간격. 스왑 영역이 접힐 때 이 간격까지 함께 사라져야 빈 공간이 남지 않는다. */
 const CONTENT_GAP = 12;
@@ -217,13 +220,15 @@ const FeedNagItem = ({
   }, [bubbleWidth, myFeedbacks]);
 
   const remainingTime = formatRemainingTime(startTime);
+  /* 마감이 임박하면(5분 이하) 시간 표시를 강조한다. */
+  const isTimeUrgent = getRemainingMinutes(startTime) <= URGENT_THRESHOLD_MINUTES;
 
   return (
     <View style={styles.container}>
       <View>
         <View style={styles.contentInner}>
           <View style={styles.topRow}>
-            <ProfileImage uri={profileImageUrl} size={24} style={styles.image} />
+            <ProfileImage uri={profileImageUrl} size={32} style={styles.image} />
             <Text style={styles.nickname}>{nickname}</Text>
           </View>
           <Text style={styles.taskDescription}>{title}</Text>
@@ -231,12 +236,16 @@ const FeedNagItem = ({
             <View style={styles.infoRow}>
               {remainingTime ? (
                 <View style={styles.infoItem}>
-                  <Clock width={12} height={12} fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
-                  <Text style={styles.info}>{remainingTime} 남음</Text>
+                  <Clock
+                    width={16}
+                    height={16}
+                    fill={isTimeUrgent ? theme.COLORS.PRIMARY.RED_92 : theme.COLORS.GRAY_SCALE.GRAY_80}
+                  />
+                  <Text style={[styles.info, isTimeUrgent && styles.infoUrgent]}>{remainingTime} 남음</Text>
                 </View>
               ) : null}
               <View style={styles.infoItem}>
-                <Thunder width={12} height={12} fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
+                <Thunder width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
                 <Text style={styles.info}>{feedbackCount}</Text>
               </View>
             </View>
@@ -305,11 +314,9 @@ const FeedNagItem = ({
 };
 
 const styles = StyleSheet.create({
+  /* 테두리 없는 평면 항목. 항목 사이 구분은 리스트가 그리는 구분선이 맡는다. */
   container: {
-    padding: 16,
-    borderWidth: 1,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
-    borderRadius: 12,
+    paddingVertical: 16,
   },
   contentInner: {
     gap: 12,
@@ -332,19 +339,21 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
   },
   image: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_96,
   },
   nickname: {
-    ...theme.TYPOGRAPHY.CAPTION1_BASIC,
-    color: theme.COLORS.GRAY_SCALE.GRAY_30,
+    ...theme.TYPOGRAPHY.BODY_2,
+    color: theme.COLORS.GRAY_SCALE.GRAY_40,
   },
   taskDescription: {
-    ...theme.TYPOGRAPHY.BODY_2,
+    ...theme.TYPOGRAPHY.TITLE_3,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -361,12 +370,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
   },
-  info: { ...theme.TYPOGRAPHY.CAPTION1_BASIC, color: theme.COLORS.GRAY_SCALE.GRAY_60 },
+  info: { ...theme.TYPOGRAPHY.CAPTION1_BASIC, color: theme.COLORS.GRAY_SCALE.GRAY_40 },
+  infoUrgent: { color: theme.COLORS.PRIMARY.RED_60 },
   toggleButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_80,
     justifyContent: 'center',
     alignItems: 'center',
   },

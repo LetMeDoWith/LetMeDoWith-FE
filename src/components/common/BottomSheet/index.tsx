@@ -165,7 +165,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
             style={[
               styles.button,
               {
-                backgroundColor: buttonConfig.isDisabled ? theme.COLORS.PRIMARY.RED_95 : theme.COLORS.PRIMARY.RED_60,
+                backgroundColor: buttonConfig.isDisabled ? theme.COLORS.PRIMARY.RED_92 : theme.COLORS.PRIMARY.RED_60,
               },
             ]}
             onPress={handleButtonSubmit}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleProp, StyleSheet } from 'react-native';
+import { StyleProp, StyleSheet, View } from 'react-native';
 import FastImage, { ImageStyle } from 'react-native-fast-image';
 
 import { DefaultProfile, DEFAULT_PROFILE_VIEW_BOX_SIZE } from 'components/common/icons/DefaultProfile';
@@ -19,17 +19,36 @@ interface Props {
  */
 const ProfileImage = ({ uri, size, style }: Props) => {
   if (!uri) {
+    const flattenedStyle = StyleSheet.flatten(style);
     /*
-     * 사진과 모서리 모양을 맞추기 위해 호출부 스타일의 borderRadius를 그대로 쓴다.
-     * 스타일은 화면 px 단위이므로 SVG viewBox 단위로 환산하고, 절반을 넘으면 원이 되도록 자른다.
+     * 사진과 모서리·테두리를 맞추기 위해 호출부 스타일 값을 그대로 가져다 쓴다.
+     * SVG 자체는 테두리를 그릴 수 없어 감싸는 View에 옮기고, SVG는 테두리 안쪽 크기로 그린다.
      */
-    const borderRadius = StyleSheet.flatten(style)?.borderRadius ?? 0;
-    const rx = Math.min((borderRadius * DEFAULT_PROFILE_VIEW_BOX_SIZE) / size, DEFAULT_PROFILE_VIEW_BOX_SIZE / 2);
+    const borderRadius = flattenedStyle?.borderRadius ?? 0;
+    const borderWidth = flattenedStyle?.borderWidth ?? 0;
+    const innerSize = size - borderWidth * 2;
+    /* 스타일은 화면 px 단위이므로 SVG viewBox 단위로 환산하고, 절반을 넘으면 원이 되도록 자른다. */
+    const rx = Math.min((borderRadius * DEFAULT_PROFILE_VIEW_BOX_SIZE) / innerSize, DEFAULT_PROFILE_VIEW_BOX_SIZE / 2);
 
-    return <DefaultProfile width={size} height={size} rx={rx} />;
+    return (
+      <View
+        style={[
+          styles.defaultWrapper,
+          { width: size, height: size, borderRadius, borderWidth, borderColor: flattenedStyle?.borderColor },
+        ]}
+      >
+        <DefaultProfile width={innerSize} height={innerSize} rx={rx} />
+      </View>
+    );
   }
 
   return <FastImage style={style} source={{ uri }} />;
 };
+
+const styles = StyleSheet.create({
+  defaultWrapper: {
+    overflow: 'hidden',
+  },
+});
 
 export { ProfileImage };

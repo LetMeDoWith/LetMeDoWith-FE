@@ -1,9 +1,19 @@
 import dayjs from 'dayjs';
 
-const formatRemainingTime = (startTime: string): string => {
+/*
+ * 두윗 마감(시작시간 + 1시간)까지 남은 분. 마감했으면 0.
+ * 표시 문자열과 임박 여부 판단이 같은 값을 쓰도록 계산을 한곳에 둔다.
+ */
+const getRemainingMinutes = (startTime: string): number => {
   const now = dayjs();
   const target = dayjs().format('YYYY-MM-DD') + ' ' + startTime;
   const diff = dayjs(target).add(1, 'hour').diff(now, 'minute');
+
+  return Math.max(0, diff);
+};
+
+const formatRemainingTime = (startTime: string): string => {
+  const diff = getRemainingMinutes(startTime);
 
   if (diff <= 0) {
     return '';
@@ -59,4 +69,4 @@ const formatNotificationDate = (dateString: string): string => {
   return isThisYear ? target.format('M월 D일') : target.format('YYYY년 M월 D일');
 };
 
-export { formatRemainingTime, formatTimeAgo, formatNotificationDate };
+export { getRemainingMinutes, formatRemainingTime, formatTimeAgo, formatNotificationDate };

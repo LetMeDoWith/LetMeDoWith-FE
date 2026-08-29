@@ -65,6 +65,8 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
         component={Feed}
         options={{
           headerTitle: '둘러보기',
+          headerTitleAlign: 'left',
+          headerTitleStyle: { ...theme.TYPOGRAPHY.HEADER },
           tabBarLabel: '둘러보기',
           tabBarIcon: ({ focused }) => (
             <FeedIcon
