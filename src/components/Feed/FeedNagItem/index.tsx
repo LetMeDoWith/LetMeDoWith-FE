@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
@@ -9,15 +9,13 @@ import { ProfileImage } from 'components/common/ProfileImage';
 import { Clock } from 'components/common/icons/Clock';
 import { Thunder } from 'components/common/icons/Thunder';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
-import { CancelIcon } from 'components/common/icons/CancelIcon';
-import { ConfettiEffect } from 'components/common/ConfettiEffect';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
 import { TASK_QUERY_KEY } from 'constants/queries';
 import { useFetchFeedbackTemplates } from 'hooks/queries/feedback/useFetchFeedbackTemplates';
 import { useSendFeedback } from 'hooks/queries/feedback/useSendFeedback';
-import { useFeedbackAnimation } from 'hooks/shared/useFeedbackAnimation';
+import { useFeedbackBarSwap } from 'hooks/shared/useFeedbackBarSwap';
 import { theme } from 'styles/theme';
 import { formatRemainingTime } from 'utils/date';
 import type { taskFeedbackTemplateSchemeType } from 'types/feedback/scheme/api';
@@ -44,6 +42,37 @@ interface Props {
 const SENT_LABEL_WIDTH = 70;
 const SENT_EMOJI_SIZE = 24;
 const SENT_EMOJI_GAP = 8;
+
+/* contentInner의 자식 간 간격. 스왑 영역이 접힐 때 이 간격까지 함께 사라져야 빈 공간이 남지 않는다. */
+const CONTENT_GAP = 12;
+
+/* 오뚜기처럼 좌우로 흔들리다 멈추는 등장 연출의 시작 기울기 */
+const WOBBLE_START_ANGLE = -18;
+
+/*
+ * "보낸 잔소리"에 새로 추가된 아이콘.
+ * 회전에 감쇠가 약한 스프링을 걸어 좌우로 몇 번 흔들리다 멈추게 한다(오뚜기).
+ * 크기는 감쇠를 세게 줘서 흔들리지 않고 한 번에 자리잡는다.
+ */
+const WobbleEmoji = ({ uri }: { uri: string }) => {
+  const rotate = useSharedValue(WOBBLE_START_ANGLE);
+  const scale = useSharedValue(0.6);
+
+  useEffect(() => {
+    rotate.value = withSpring(0, { damping: 4, stiffness: 260, mass: 0.6 });
+    scale.value = withSpring(1, { damping: 14, stiffness: 300 });
+  }, [rotate, scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }, { rotate: `${rotate.value}deg` }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <FeedbackEmoji uri={uri} size={SENT_EMOJI_SIZE} />
+    </Animated.View>
+  );
+};
 const OVERFLOW_TEXT_WIDTH = 40;
 const SENT_BUBBLE_PADDING_H = 12;
 
@@ -65,8 +94,18 @@ const FeedNagItem = ({
   const { showDialog, hideDialog } = useDialog();
   const [showReactions, setShowReactions] = useState(false);
 
-  const { isAnimating, animatingTemplate, animationTrigger, contentAnimatedStyle, emojiAnimatedStyle, startAnimation } =
-    useFeedbackAnimation();
+  const hasFeedbacks = myFeedbacks.length > 0;
+  /* 마운트 시점에 이미 있던 개수. 이후 늘어난 것만 등장 연출을 준다. */
+  const initialFeedbackCount = React.useRef(myFeedbacks.length);
+
+  const {
+    containerAnimatedStyle,
+    reactionAnimatedStyle,
+    sentAnimatedStyle,
+    toggleAnimatedStyle,
+    handleReactionLayout,
+    handleSentLayout,
+  } = useFeedbackBarSwap({ showReactions, hasFeedbacks, gap: CONTENT_GAP });
 
   const templateMap = React.useMemo(() => {
     const map = new Map<number, taskFeedbackTemplateSchemeType>();
@@ -118,7 +157,6 @@ const FeedNagItem = ({
       sendFeedback(
         { taskId, templateId: template.id },
         {
-          onSuccess: () => startAnimation(template),
           onError: e => {
             if (e.response?.data?.statusCode === ErrorStatusCodeEnum.enum.E250) {
               showDialog({
@@ -132,17 +170,25 @@ const FeedNagItem = ({
         },
       );
     },
-    [startAnimation, sendFeedback, taskId, showDialog, hideDialog],
+    [sendFeedback, taskId, showDialog, hideDialog],
   );
 
   const reactionBarRef = React.useRef<View>(null);
 
-  // 펼침 레이아웃 후 이모지 바의 화면상 하단 Y를 측정해 부모에 전달(가려짐 판단·스크롤용)
-  const handleReactionBarLayout = useCallback(() => {
+  /*
+   * 이모지 바의 화면상 하단 Y를 부모에 전달한다(가려짐 판단·스크롤용).
+   * 이제 두 바가 항상 마운트돼 있어 onLayout이 펼침 시점에 오지 않으므로, 펼칠 때 직접 측정한다.
+   * 레이어는 절대 배치라 컨테이너 높이 애니메이션과 무관하게 최종 위치를 바로 알려준다.
+   */
+  useEffect(() => {
+    if (!showReactions) {
+      return;
+    }
+
     reactionBarRef.current?.measureInWindow((_x, y, _width, height) => {
       onExpand?.(y + height);
     });
-  }, [onExpand]);
+  }, [showReactions, onExpand]);
 
   const [bubbleWidth, setBubbleWidth] = useState(0);
 
@@ -171,19 +217,10 @@ const FeedNagItem = ({
   }, [bubbleWidth, myFeedbacks]);
 
   const remainingTime = formatRemainingTime(startTime);
-  const hasFeedbacks = myFeedbacks.length > 0;
 
   return (
     <View style={styles.container}>
-      {isAnimating && (
-        <ConfettiEffect trigger={animationTrigger} delay={400} style={styles.animationOverlay}>
-          <Animated.View style={[styles.animatingEmoji, emojiAnimatedStyle]}>
-            <FeedbackEmoji uri={animatingTemplate?.emojiUrl ?? ''} size={80} />
-          </Animated.View>
-        </ConfettiEffect>
-      )}
-
-      <Animated.View style={contentAnimatedStyle}>
+      <View>
         <View style={styles.contentInner}>
           <View style={styles.topRow}>
             <ProfileImage uri={profileImageUrl} size={24} style={styles.image} />
@@ -204,41 +241,65 @@ const FeedNagItem = ({
               </View>
             </View>
             <Pressable style={styles.toggleButton} onPress={handlePressPlus}>
-              {showReactions ? (
-                <CancelIcon width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
-              ) : (
+              <Animated.View style={toggleAnimatedStyle}>
                 <PlusIcon width={16} height={16} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
-              )}
+              </Animated.View>
             </Pressable>
           </View>
-          {showReactions && templates && (
-            <View ref={reactionBarRef} style={styles.reactionBarWrapper} onLayout={handleReactionBarLayout}>
-              <View style={styles.reactionBar}>
-                {templates.map(template => (
-                  <Pressable key={template.id} style={styles.reactionButton} onPress={() => handleReaction(template)}>
-                    <FeedbackEmoji uri={template.emojiUrl} size={48} />
-                    {/* 둘러보기·실시간 잔소리하기의 잔소리 이모지 선택 UI에서만 줄바꿈으로 결합 */}
-                    <Text style={styles.reactionMessage}>{template.nameTokens.join('\n')}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          )}
-          {hasFeedbacks && !showReactions && !isAnimating && (
-            <View style={styles.sentBubble} onLayout={onBubbleLayout}>
-              <Text style={styles.sentLabel}>보낸 잔소리</Text>
-              {visibleFeedbacks.map((feedback, index) => {
-                const template = templateMap.get(feedback.templateId);
-                if (!template) {
-                  return null;
-                }
-                return <FeedbackEmoji key={index} uri={template.emojiUrl} size={24} />;
-              })}
-              {overflowCount > 0 && <Text style={styles.overflowCount}>+{overflowCount}</Text>}
-            </View>
-          )}
+          {/*
+            선택 바와 "보낸 잡도리" 바를 같은 자리에 겹쳐 두고 opacity로 교차시킨다.
+            높이가 서로 달라 컨테이너 높이도 함께 애니메이션한다.
+          */}
+          <Animated.View style={[styles.swapArea, containerAnimatedStyle]}>
+            {templates && (
+              <Animated.View
+                ref={reactionBarRef}
+                style={[styles.swapLayer, styles.reactionBarWrapper, reactionAnimatedStyle]}
+                onLayout={handleReactionLayout}
+                pointerEvents={showReactions ? 'auto' : 'none'}
+              >
+                <View style={styles.reactionBar}>
+                  {templates.map(template => (
+                    <Pressable key={template.id} style={styles.reactionButton} onPress={() => handleReaction(template)}>
+                      <FeedbackEmoji uri={template.emojiUrl} size={48} />
+                      {/* 둘러보기·실시간 잔소리하기의 잔소리 이모지 선택 UI에서만 줄바꿈으로 결합 */}
+                      <Text style={styles.reactionMessage}>{template.nameTokens.join('\n')}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </Animated.View>
+            )}
+            {hasFeedbacks && (
+              <Animated.View
+                style={[styles.swapLayer, styles.sentBubble, sentAnimatedStyle]}
+                onLayout={e => {
+                  handleSentLayout(e);
+                  onBubbleLayout(e);
+                }}
+                pointerEvents="none"
+              >
+                <Text style={styles.sentLabel}>보낸 잔소리</Text>
+                {visibleFeedbacks.map((feedback, index) => {
+                  const template = templateMap.get(feedback.templateId);
+                  if (!template) {
+                    return null;
+                  }
+                  /*
+                   * 화면에 처음 그려질 때 이미 있던 아이콘은 흔들지 않는다.
+                   * 목록이 나타날 때마다 전부 흔들리면 산만하다. 이후 내가 보내서 늘어난 것만 연출한다.
+                   */
+                  if (index < initialFeedbackCount.current) {
+                    return <FeedbackEmoji key={index} uri={template.emojiUrl} size={SENT_EMOJI_SIZE} />;
+                  }
+
+                  return <WobbleEmoji key={index} uri={template.emojiUrl} />;
+                })}
+                {overflowCount > 0 && <Text style={styles.overflowCount}>+{overflowCount}</Text>}
+              </Animated.View>
+            )}
+          </Animated.View>
         </View>
-      </Animated.View>
+      </View>
     </View>
   );
 };
@@ -253,15 +314,20 @@ const styles = StyleSheet.create({
   contentInner: {
     gap: 12,
   },
-  animationOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
+  /*
+   * 두 바를 겹쳐 두는 영역. 높이는 애니메이션으로 지정되므로 넘치는 부분을 잘라낸다.
+   * contentInner의 gap은 높이가 0이어도 남으므로 음수 마진으로 상쇄하고,
+   * 대신 그 간격을 애니메이션 높이에 포함시켜 레이어를 CONTENT_GAP만큼 내려 배치한다.
+   */
+  swapArea: {
+    overflow: 'hidden',
+    marginTop: -CONTENT_GAP,
   },
-  animatingEmoji: {
-    width: 80,
-    height: 80,
+  swapLayer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: CONTENT_GAP,
   },
   topRow: {
     flexDirection: 'row',
