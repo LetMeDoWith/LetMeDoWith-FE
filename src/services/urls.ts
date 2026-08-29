@@ -25,6 +25,7 @@ const TASK_API = {
   SUCCESS_DOWITH_TASKS: 'v1/tasks/dowith/success',
   LIKE_DOWITH: 'v1/tasks/dowith/:id/like',
   FEEDBACK_AVAILABLE_DOWITH_TASKS: 'v1/tasks/dowith/feedback-available',
+  DOWITH_SAMPLE: 'v1/tasks/dowith/sample',
 } as const;
 
 const FEEDBACK_API = {

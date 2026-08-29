@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
@@ -13,6 +13,7 @@ import type { TaskFormStackParamList, TaskModeType } from 'types/shared';
 import { CategoryBottomSheet } from 'components/Task/BottomSheet/CategoryBottomSheet';
 import { RoutineBottomSheet } from 'components/Task/BottomSheet/RoutineBottomSheet';
 import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategoryList';
+import { useFetchDowithTaskSamples } from 'hooks/queries/task/useFetchDowithTaskSamples';
 import { useAddTodoTask } from 'hooks/queries/task/useAddTodoTask';
 import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
 import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
@@ -50,6 +51,21 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
   const isTodoMode = taskMode === 'TODO';
 
   const { data: taskCategoryList } = useFetchTaskCategoryList();
+  const { data: dowithTaskSamples } = useFetchDowithTaskSamples();
+
+  /*
+   * 두윗 모드를 실제로 선택했을 때만 서버가 내려준 샘플 중 하나를 제목 placeholder로 보여준다.
+   * 모드 미선택(null) 상태는 제외한다 — 아직 두윗을 고르지 않았는데 두윗 샘플을 보여줄 이유가 없다.
+   * 샘플은 마운트 시점에 한 번만 고른다. 렌더마다 고르면 입력하는 동안 문구가 계속 바뀐다.
+   * 조회 전이거나 실패하면 기존 문구를 그대로 쓴다.
+   */
+  const titlePlaceholder = useMemo(() => {
+    if (taskMode !== 'DOWITH' || !dowithTaskSamples?.length) {
+      return '해야할 일을 등록해보세요.';
+    }
+
+    return dowithTaskSamples[Math.floor(Math.random() * dowithTaskSamples.length)];
+  }, [taskMode, dowithTaskSamples]);
   const { mutate: addTodoTaskMutate, isPending: isAddTodoTaskMutateLoading } = useAddTodoTask();
   const { mutate: updateTaskMutate, isPending: isUpdateTaskMutateLoading } = useUpdateTask({
     type: 'EDIT',
@@ -331,7 +347,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
                 render={({ field: { onChange, value } }) => (
                   <TextInput
                     style={{ borderBottomWidth: 1, paddingBottom: 8, borderColor: theme.COLORS.GRAY_SCALE.GRAY_92 }}
-                    placeholder="해야할 일을 등록해보세요."
+                    placeholder={titlePlaceholder}
                     placeholderTextColor={
                       isFormDisabled ? theme.COLORS.GRAY_SCALE.GRAY_80 : theme.COLORS.GRAY_SCALE.GRAY_60
                     }

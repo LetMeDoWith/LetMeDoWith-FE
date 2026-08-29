@@ -21,6 +21,7 @@ import type {
   uploadTaskSuccessImageUrlListRequestSchemeType,
   uploadTaskSuccessImageUrlListResponseSchemeType,
   fetchDowithTaskLikersResponseSchemeType,
+  fetchDowithTaskSamplesResponseSchemeType,
 } from 'types/task/scheme/api';
 import type { TaskStatusEnumType } from 'types/task/scheme/enum';
 import type { TaskModeType } from 'types/shared';
@@ -280,6 +281,11 @@ const fetchDowithTaskLikers = async (
   }
 };
 
+const fetchDowithTaskSamples = async (): Promise<fetchDowithTaskSamplesResponseSchemeType> => {
+  const result = await apiClient.get<fetchDowithTaskSamplesResponseSchemeType>(TASK_API.DOWITH_SAMPLE);
+  return result.data;
+};
+
 export {
   fetchTaskCategoryList,
   fetchTaskList,
@@ -298,4 +304,5 @@ export {
   likeDowithTask,
   unLikeDowithTask,
   fetchDowithTaskLikers,
+  fetchDowithTaskSamples,
 };

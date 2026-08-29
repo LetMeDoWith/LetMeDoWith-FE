@@ -185,6 +185,10 @@ const fetchDowithTaskLikersResponseScheme = BasePageResponseScheme.extend({
   }),
 });
 
+const fetchDowithTaskSamplesResponseScheme = BaseResponseScheme.extend({
+  data: z.array(z.string()).describe('두윗모드 Task 샘플 목록'),
+});
+
 export {
   taskCategoryScheme,
   fetchTaskCategoryListResponseScheme,
@@ -216,4 +220,5 @@ export {
   fetchSuccessDowithTasksResponseScheme,
   dowithTaskLikerScheme,
   fetchDowithTaskLikersResponseScheme,
+  fetchDowithTaskSamplesResponseScheme,
 };
