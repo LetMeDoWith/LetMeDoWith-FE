@@ -149,6 +149,12 @@ const Item = memo(function Item({
     const options = {
       mediaType: 'photo' as const,
       quality: 0.7 as const,
+      /*
+       * 라이브러리 기본값이 'pageSheet'라 iOS에서 카메라가 카드형 모달로 열리고
+       * 상단에 뒤 화면이 비친다. 전체 화면으로 띄운다. (Android는 시스템 카메라
+       * 앱을 인텐트로 실행하므로 이 옵션의 영향을 받지 않는다)
+       */
+      presentationStyle: 'fullScreen' as const,
     };
 
     try {
