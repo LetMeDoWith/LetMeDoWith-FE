@@ -35,6 +35,8 @@ const RoutineBottomSheet = forwardRef<BottomSheetModalMethods, Props>(({ navigat
       snapPoints={['90%']}
       // 달력 가로 스와이프·세로 스크롤이 시트 팬 제스처와 충돌하지 않도록 콘텐츠 팬 제스처를 끈다.
       enableContentPanningGesture={false}
+      // 루틴은 입력 도중 실수로 닫히면 작성 내용을 잃으므로 닫기 버튼으로만 닫는다.
+      enablePanDownToClose={false}
       handleCloseButton={() => formRef.current?.handleCloseButton()}
       handleButtonSubmit={() => formRef.current?.handleSubmit()}
     >

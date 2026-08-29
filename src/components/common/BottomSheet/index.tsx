@@ -20,6 +20,11 @@ interface Props {
   title: string;
   snapPoints: string[];
   description?: string;
+  /*
+   * 사용자가 닫기 버튼 외의 방법으로 시트를 닫을 수 있는지. 아래로 내리는 제스처와
+   * 딤드 영역 탭을 함께 제어한다(둘 다 "임의로 닫기"라는 같은 성격이라 나누지 않는다).
+   * 끄면 닫기 버튼으로만 닫힌다 — 루틴 등록처럼 입력 중 실수로 닫히면 안 되는 시트에 쓴다.
+   */
   enablePanDownToClose?: boolean;
   // 콘텐츠 위 드래그로 시트를 움직이는 제스처. 시트 안에 가로 스크롤(예: 달력 스와이프)이 있을 때 끄면 제스처 충돌을 막는다.
   enableContentPanningGesture?: boolean;
@@ -38,7 +43,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
   const {
     title,
     description,
-    enablePanDownToClose = false,
+    enablePanDownToClose = true,
     enableContentPanningGesture = true,
     useScrollView = true,
     buttonConfig,
@@ -62,9 +67,14 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop disappearsOnIndex={-1} appearsOnIndex={0} pressBehavior="none" {...props} />
+      <BottomSheetBackdrop
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        pressBehavior={enablePanDownToClose ? 'close' : 'none'}
+        {...props}
+      />
     ),
-    [],
+    [enablePanDownToClose],
   );
 
   const handleSheetChanges = useCallback(
@@ -117,6 +127,10 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
       enablePanDownToClose={enablePanDownToClose}
       enableContentPanningGesture={enableContentPanningGesture}
       backdropComponent={renderBackdrop}
+      /*
+       * 제스처로 닫을 수 있는 시트에는 반드시 핸들 바를 노출한다(정책).
+       * 어포던스 없이 제스처만 열어두면 사용자가 닫을 수 있다는 걸 알 수 없다.
+       */
       handleComponent={
         enablePanDownToClose
           ? () => (
@@ -175,9 +189,12 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'space-between',
   },
+  /*
+   * 핸들 바가 상단 여백을 대신하므로 paddingTop만 걷어낸다.
+   * 하단 여백은 유지해야 저장 버튼이 시트 끝에 붙지 않는다.
+   */
   containerWithHandle: {
     paddingTop: 0,
-    paddingBottom: 0,
   },
   handleContainer: {
     alignItems: 'center',
