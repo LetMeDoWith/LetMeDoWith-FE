@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
@@ -21,6 +21,7 @@ import { TaskCheckedCircle } from 'components/common/icons/TaskCheckedCircle';
 import { TaskEmptyCircle } from 'components/common/icons/TaskEmptyCircle';
 import { CHECK_DARK } from 'components/common/icons/DoubleCalendarCheck';
 import { isNil } from 'utils/index';
+import type { Rect } from 'utils/onboarding';
 import { useUpdateTodoTaskStatus } from 'hooks/queries/task/useUpdateTodoTaskStatus';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
 import { useDialog } from 'components/common/Dialog/Provider';
@@ -44,6 +45,11 @@ interface Props {
   isRoutine: boolean;
   successImageUrls?: string[] | null;
   feedBackCount?: number | null;
+  /*
+   * 첫 두윗 온보딩이 가리킬 두 요소의 화면 좌표를 올려보낸다.
+   * 온보딩이 필요 없으면 넘기지 않으며, 그때는 측정도 일어나지 않는다.
+   */
+  onMeasureOnboardingTargets?: (targets: { status: Rect; thunder: Rect }) => void;
 }
 
 const Item = memo(function Item({
@@ -59,6 +65,7 @@ const Item = memo(function Item({
   isRoutine: isRoutineTask,
   successImageUrls,
   feedBackCount,
+  onMeasureOnboardingTargets,
 }: Props) {
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { showDialog, hideDialog } = useDialog();
@@ -122,6 +129,26 @@ const Item = memo(function Item({
     setShowUploadImageBottomSheet(false);
     taskManagementBottomSheetModalRef.current?.present();
   };
+
+  const statusIconRef = useRef<View>(null);
+  const thunderChipRef = useRef<View>(null);
+
+  /*
+   * 두 요소를 함께 재서 한 번에 올려보낸다. measureInWindow는 콜백이라
+   * 둘 다 도착했을 때만 호출되도록 모아서 전달한다.
+   */
+  const measureOnboardingTargets = useCallback(() => {
+    if (!onMeasureOnboardingTargets) {
+      return;
+    }
+
+    statusIconRef.current?.measureInWindow((x, y, width, height) => {
+      const status = { x, y, width, height };
+      thunderChipRef.current?.measureInWindow((tx, ty, tw, th) => {
+        onMeasureOnboardingTargets({ status, thunder: { x: tx, y: ty, width: tw, height: th } });
+      });
+    });
+  }, [onMeasureOnboardingTargets]);
 
   /*
    * 상태 아이콘은 채운 원(완료)과 빈 원(그 외) 두 모양뿐이고 색으로 모드·상태를 나타낸다.
@@ -328,7 +355,14 @@ const Item = memo(function Item({
           onPress={handleTaskStatus(mode, id, localStatus)}
           disabled={isInvalidUpdateDowithTask || isFailed}
         >
-          {renderTaskStatusIcon(mode, localStatus)}
+          <View
+            ref={statusIconRef}
+            collapsable={false}
+            onLayout={measureOnboardingTargets}
+            style={styles.statusIconWrap}
+          >
+            {renderTaskStatusIcon(mode, localStatus)}
+          </View>
           <View style={styles.leftContent}>
             <Text
               numberOfLines={1}
@@ -392,6 +426,9 @@ const Item = memo(function Item({
             )}
             {!isNil(feedBackCount) && (
               <Pressable
+                ref={thunderChipRef}
+                collapsable={false}
+                onLayout={measureOnboardingTargets}
                 style={styles.feedbackChip}
                 hitSlop={8}
                 onPress={() => {
@@ -428,6 +465,13 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  /*
+   * 온보딩 측정을 위해 감싼 래퍼. leftContainer가 stretch라 기본값으로 두면
+   * 행 높이만큼 늘어나 하이라이트 구멍이 세로로 길쭉해진다.
+   */
+  statusIconWrap: {
+    alignSelf: 'flex-start',
   },
   leftContainer: {
     flex: 1,

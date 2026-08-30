@@ -5,22 +5,25 @@ import dayjs from 'dayjs';
 import { secureStorage, STORAGE_KEY } from 'stores/secure';
 import { AuthSlice, createAuthSlice } from 'stores/auth/slice';
 import { createNotificationSlice, NotificationSlice } from 'stores/notification/slice';
+import { createOnboardingSlice, OnboardingSlice } from 'stores/onboarding/slice';
 
-type MergedStoreState = AuthSlice & NotificationSlice;
+type MergedStoreState = AuthSlice & NotificationSlice & OnboardingSlice;
 
 const useStore = create<MergedStoreState>()(
   persist(
     (...args) => ({
       ...createAuthSlice(...args),
       ...createNotificationSlice(...args),
+      ...createOnboardingSlice(...args),
     }),
     {
       name: STORAGE_KEY.MERGED_INFO,
       storage: createJSONStorage(secureStorage),
-      partialize: ({ tokenInfo, memberId, notificationSettings }) => ({
+      partialize: ({ tokenInfo, memberId, notificationSettings, hasSeenDowithOnboarding }) => ({
         tokenInfo,
         memberId,
         notificationSettings,
+        hasSeenDowithOnboarding,
       }),
       onRehydrateStorage: () => (mergedState, error) => {
         console.log('Rehydrating merged state from encrypted storage');

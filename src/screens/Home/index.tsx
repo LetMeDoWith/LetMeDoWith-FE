@@ -22,6 +22,9 @@ import type { DateMarkingStatus, ModeMarkingStatus } from 'utils/task';
 import { useFetchMyDowithInfo } from 'hooks/queries/member/useFetchMyDowithInfo';
 import { useFetchReceivedFeedbacks } from 'hooks/queries/feedback/useFetchReceivedFeedbacks';
 import { useScheduledRefetch } from 'hooks/shared/useScheduledRefetch';
+import { useStore } from 'stores/index';
+import { DowithCoachMark } from 'components/Onboarding/DowithCoachMark';
+import type { Rect } from 'utils/onboarding';
 import { TASK_QUERY_KEY } from 'constants/queries';
 import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
 
@@ -146,6 +149,14 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
   const { data: nextMonthTaskList } = useFetchTaskList(nextMonth);
   const { data: myDowithInfo } = useFetchMyDowithInfo();
   const { data: receivedFeedbacks } = useFetchReceivedFeedbacks();
+
+  /*
+   * 첫 두윗 등록 후 한 번만 뜨는 코치마크.
+   * 두윗이 하나라도 있고 아직 본 적이 없을 때, 대상 좌표가 측정되면 띄운다.
+   */
+  const hasSeenDowithOnboarding = useStore(state => state.hasSeenDowithOnboarding);
+  const { completeDowithOnboarding } = useStore(state => state.onboardingActions);
+  const [onboardingTargets, setOnboardingTargets] = useState<{ status: Rect; thunder: Rect } | null>(null);
 
   /*
    * '내 잡도리'는 받은 잔소리 화면으로 가므로, 점은 안 읽은 잔소리를 뜻한다.
@@ -286,6 +297,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
                     month={month}
                     taskList={selectedDateTaskList}
                     selectedDate={selectedDate}
+                    onMeasureOnboardingTargets={hasSeenDowithOnboarding ? undefined : setOnboardingTargets}
                   />
                 </View>
               ) : null}
@@ -297,6 +309,13 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
       <Pressable style={styles.fab} onPress={handlePressPlusIcon}>
         <PlusIcon width={FAB_ICON_SIZE} height={FAB_ICON_SIZE} fill={theme.COLORS.DEFAULT.WHITE} />
       </Pressable>
+      {!hasSeenDowithOnboarding && onboardingTargets && (
+        <DowithCoachMark
+          statusTarget={onboardingTargets.status}
+          thunderTarget={onboardingTargets.thunder}
+          onClose={completeDowithOnboarding}
+        />
+      )}
     </>
   );
 };

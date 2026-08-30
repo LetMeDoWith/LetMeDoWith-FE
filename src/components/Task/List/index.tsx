@@ -5,6 +5,7 @@ import { theme, FONT_FAMILY } from 'styles/theme';
 import { Item } from 'components/Task';
 import type { TaskModeType } from 'types/shared';
 import type { dowithTaskSchemeType, todoTaskSchemeType } from 'types/task/scheme/api';
+import type { Rect } from 'utils/onboarding';
 
 interface Props {
   type: TaskModeType;
@@ -12,9 +13,11 @@ interface Props {
   year: number;
   month: number;
   selectedDate: string;
+  /* 첫 두윗 온보딩이 가리킬 좌표. 두윗 목록의 첫 항목만 측정한다. */
+  onMeasureOnboardingTargets?: (targets: { status: Rect; thunder: Rect }) => void;
 }
 
-const List = memo(({ type, items, year, month, selectedDate }: Props) => {
+const List = memo(({ type, items, year, month, selectedDate, onMeasureOnboardingTargets }: Props) => {
   const isDoWithMode = type === 'DOWITH';
 
   return (
@@ -35,9 +38,10 @@ const List = memo(({ type, items, year, month, selectedDate }: Props) => {
         </Text>
       </View>
       <View style={styles.items}>
-        {items.map(({ id, ...rest }) => (
+        {items.map(({ id, ...rest }, index) => (
           <Item
             key={id}
+            onMeasureOnboardingTargets={isDoWithMode && index === 0 ? onMeasureOnboardingTargets : undefined}
             id={id}
             mode={isDoWithMode ? 'DOWITH' : 'TODO'}
             year={year}
