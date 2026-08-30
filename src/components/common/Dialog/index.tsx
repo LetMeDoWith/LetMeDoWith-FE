@@ -103,9 +103,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
+    ...theme.TYPOGRAPHY.SUB_TITLE,
     color: theme.COLORS.DEFAULT.BLACK,
   },
   confirmButtonText: {
+    ...theme.TYPOGRAPHY.SUB_TITLE,
     color: theme.COLORS.PRIMARY.RED_60,
   },
   alertButton: {
@@ -116,6 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.COLORS.PRIMARY.RED_60,
   },
   alertButtonText: {
+    ...theme.TYPOGRAPHY.SUB_TITLE,
     color: theme.COLORS.DEFAULT.WHITE,
   },
 });

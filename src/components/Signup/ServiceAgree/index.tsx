@@ -153,7 +153,7 @@ const ServiceAgree = () => {
               status={ageOfAgree ? 'checked' : 'unchecked'}
               onPress={toggleAgeOfAgreeCheckBox}
             />
-            <Text>(필수) 만 14세 이상입니다.</Text>
+            <Text style={theme.TYPOGRAPHY.BODY_2}>(필수) 만 14세 이상입니다.</Text>
           </View>
           {CHECKBOX_MAP_LIST.map(({ label, text, isLinkable }) => (
             <View key={label}>
@@ -175,7 +175,7 @@ const ServiceAgree = () => {
                         status={getCheckboxStatus(label)}
                         onPress={onPressCheckBox(label)}
                       />
-                      <Text>{text}</Text>
+                      <Text style={theme.TYPOGRAPHY.BODY_2}>{text}</Text>
                     </View>
                     {isLinkable && (
                       <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_40} size={16} />
@@ -193,7 +193,7 @@ const ServiceAgree = () => {
             status={allChecked ? 'checked' : 'unchecked'}
             onPress={onPressAllCheckBox}
           />
-          <Text>모두 동의합니다.</Text>
+          <Text style={theme.TYPOGRAPHY.BODY_2}>모두 동의합니다.</Text>
         </View>
       </View>
       <Pressable

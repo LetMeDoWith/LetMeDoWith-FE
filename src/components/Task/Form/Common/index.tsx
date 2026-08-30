@@ -339,7 +339,14 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
                 >
                   제목
                 </Text>
-                <Text style={isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 }}>{title.length}/20</Text>
+                <Text
+                  style={[
+                    theme.TYPOGRAPHY.CAPTION1_BASIC,
+                    isFormDisabled && { color: theme.COLORS.GRAY_SCALE.GRAY_80 },
+                  ]}
+                >
+                  {title.length}/20
+                </Text>
               </View>
               <Controller
                 name="title"
@@ -504,9 +511,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   emptyValue: {
+    ...theme.TYPOGRAPHY.BODY_2,
     color: theme.COLORS.GRAY_SCALE.GRAY_80,
   },
   value: {
+    ...theme.TYPOGRAPHY.BODY_2,
     color: theme.COLORS.DEFAULT.BLACK,
   },
   button: {

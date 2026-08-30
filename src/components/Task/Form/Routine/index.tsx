@@ -729,6 +729,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
                   >
                     <Text
                       style={{
+                        ...theme.TYPOGRAPHY.BODY_2,
                         color: selectedWeeklyDaySet.has(value)
                           ? theme.COLORS.DEFAULT.WHITE
                           : theme.COLORS.DEFAULT.BLACK,
@@ -777,6 +778,7 @@ const RoutineForm = forwardRef<RoutineFormRefMethod, Props>(
                   >
                     <Text
                       style={{
+                        ...theme.TYPOGRAPHY.BODY_2,
                         color: selectedMonthlyDaySet.has(index + 1)
                           ? theme.COLORS.DEFAULT.WHITE
                           : theme.COLORS.DEFAULT.BLACK,

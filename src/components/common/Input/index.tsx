@@ -26,7 +26,7 @@ const Input = ({ label = '', placeholder = '' }: Props) => {
         )}
         name={label}
       />
-      {errors?.label && <Text>에러</Text>}
+      {errors?.label && <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>에러</Text>}
     </View>
   );
 };

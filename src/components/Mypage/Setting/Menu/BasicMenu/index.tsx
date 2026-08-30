@@ -14,13 +14,15 @@ interface Props {
 
 const BasicMenu = ({ title, style, onPress, isArrowVisible, content }: Props) => (
   <Pressable style={[styles.container, style]} onPress={onPress}>
-    <Text>{title}</Text>
+    <Text style={styles.title}>{title}</Text>
     {isArrowVisible && <ArrowRight fill={theme.COLORS.GRAY_SCALE.GRAY_40} />}
-    {!isArrowVisible && content && <Text>{content}</Text>}
+    {!isArrowVisible && content && <Text style={styles.content}>{content}</Text>}
   </Pressable>
 );
 
 const styles = StyleSheet.create({
+  title: theme.TYPOGRAPHY.BODY_1,
+  content: theme.TYPOGRAPHY.BODY_2,
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -79,7 +79,7 @@ const BadgeInfo = () => {
       </View>
       <Badge uri={'https://media.bunjang.co.kr/images/crop/981758465_w320.jpg'} name="test 뱃지2" />
       <Divider style={styles.divider} />
-      <Text>* 대표 뱃지 포함 최대 4개까지 노출할 수 있습니다.</Text>
+      <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>* 대표 뱃지 포함 최대 4개까지 노출할 수 있습니다.</Text>
       <FlatList
         contentContainerStyle={styles.flatListContentContainer}
         style={styles.flatListContainer}
@@ -142,6 +142,7 @@ const styles = StyleSheet.create({
     fontFamily: FONT_FAMILY.BOLD,
   },
   subTitle: {
+    ...theme.TYPOGRAPHY.BODY_2,
     color: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
   divider: {
