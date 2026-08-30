@@ -92,9 +92,9 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
         name="MYPAGE"
         component={Mypage}
         options={{
-          headerTitle: '마이두윗',
+          headerTitle: '마이도리',
           headerTitleAlign: 'left',
-          tabBarLabel: '마이두윗',
+          tabBarLabel: '마이도리',
           tabBarIcon: ({ focused }) => (
             <MypageIcon
               fill={focused ? GRAY_SCALE.GRAY_20 : GRAY_SCALE.GRAY_80}

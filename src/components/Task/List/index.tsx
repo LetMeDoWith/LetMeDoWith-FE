@@ -34,24 +34,33 @@ const List = memo(({ type, items, year, month, selectedDate }: Props) => {
           {isDoWithMode ? 'DORI' : 'TODO'}
         </Text>
       </View>
-      {items.map(({ id, ...rest }) => (
-        <Item
-          key={id}
-          id={id}
-          mode={isDoWithMode ? 'DOWITH' : 'TODO'}
-          year={year}
-          month={month}
-          selectedDate={selectedDate}
-          {...rest}
-        />
-      ))}
+      <View style={styles.items}>
+        {items.map(({ id, ...rest }) => (
+          <Item
+            key={id}
+            id={id}
+            mode={isDoWithMode ? 'DOWITH' : 'TODO'}
+            year={year}
+            month={month}
+            selectedDate={selectedDate}
+            {...rest}
+          />
+        ))}
+      </View>
     </View>
   );
 });
 List.displayName = 'List';
 
 const styles = StyleSheet.create({
-  container: {},
+  /* 라벨과 아이템 묶음 사이 간격 */
+  container: {
+    gap: 16,
+  },
+  /* 아이템끼리의 간격 */
+  items: {
+    gap: 12,
+  },
   chipWrap: {
     alignSelf: 'flex-start',
     height: 26,

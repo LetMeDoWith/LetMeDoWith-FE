@@ -426,7 +426,6 @@ const Item = memo(function Item({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },

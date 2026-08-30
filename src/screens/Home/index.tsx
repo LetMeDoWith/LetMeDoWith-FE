@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import dayjs from 'dayjs';
-import { Divider } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
 import { Positions } from 'react-native-calendars/src/expandableCalendar';
@@ -37,6 +36,8 @@ const WEEK_HEIGHT_PX = 61;
 // 월뷰 하단 여백(6주 달 기준). 이 값만 조절하면 모든 달에 반영된다.
 const MONTH_VIEW_BASE_MARGIN = 12;
 const PROFILE_SIZE = 32;
+const FAB_SIZE = 56;
+const FAB_ICON_SIZE = 28;
 const WEEK_VIEW_BOTTOM_MARGIN = 8;
 
 // 태스크가 없는 날짜 조회 시 매번 새 객체를 만들지 않도록 공유하는 빈 목록
@@ -131,7 +132,6 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
   }, [currentDate]);
 
   const monthViewBottomMargin = MONTH_VIEW_BASE_MARGIN - (6 - weeksInCurrentMonth) * WEEK_HEIGHT_PX;
-  const selectedDateKoreanString = dayjs(selectedDate).format('YYYY년 MM월 DD일 dddd');
 
   /*
    * 조회 기준은 선택 날짜가 아니라 달력에 보이는 달(currentDate)이다.
@@ -238,26 +238,24 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
   return (
     <>
       <View style={[styles.safeAreaTop, { height: top }]} />
+      {/* 헤더는 스크롤과 무관하게 상단에 고정한다. */}
+      <View style={styles.header}>
+        <Pressable style={styles.headerProfile} onPress={handleBadge}>
+          <ProfileImage uri={myDowithInfo?.profileImageUrl} size={PROFILE_SIZE} style={styles.badgeImage} />
+          <Text style={styles.title}>{myDowithInfo?.nickname ?? ''}</Text>
+        </Pressable>
+        <Pressable style={styles.notificationWrap} onPress={handlePressNotification}>
+          <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>내 잡도리</Text>
+          {/* 안 읽은 받은 잡도리가 있을 때만 표시 */}
+          {hasUncheckedFeedback && <View style={styles.unreadDot} />}
+          <ArrowRight fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
+        </Pressable>
+      </View>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
-        stickyHeaderIndices={[1]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Pressable style={styles.headerProfile} onPress={handleBadge}>
-            <ProfileImage uri={myDowithInfo?.profileImageUrl} size={PROFILE_SIZE} style={styles.badgeImage} />
-            <Text style={styles.title}>{myDowithInfo?.nickname ?? ''}</Text>
-          </Pressable>
-          <Pressable style={styles.notificationWrap} onPress={handlePressNotification}>
-            <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>내 잡도리</Text>
-            {/* 안 읽은 받은 잡도리가 있을 때만 표시 */}
-            {hasUncheckedFeedback && <View style={styles.unreadDot} />}
-            <ArrowRight fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
-          </Pressable>
-        </View>
-        {/* 스크롤 시 최상단에 고정되는 흰색 영역의 상단 캡(둥근 모서리). 아래 본문이 이 캡 밑으로 스크롤된다. */}
-        <View style={styles.sheetCap} />
         <View style={styles.sheetBody}>
           <CalendarProvider
             style={styles.calendarWrap}
@@ -281,13 +279,6 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
             />
             <View style={{ marginBottom: isWeekView ? WEEK_VIEW_BOTTOM_MARGIN : monthViewBottomMargin }} />
             <View style={{ marginHorizontal: 20 }}>
-              <Divider style={styles.divider} />
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{selectedDateKoreanString}</Text>
-                <TouchableOpacity style={{ paddingLeft: 8, paddingBottom: 8 }} onPress={handlePressPlusIcon}>
-                  <PlusIcon />
-                </TouchableOpacity>
-              </View>
               {selectedDateTaskList ? (
                 <View style={{ marginTop: 16 }}>
                   <ListContainerView
@@ -302,11 +293,32 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
           </CalendarProvider>
         </View>
       </ScrollView>
+      {/* 탭 내비게이터가 탭바 위 영역만 화면으로 주므로 여기 bottom은 탭바와 겹치지 않는다. */}
+      <Pressable style={styles.fab} onPress={handlePressPlusIcon}>
+        <PlusIcon width={FAB_ICON_SIZE} height={FAB_ICON_SIZE} fill={theme.COLORS.DEFAULT.WHITE} />
+      </Pressable>
     </>
   );
 };
 
 const styles = StyleSheet.create({
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
+    backgroundColor: theme.COLORS.PRIMARY.RED_60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    /* 잔소리 탭 FAB과 같은 값. iOS는 shadow*, Android는 elevation이 각각 필요하다. */
+    shadowColor: theme.COLORS.DEFAULT.BLACK,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
   safeAreaTop: {
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
   },
@@ -349,12 +361,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
-  sheetCap: {
-    height: 20,
-    backgroundColor: theme.COLORS.DEFAULT.WHITE,
-    borderTopStartRadius: 20,
-    borderTopRightRadius: 20,
-  },
   sheetBody: {
     flexGrow: 1,
     paddingHorizontal: 20,
@@ -387,12 +393,6 @@ const styles = StyleSheet.create({
   },
   disabledDayText: {
     color: theme.COLORS.GRAY_SCALE.GRAY_80,
-  },
-  divider: {
-    borderWidth: 0.5,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
-    marginTop: 12,
-    marginBottom: 24,
   },
 });
 export { Home };
