@@ -62,11 +62,24 @@ const CustomCalendarHeader = ({
     setCurrentDate?.(today);
   };
 
+  const monthArrows = (
+    <View style={styles.weekCalendarArrowWrap}>
+      <TouchableOpacity hitSlop={ARROW_HIT_SLOP} onPress={moveDate(date, -1, isWeekView)}>
+        <ArrowLeft />
+      </TouchableOpacity>
+      <TouchableOpacity hitSlop={ARROW_HIT_SLOP} onPress={moveDate(date, 1, isWeekView)}>
+        <ArrowRight />
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <View style={styles.customHeaderContainer}>
       <View style={styles.customHeaderLeft}>
         {isExpandableType && <Calendar />}
-        <Text style={theme.TYPOGRAPHY.CAPTION1_BASIC}>{dayjs(date).format('YYYY년 MM월')}</Text>
+        <Text style={theme.TYPOGRAPHY.SUB_TITLE}>{dayjs(date).format('YYYY년 M월')}</Text>
+        {/* 홈은 화살표가 날짜 바로 옆에 붙는다. 루틴 시트(NORMAL)는 기존대로 오른쪽에 둔다. */}
+        {isExpandableType && monthArrows}
         {isExpandableType && selectedDate !== today && (
           <TouchableOpacity style={styles.todayButton} onPress={handleTodayButton}>
             <Text style={theme.TYPOGRAPHY.CAPTION_2}>오늘</Text>
@@ -74,23 +87,9 @@ const CustomCalendarHeader = ({
         )}
       </View>
       <View style={styles.customHeaderRight}>
-        <View style={styles.weekCalendarArrowWrap}>
-          <TouchableOpacity hitSlop={ARROW_HIT_SLOP} onPress={moveDate(date, -1, isWeekView)}>
-            <ArrowLeft />
-          </TouchableOpacity>
-          <TouchableOpacity hitSlop={ARROW_HIT_SLOP} onPress={moveDate(date, 1, isWeekView)}>
-            <ArrowRight />
-          </TouchableOpacity>
-        </View>
+        {!isExpandableType && monthArrows}
         {isExpandableType && (
-          <Pressable
-            style={{
-              backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96,
-              padding: 10,
-              borderRadius: 8,
-            }}
-            onPress={toggleWeekView}
-          >
+          <Pressable style={styles.weekToggleButton} onPress={toggleWeekView}>
             <Text style={theme.TYPOGRAPHY.CAPTION_2}>{isWeekView ? '주' : '월'}</Text>
           </Pressable>
         )}
@@ -106,7 +105,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  customHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  customHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   todayButton: {
     paddingHorizontal: 8,
     paddingVertical: 6,
@@ -116,6 +115,11 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   customHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  weekToggleButton: {
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96,
+    padding: 10,
+    borderRadius: 8,
+  },
   weekCalendarArrowWrap: {
     flexDirection: 'row',
     gap: 16,
