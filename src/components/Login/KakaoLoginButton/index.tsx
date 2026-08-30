@@ -6,6 +6,8 @@ import { KakaoSymbol } from 'components/common/icons/KakaoSymbol';
 import { useAuthToken } from 'hooks/auth/useAuthToken';
 import { ProviderEnum } from 'schemes/auth/enum';
 
+import { theme } from 'styles/theme';
+
 const KakaoLoginButton = () => {
   const [_, setIdToken] = useAuthToken(ProviderEnum.enum.KAKAO);
 
@@ -25,25 +27,30 @@ const KakaoLoginButton = () => {
 
   return (
     <Pressable style={styles.container} onPress={signInWithKakao}>
-      <KakaoSymbol />
-      <Text>카카오 계정으로 로그인</Text>
+      <KakaoSymbol width={25} height={25} />
+      <Text style={styles.label}>카카오로 계속하기</Text>
     </Pressable>
   );
 };
 
+/* 시안 근사값 — 세 버튼이 같은 폭·높이를 쓴다. */
+const BUTTON_WIDTH = Dimensions.get('window').width - 42;
+const BUTTON_HEIGHT = 47;
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    height: BUTTON_HEIGHT,
     paddingHorizontal: 20,
-    width: Dimensions.get('window').width - 60,
-    backgroundColor: '#FEE500',
+    width: BUTTON_WIDTH,
+    backgroundColor: '#FEEA00',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 13,
     fontSize: 30,
     borderRadius: 12,
   },
+  label: theme.TYPOGRAPHY.SUB_TITLE,
 });
 
 export { KakaoLoginButton };

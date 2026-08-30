@@ -7,6 +7,8 @@ import { GoogleSymbol } from 'components/common/icons/GoogleSymbol';
 import { useAuthToken } from 'hooks/auth/useAuthToken';
 import { ProviderEnum } from 'schemes/auth/enum';
 
+import { theme } from 'styles/theme';
+
 const GoogleLoginButton = () => {
   const [_, setIdToken] = useAuthToken(ProviderEnum.enum.GOOGLE);
 
@@ -50,36 +52,32 @@ const GoogleLoginButton = () => {
 
   return (
     <Pressable style={styles.container} onPress={signInWithGoogle} disabled={isSigningIn}>
-      <GoogleSymbol width={18} height={18} />
-      <Text style={styles.label}>구글 계정으로 로그인</Text>
+      <GoogleSymbol width={25} height={25} />
+      <Text style={styles.label}>구글로 계속하기</Text>
     </Pressable>
   );
 };
 
+/* 시안 근사값 — 세 버튼이 같은 폭·높이를 쓴다. */
+const BUTTON_WIDTH = Dimensions.get('window').width - 42;
+const BUTTON_HEIGHT = 47;
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    height: 40,
+    height: BUTTON_HEIGHT,
     paddingHorizontal: 8,
-    width: Dimensions.get('window').width - 60,
-    backgroundColor: '#FFF',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.18,
-    shadowRadius: 1.0,
-    elevation: 1,
+    width: BUTTON_WIDTH,
+    backgroundColor: theme.COLORS.DEFAULT.WHITE,
+    /* 시안은 그림자가 아니라 얇은 테두리다. */
+    borderWidth: 1,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_20,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 24,
+    gap: 13,
     borderRadius: 12,
   },
-  label: {
-    fontSize: 14,
-    fontFamily: 'Roboto-Medium',
-  },
+  label: theme.TYPOGRAPHY.SUB_TITLE,
 });
 
 export { GoogleLoginButton };

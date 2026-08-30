@@ -6,6 +6,8 @@ import { AppleSymbol } from 'components/common/icons/AppleSymbol';
 import { useAuthToken } from 'hooks/auth/useAuthToken';
 import { ProviderEnum } from 'schemes/auth/enum';
 
+import { theme } from 'styles/theme';
+
 const AppleLoginButton = () => {
   const [_, setIdToken] = useAuthToken(ProviderEnum.enum.APPLE);
 
@@ -38,27 +40,34 @@ const AppleLoginButton = () => {
 
   return (
     <Pressable style={styles.container} onPress={signInWithApple}>
-      <AppleSymbol width={44} height={44} />
-      <Text style={styles.title}>애플 계정으로 로그인</Text>
+      {/* 사과 글리프는 세로가 긴 17:21 비율이라 높이를 25에 맞추고 너비는 비례로 준다 */}
+      <AppleSymbol width={20} height={25} />
+      <Text style={styles.title}>Apple로 계속하기</Text>
     </Pressable>
   );
 };
 
+/* 시안 근사값 — 세 버튼이 같은 폭·높이를 쓴다. */
+const BUTTON_WIDTH = Dimensions.get('window').width - 42;
+const BUTTON_HEIGHT = 47;
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
+    height: BUTTON_HEIGHT,
     paddingHorizontal: 20,
-    width: Dimensions.get('window').width - 60,
-    backgroundColor: '#000',
+    width: BUTTON_WIDTH,
+    backgroundColor: theme.COLORS.DEFAULT.BLACK,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 13,
     fontSize: 30,
     borderRadius: 12,
   },
 
   title: {
-    color: '#FFF',
+    ...theme.TYPOGRAPHY.SUB_TITLE,
+    color: theme.COLORS.DEFAULT.WHITE,
   },
 });
 

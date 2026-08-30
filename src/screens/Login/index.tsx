@@ -4,21 +4,25 @@ import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 import { KakaoLoginButton } from 'components/Login/KakaoLoginButton';
 import { GoogleLoginButton } from 'components/Login/GoogleLoginButton';
 import { AppleLoginButton } from 'components/Login/AppleLoginButton';
+import { MainLogo, MAIN_LOGO_RATIO } from 'components/common/icons/MainLogo';
+import { theme } from 'styles/theme';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+/* 시안 근사값. 정확한 수치를 받으면 교체한다. */
+const LOGO_WIDTH = SCREEN_WIDTH * 0.23;
+const LOGO_HEIGHT = LOGO_WIDTH * MAIN_LOGO_RATIO;
+/* 로고 묶음과 버튼 묶음 사이 간격 */
+const SECTION_GAP = 80;
 
 const Login = () => {
   return (
     <View style={styles.container}>
-      <View style={styles.titleContainer}>
-        <View style={styles.titleWrap}>
-          <Text style={styles.title}>Let Me Do</Text>
-          <Text style={titleHighlight}>With</Text>
-        </View>
-        <View style={styles.subTitleWrap}>
-          <Text style={styles.subTitle}>함께 갓생사는</Text>
-          <Text style={styles.subTitle}>데일리 투두리스트 케어 서비스</Text>
-        </View>
+      <View style={styles.logoSection}>
+        <MainLogo width={LOGO_WIDTH} height={LOGO_HEIGHT} />
+        <Text style={styles.tagline}>미루는 습관을 깨는 가장 확실한 잡도리</Text>
       </View>
-      <View style={styles.buttonContainer}>
+      <View style={styles.buttonSection}>
         <KakaoLoginButton />
         <GoogleLoginButton />
         {Platform.OS === 'ios' && <AppleLoginButton />}
@@ -28,36 +32,26 @@ const Login = () => {
 };
 
 const styles = StyleSheet.create({
+  /* 로고와 버튼을 하나의 묶음으로 보고 화면 세로 정중앙에 둔다. */
   container: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    height: Dimensions.get('window').height,
-    gap: 70,
+    gap: SECTION_GAP,
+    backgroundColor: theme.COLORS.DEFAULT.WHITE,
   },
-  titleContainer: {
-    gap: 10,
-  },
-  buttonContainer: {
-    gap: 10,
-  },
-  titleWrap: {
+  logoSection: {
     alignItems: 'center',
+    gap: 12,
   },
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
+  tagline: {
+    ...theme.TYPOGRAPHY.SUB_TITLE,
+    color: theme.COLORS.GRAY_SCALE.GRAY_20,
   },
-  titleHighlight: {
-    color: 'red',
-  },
-  subTitleWrap: {
+  buttonSection: {
     alignItems: 'center',
-  },
-  subTitle: {
-    fontWeight: 'bold',
+    gap: 8,
   },
 });
-
-const titleHighlight = StyleSheet.compose(styles.title, styles.titleHighlight);
 
 export { Login };

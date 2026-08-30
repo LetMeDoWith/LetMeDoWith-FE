@@ -1,8 +1,9 @@
 import Svg, { G, Path, Rect, SvgProps } from 'react-native-svg';
 
-const AppleSymbol = ({ width = 56, height = 56 }: Pick<SvgProps, 'width' | 'height'>) => {
+/* 원본 viewBox(0 0 56 56)는 글리프(15x19) 주변 여백이 커서 작게 그려진다. 글리프에 맞춰 조인다. */
+const AppleSymbol = ({ width = 17, height = 21 }: Pick<SvgProps, 'width' | 'height'>) => {
   return (
-    <Svg width={width} height={height} viewBox="0 0 56 56">
+    <Svg width={width} height={height} viewBox="19.5 15 17 21">
       <G id="White-Logo-Square-" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <Rect id="Rectangle" fill="#000000" x="6" y="6" width="44" height="44" />
         <Path
