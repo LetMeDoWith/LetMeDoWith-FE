@@ -7,7 +7,6 @@ import { CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
 import { Positions } from 'react-native-calendars/src/expandableCalendar';
 import type { DateData } from 'react-native-calendars/src/types';
 import type { DayProps } from 'react-native-calendars/src/calendar/day';
-import LinearGradient from 'react-native-linear-gradient';
 
 import { theme } from 'styles/theme';
 import { ProfileImage } from 'components/common/ProfileImage';
@@ -15,12 +14,12 @@ import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { ListContainerView } from 'components/Task/ListContainerView';
 import type { HomeTabScreenProps } from 'types/shared';
-import { FeedbackNotification } from 'components/common/icons/FeedbackNotification';
 import { CustomCalendarHeader } from 'components/Task';
 import { TaskStatusMarking } from 'components/common/icons/TaskStatusMarking';
 import { useFetchTaskList } from 'hooks/queries/task/useFetchTaskList';
 import { buildCalendarMarkedDates, getSurroundingMonths, mergeTasksByDate } from 'utils/task';
 import { useFetchMyDowithInfo } from 'hooks/queries/member/useFetchMyDowithInfo';
+import { useFetchReceivedFeedbacks } from 'hooks/queries/feedback/useFetchReceivedFeedbacks';
 import { useScheduledRefetch } from 'hooks/shared/useScheduledRefetch';
 import { TASK_QUERY_KEY } from 'constants/queries';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
@@ -37,6 +36,7 @@ const DAY_CELL_HEIGHT = 47;
 const WEEK_HEIGHT_PX = 61;
 // 월뷰 하단 여백(6주 달 기준). 이 값만 조절하면 모든 달에 반영된다.
 const MONTH_VIEW_BASE_MARGIN = 12;
+const PROFILE_SIZE = 32;
 const WEEK_VIEW_BOTTOM_MARGIN = 8;
 
 // 태스크가 없는 날짜 조회 시 매번 새 객체를 만들지 않도록 공유하는 빈 목록
@@ -120,6 +120,14 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
   const { data: currentMonthTaskList } = useFetchTaskList(currentMonth);
   const { data: nextMonthTaskList } = useFetchTaskList(nextMonth);
   const { data: myDowithInfo } = useFetchMyDowithInfo();
+  const { data: receivedFeedbacks } = useFetchReceivedFeedbacks();
+
+  /*
+   * '내 잡도리'는 받은 잔소리 화면으로 가므로, 점은 안 읽은 잔소리를 뜻한다.
+   * 무한 스크롤이라 불러온 페이지 안에서만 판단한다 — 안 읽은 잔소리는 최신이라 첫 페이지에 들어온다.
+   */
+  const hasUncheckedFeedback =
+    receivedFeedbacks?.pages.some(page => page.data.feedbacks.some(feedback => !feedback.isChecked)) ?? false;
 
   /*
    * 태스크 변경 훅에 넘길 값. 낙관적 업데이트·무효화가 [...LIST, year, month] 캐시를 겨냥하므로
@@ -294,42 +302,25 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
 
   return (
     <>
-      <View style={{ height: top, backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_98 }} />
+      <View style={[styles.safeAreaTop, { height: top }]} />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
         stickyHeaderIndices={[1]}
         showsVerticalScrollIndicator={false}
       >
-        <LinearGradient
-          colors={[theme.COLORS.GRAY_SCALE.GRAY_98, theme.COLORS.GRAY_SCALE.GRAY_96]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.profileWrap}
-        >
-          <View style={styles.profile}>
-            <View style={styles.iconWrap}>
-              <Pressable style={styles.notificationWrap} onPress={handlePressNotification}>
-                <FeedbackNotification />
-                <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>잔소리</Text>
-                <ArrowRight fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
-              </Pressable>
-            </View>
-            <View style={styles.profileContent}>
-              <Pressable onPress={handleBadge}>
-                <ProfileImage uri={myDowithInfo?.profileImageUrl} size={50} style={styles.badgeImage} />
-              </Pressable>
-              <View style={styles.titleWrap}>
-                <Text style={styles.title}>{myDowithInfo?.nickname ?? ''}</Text>
-                {myDowithInfo?.selfDescription && (
-                  <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>
-                    {myDowithInfo.selfDescription}
-                  </Text>
-                )}
-              </View>
-            </View>
-          </View>
-        </LinearGradient>
+        <View style={styles.header}>
+          <Pressable style={styles.headerProfile} onPress={handleBadge}>
+            <ProfileImage uri={myDowithInfo?.profileImageUrl} size={PROFILE_SIZE} style={styles.badgeImage} />
+            <Text style={styles.title}>{myDowithInfo?.nickname ?? ''}</Text>
+          </Pressable>
+          <Pressable style={styles.notificationWrap} onPress={handlePressNotification}>
+            <Text style={[theme.TYPOGRAPHY.BODY_2, { color: theme.COLORS.GRAY_SCALE.GRAY_50 }]}>내 잡도리</Text>
+            {/* 안 읽은 받은 잡도리가 있을 때만 표시 */}
+            {hasUncheckedFeedback && <View style={styles.unreadDot} />}
+            <ArrowRight fill={theme.COLORS.GRAY_SCALE.GRAY_80} />
+          </Pressable>
+        </View>
         {/* 스크롤 시 최상단에 고정되는 흰색 영역의 상단 캡(둥근 모서리). 아래 본문이 이 캡 밑으로 스크롤된다. */}
         <View style={styles.sheetCap} />
         <View style={styles.sheetBody}>
@@ -381,41 +372,42 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
 };
 
 const styles = StyleSheet.create({
+  safeAreaTop: {
+    backgroundColor: theme.COLORS.DEFAULT.WHITE,
+  },
   container: {
     flex: 1,
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96,
+    backgroundColor: theme.COLORS.DEFAULT.WHITE,
   },
-  profileWrap: {
-    paddingHorizontal: 20,
-  },
-  profile: {
-    gap: 16,
-    paddingTop: 20,
-    paddingBottom: 24,
-    marginHorizontal: -20,
-    paddingHorizontal: 20,
-  },
-  iconWrap: {
+  header: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  headerProfile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   notificationWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
+  unreadDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: theme.COLORS.PRIMARY.RED_60,
+    alignSelf: 'flex-start',
+    marginLeft: -2,
+  },
   badgeImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 50,
-  },
-  profileContent: {
-    flexDirection: 'row',
-    gap: 16,
-    alignItems: 'center',
-  },
-  titleWrap: {
-    gap: 2,
+    width: PROFILE_SIZE,
+    height: PROFILE_SIZE,
+    borderRadius: PROFILE_SIZE / 2,
   },
   title: theme.TYPOGRAPHY.TITLE_3,
   // 내용이 화면보다 짧아도 흰색 본문이 하단까지 차도록 최소 높이를 화면에 맞춘다.
