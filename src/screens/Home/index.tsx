@@ -15,15 +15,15 @@ import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { ListContainerView } from 'components/Task/ListContainerView';
 import type { HomeTabScreenProps } from 'types/shared';
 import { CustomCalendarHeader } from 'components/Task';
-import { TaskStatusMarking } from 'components/common/icons/TaskStatusMarking';
+import { CalendarCheck } from 'components/common/icons/CalendarCheck';
+import { DoubleCalendarCheck, CHECK_DARK } from 'components/common/icons/DoubleCalendarCheck';
 import { useFetchTaskList } from 'hooks/queries/task/useFetchTaskList';
-import { buildCalendarMarkedDates, getSurroundingMonths, mergeTasksByDate } from 'utils/task';
+import { buildCalendarMarkedDates, getDateMarkingStatus, getSurroundingMonths, mergeTasksByDate } from 'utils/task';
+import type { DateMarkingStatus, ModeMarkingStatus } from 'utils/task';
 import { useFetchMyDowithInfo } from 'hooks/queries/member/useFetchMyDowithInfo';
 import { useFetchReceivedFeedbacks } from 'hooks/queries/feedback/useFetchReceivedFeedbacks';
 import { useScheduledRefetch } from 'hooks/shared/useScheduledRefetch';
 import { TASK_QUERY_KEY } from 'constants/queries';
-import { TASK_STATUS_ENUM } from 'schemes/task/enum';
-import { TASK_STATUS } from 'constants/Task';
 import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
 
 // 요일 시작: 0=일, 1=월
@@ -42,14 +42,39 @@ const WEEK_VIEW_BOTTOM_MARGIN = 8;
 // 태스크가 없는 날짜 조회 시 매번 새 객체를 만들지 않도록 공유하는 빈 목록
 const EMPTY_TASK_LIST: fetchTaskListResponseSchemeDataType = { dowithTasks: [], todoTasks: [] };
 
-type MarkingStatus = React.ComponentProps<typeof TaskStatusMarking>['status'];
+/* 성공한 모드만 제 색을 쓰고, 나머지(실패·대기·부분 성공)는 회색으로 둔다. */
+const getCheckColor = (status: ModeMarkingStatus, successColor: string) =>
+  status === 'SUCCESS' ? successColor : theme.COLORS.GRAY_SCALE.GRAY_80;
+
+/* 날짜 아래 마킹. 두윗·투두가 모두 있으면 겹친 체크, 한쪽만 있으면 단일 체크. */
+const DateMarking = memo(({ dowith, todo }: DateMarkingStatus) => {
+  if (dowith === 'NONE' && todo === 'NONE') {
+    return null;
+  }
+
+  if (dowith !== 'NONE' && todo !== 'NONE') {
+    return (
+      <DoubleCalendarCheck
+        leftFill={getCheckColor(todo, CHECK_DARK)}
+        rightFill={getCheckColor(dowith, theme.COLORS.PRIMARY.RED_60)}
+      />
+    );
+  }
+
+  return dowith !== 'NONE' ? (
+    <CalendarCheck fill={getCheckColor(dowith, theme.COLORS.PRIMARY.RED_60)} />
+  ) : (
+    <CalendarCheck fill={getCheckColor(todo, CHECK_DARK)} />
+  );
+});
+DateMarking.displayName = 'DateMarking';
 
 interface CalendarDayProps {
   day?: number;
   dateString?: string;
   isSelected: boolean;
   isDisabled: boolean;
-  status: MarkingStatus | null;
+  status: DateMarkingStatus | null;
   onPress: (dateString?: string) => void;
 }
 
@@ -64,7 +89,7 @@ const CalendarDay = memo(({ day, dateString, isSelected, isDisabled, status, onP
         {day}
       </Text>
     </View>
-    {status && <TaskStatusMarking status={status} />}
+    {status && <DateMarking {...status} />}
   </TouchableOpacity>
 ));
 CalendarDay.displayName = 'CalendarDay';
@@ -164,102 +189,12 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
     }
   }, []);
 
-  const getTaskStatus = useCallback((taskList: fetchTaskListResponseSchemeDataType) => {
-    const { dowithTasks, todoTasks } = taskList;
-    const isDowithSuccessStatusExisted = dowithTasks.some(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
-    const isDowithFailStatusALL = dowithTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.FAIL);
-    const isDowithSuccessStatusALL = dowithTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
-    const isDowithWaitStatusALL = dowithTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.WAIT);
-    const isTodoSuccessStatusExisted = todoTasks.some(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
-    const isTodoFailStatusALL = todoTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.FAIL);
-    const isTodoSuccessStatusALL = todoTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS);
-    const isTodoWaitStatusALL = todoTasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.WAIT);
-
-    // 모든 종류의 task가 등록된 경우
-    if (dowithTasks.length > 0 && todoTasks.length > 0) {
-      // 모든 종류의 task가 실패 상태일 경우
-      if (isDowithFailStatusALL && isTodoFailStatusALL) {
-        return TASK_STATUS.ALL_FAIL;
-      }
-
-      // 모든 종류의 task가 성공 상태일 경우
-      if (isDowithSuccessStatusALL && isTodoSuccessStatusALL) {
-        return TASK_STATUS.ALL_SUCCESS;
-      }
-
-      // task가 모두 대기 상태일 경우
-      if (isDowithWaitStatusALL && isTodoWaitStatusALL) {
-        return TASK_STATUS.ALL_WAIT;
-      }
-
-      // 등록한 task 중 성공 상태가 존재할 경우
-      if (isDowithSuccessStatusExisted || isTodoSuccessStatusExisted) {
-        return TASK_STATUS.ALL_SOME_SUCCESS;
-      }
-
-      return TASK_STATUS.NONE;
-    }
-
-    // 두윗 Task만 등록된 경우
-    if (dowithTasks.length > 0 && todoTasks.length === 0) {
-      // 두윗 task가 모두 실패 상태일 경우
-      if (isDowithFailStatusALL) {
-        return TASK_STATUS.DOWITH_FAIL;
-      }
-
-      // 두윗 task가 모두 성공 상태일 경우
-      if (isDowithSuccessStatusALL) {
-        return TASK_STATUS.DOWITH_SUCCESS;
-      }
-
-      // 두윗 task가 모두 대기 상태일 경우
-      if (isDowithWaitStatusALL) {
-        return TASK_STATUS.DOWITH_WAIT;
-      }
-
-      // 등록한 두윗 task 중 성공 상태가 존재할 경우
-      if (isDowithSuccessStatusExisted) {
-        return TASK_STATUS.DOWITH_SOME_SUCCESS;
-      }
-
-      return TASK_STATUS.NONE;
-    }
-
-    // 투두 Task만 등록된 경우
-    if (dowithTasks.length === 0 && todoTasks.length > 0) {
-      // 투두 task를 모두 실패했을 경우
-      if (isTodoFailStatusALL) {
-        return TASK_STATUS.TODO_FAIL;
-      }
-
-      // 투두 task를 모두 성공했을 경우
-      if (isTodoSuccessStatusALL) {
-        return TASK_STATUS.TODO_SUCCESS;
-      }
-
-      // 투두 task가 모두 대기 상태일 경우
-      if (isTodoWaitStatusALL) {
-        return TASK_STATUS.TODO_WAIT;
-      }
-
-      // 등록한 투두 task 중 성공 상태가 존재할 경우
-      if (isTodoSuccessStatusExisted) {
-        return TASK_STATUS.TODO_SOME_SUCCESS;
-      }
-
-      return TASK_STATUS.NONE;
-    }
-
-    // Task가 등록되지 않았을 경우
-    return TASK_STATUS.NONE;
-  }, []);
-
-  // 날짜별 마킹 상태를 taskList가 바뀔 때만 한 번 계산해둔다(셀 렌더마다 getTaskStatus 호출 방지).
+  // 날짜별 마킹 상태를 taskList가 바뀔 때만 한 번 계산해둔다(셀 렌더마다 재계산 방지).
   const statusByDate = useMemo(() => {
-    const map = new Map<string, MarkingStatus>();
-    tasksByDate.forEach((tasks, date) => map.set(date, getTaskStatus(tasks)));
+    const map = new Map<string, DateMarkingStatus>();
+    tasksByDate.forEach((tasks, date) => map.set(date, getDateMarkingStatus(tasks)));
     return map;
-  }, [tasksByDate, getTaskStatus]);
+  }, [tasksByDate]);
 
   // 선택 여부는 selectedDate 비교 대신 라이브러리가 markedDates로 넘겨주는 marking.selected를 사용한다.
   // → renderDayComponent가 selectedDate에 의존하지 않아 참조가 안정적이고, 선택 시 바뀐 날짜 셀만 갱신된다.

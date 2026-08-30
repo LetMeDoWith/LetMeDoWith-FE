@@ -1,6 +1,8 @@
 import dayjs from 'dayjs';
 
+import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import type { fetchTaskListRequestSchemeType, fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
+import type { TaskStatusEnumType } from 'types/task/scheme/enum';
 
 /*
  * 달력은 보이는 달의 앞뒤 달 날짜까지 함께 그린다(8월 그리드의 7월 말·9월 초).
@@ -70,4 +72,34 @@ const buildCalendarMarkedDates = ({ selectedDate, visibleDate }: { selectedDate:
   return marks;
 };
 
-export { getSurroundingMonths, mergeTasksByDate, buildCalendarMarkedDates };
+/*
+ * 달력 마킹에 쓰는 모드별 상태.
+ * 하루에 두윗과 투두가 함께 있을 수 있어 모드마다 따로 판정해야 좌우 색을 각각 칠할 수 있다.
+ */
+type ModeMarkingStatus = 'SUCCESS' | 'INCOMPLETE' | 'NONE';
+
+/*
+ * 한 모드의 하루치 태스크를 마킹 상태로 줄인다.
+ * 전부 성공해야 SUCCESS다. 부분 성공은 실패·대기와 같이 INCOMPLETE로 본다(기존 동작 유지).
+ */
+const getModeMarkingStatus = (tasks: { status: TaskStatusEnumType }[]): ModeMarkingStatus => {
+  if (tasks.length === 0) {
+    return 'NONE';
+  }
+
+  return tasks.every(({ status }) => status === TASK_STATUS_ENUM.enum.SUCCESS) ? 'SUCCESS' : 'INCOMPLETE';
+};
+
+interface DateMarkingStatus {
+  dowith: ModeMarkingStatus;
+  todo: ModeMarkingStatus;
+}
+
+/* 하루치 목록을 두윗·투두 각각의 마킹 상태로 나눈다. */
+const getDateMarkingStatus = (taskList: fetchTaskListResponseSchemeDataType): DateMarkingStatus => ({
+  dowith: getModeMarkingStatus(taskList.dowithTasks),
+  todo: getModeMarkingStatus(taskList.todoTasks),
+});
+
+export { getSurroundingMonths, mergeTasksByDate, buildCalendarMarkedDates, getModeMarkingStatus, getDateMarkingStatus };
+export type { ModeMarkingStatus, DateMarkingStatus };

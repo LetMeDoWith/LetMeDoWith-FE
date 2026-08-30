@@ -7,7 +7,13 @@
 
 import { describe, it, expect } from '@jest/globals';
 
-import { buildCalendarMarkedDates, getSurroundingMonths, mergeTasksByDate } from 'utils/task';
+import {
+  buildCalendarMarkedDates,
+  getDateMarkingStatus,
+  getModeMarkingStatus,
+  getSurroundingMonths,
+  mergeTasksByDate,
+} from 'utils/task';
 import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
 
 const makeTask = (id: number, date: string) => ({
@@ -113,5 +119,59 @@ describe('mergeTasksByDate', () => {
 
   it('응답이 모두 없으면 빈 Map을 돌려준다', () => {
     expect(mergeTasksByDate([undefined, undefined, undefined]).size).toBe(0);
+  });
+});
+
+/*
+ * 달력 마킹 상태 판정
+ *
+ * 하루에 두윗과 투두가 함께 있을 수 있어 모드마다 따로 판정해야
+ * 겹친 체크의 좌우 색을 각각 칠할 수 있다.
+ */
+describe('getModeMarkingStatus', () => {
+  const task = (status: 'SUCCESS' | 'FAIL' | 'WAIT') => ({ status });
+
+  it('태스크가 없으면 NONE이다', () => {
+    expect(getModeMarkingStatus([])).toBe('NONE');
+  });
+
+  it('전부 성공해야 SUCCESS다', () => {
+    expect(getModeMarkingStatus([task('SUCCESS'), task('SUCCESS')])).toBe('SUCCESS');
+  });
+
+  it('하나라도 성공이 아니면 INCOMPLETE다(부분 성공은 실패와 같이 본다)', () => {
+    expect(getModeMarkingStatus([task('SUCCESS'), task('FAIL')])).toBe('INCOMPLETE');
+    expect(getModeMarkingStatus([task('SUCCESS'), task('WAIT')])).toBe('INCOMPLETE');
+  });
+
+  it('대기·실패만 있으면 INCOMPLETE다', () => {
+    expect(getModeMarkingStatus([task('WAIT')])).toBe('INCOMPLETE');
+    expect(getModeMarkingStatus([task('FAIL')])).toBe('INCOMPLETE');
+  });
+});
+
+describe('getDateMarkingStatus', () => {
+  const task = (status: 'SUCCESS' | 'FAIL' | 'WAIT') => ({ status });
+
+  it('두 모드의 상태를 각각 돌려준다', () => {
+    const result = getDateMarkingStatus({
+      dowithTasks: [task('SUCCESS')],
+      todoTasks: [task('FAIL')],
+    } as never);
+
+    expect(result).toEqual({ dowith: 'SUCCESS', todo: 'INCOMPLETE' });
+  });
+
+  it('한쪽만 있으면 다른 쪽은 NONE이다', () => {
+    const result = getDateMarkingStatus({ dowithTasks: [task('WAIT')], todoTasks: [] } as never);
+
+    expect(result).toEqual({ dowith: 'INCOMPLETE', todo: 'NONE' });
+  });
+
+  it('둘 다 없으면 모두 NONE이다', () => {
+    expect(getDateMarkingStatus({ dowithTasks: [], todoTasks: [] } as never)).toEqual({
+      dowith: 'NONE',
+      todo: 'NONE',
+    });
   });
 });
