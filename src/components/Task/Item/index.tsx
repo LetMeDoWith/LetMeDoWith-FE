@@ -151,6 +151,14 @@ const Item = memo(function Item({
   }, [onMeasureOnboardingTargets]);
 
   /*
+   * onLayout은 이 뷰 자신의 레이아웃이 바뀔 때만 불린다. 위쪽 항목이 늘거나 줄어
+   * 목록 전체가 밀리면 화면상 위치는 달라지는데 onLayout은 오지 않는다.
+   * 자동 refetch로 목록이 바뀔 수 있으므로 렌더될 때마다 다시 잰다.
+   * (콜백이 없으면 measureOnboardingTargets가 곧바로 빠져나가 평소엔 비용이 없다)
+   */
+  useEffect(measureOnboardingTargets);
+
+  /*
    * 상태 아이콘은 채운 원(완료)과 빈 원(그 외) 두 모양뿐이고 색으로 모드·상태를 나타낸다.
    * 투두에는 실패가 없다(성공/대기 API만 있다).
    */

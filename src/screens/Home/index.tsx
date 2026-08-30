@@ -43,6 +43,11 @@ const FAB_SIZE = 56;
 const FAB_ICON_SIZE = 28;
 const WEEK_VIEW_BOTTOM_MARGIN = 8;
 
+const isSameRect = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+
+const isSameTargets = (a: { status: Rect; thunder: Rect }, b: { status: Rect; thunder: Rect }) =>
+  isSameRect(a.status, b.status) && isSameRect(a.thunder, b.thunder);
+
 // 태스크가 없는 날짜 조회 시 매번 새 객체를 만들지 않도록 공유하는 빈 목록
 const EMPTY_TASK_LIST: fetchTaskListResponseSchemeDataType = { dowithTasks: [], todoTasks: [] };
 
@@ -152,11 +157,19 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
 
   /*
    * 첫 두윗 등록 후 한 번만 뜨는 코치마크.
-   * 두윗이 하나라도 있고 아직 본 적이 없을 때, 대상 좌표가 측정되면 띄운다.
+   * 등록 성공이 예약해 준 경우에만 띄운다 — 플래그만 보면 기존 사용자에게도 뜬다.
    */
-  const hasSeenDowithOnboarding = useStore(state => state.hasSeenDowithOnboarding);
+  const isDowithOnboardingPending = useStore(state => state.isDowithOnboardingPending);
   const { completeDowithOnboarding } = useStore(state => state.onboardingActions);
   const [onboardingTargets, setOnboardingTargets] = useState<{ status: Rect; thunder: Rect } | null>(null);
+
+  /*
+   * 좌표가 실제로 달라졌을 때만 상태를 바꾼다.
+   * 매 렌더마다 재측정하므로, 같은 값으로도 갱신하면 리렌더가 끝없이 이어진다.
+   */
+  const handleMeasureOnboardingTargets = useCallback((next: { status: Rect; thunder: Rect }) => {
+    setOnboardingTargets(prev => (prev && isSameTargets(prev, next) ? prev : next));
+  }, []);
 
   /*
    * '내 잡도리'는 받은 잔소리 화면으로 가므로, 점은 안 읽은 잔소리를 뜻한다.
@@ -266,6 +279,13 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        /*
+         * 코치마크가 예약된 동안에는 잠근다.
+         * 좌표를 잰 뒤 Modal이 뜨기까지 몇 프레임이 비는데, 그 사이 스크롤하면
+         * 하이라이트가 어긋난 자리에 뜬다. 스크롤은 리렌더를 일으키지 않아
+         * 재측정으로도 잡히지 않는다. 어차피 곧 Modal이 화면을 덮으므로 앞당겨 막는다.
+         */
+        scrollEnabled={!isDowithOnboardingPending}
       >
         <View style={styles.sheetBody}>
           <CalendarProvider
@@ -297,7 +317,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
                     month={month}
                     taskList={selectedDateTaskList}
                     selectedDate={selectedDate}
-                    onMeasureOnboardingTargets={hasSeenDowithOnboarding ? undefined : setOnboardingTargets}
+                    onMeasureOnboardingTargets={isDowithOnboardingPending ? handleMeasureOnboardingTargets : undefined}
                   />
                 </View>
               ) : null}
@@ -309,7 +329,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
       <Pressable style={styles.fab} onPress={handlePressPlusIcon}>
         <PlusIcon width={FAB_ICON_SIZE} height={FAB_ICON_SIZE} fill={theme.COLORS.DEFAULT.WHITE} />
       </Pressable>
-      {!hasSeenDowithOnboarding && onboardingTargets && (
+      {isDowithOnboardingPending && onboardingTargets && (
         <DowithCoachMark
           statusTarget={onboardingTargets.status}
           thunderTarget={onboardingTargets.thunder}

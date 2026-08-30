@@ -68,12 +68,13 @@ const DowithCoachMark = ({ thunderTarget, statusTarget, onClose }: Props) => {
         <Path d={dimPath} fill={theme.COLORS.DEFAULT.BLACK} fillOpacity={0.6} fillRule="evenodd" />
       </Svg>
       <SpotlightTooltip
-        message="다른 사용자들이 보낸 잡도리 갯수를 확인할 수 있어요."
+        message={'다른 사용자들이 보낸 잡도리 갯수를\n확인할 수 있어요.'}
+        align="right"
         placement={thunderPlacement}
         onLayoutSize={setThunderSize}
       />
       <SpotlightTooltip
-        message="잡도리 폭탄을 막으려면 버튼을 눌러 인증 사진을 올려야 해요!"
+        message={'잡도리 폭탄을 막으려면 버튼을 눌러\n인증 사진을 올려야 해요!'}
         placement={statusPlacement}
         onLayoutSize={setStatusSize}
       />
