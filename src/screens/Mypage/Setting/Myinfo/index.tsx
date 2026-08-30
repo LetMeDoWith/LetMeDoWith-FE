@@ -365,8 +365,8 @@ const styles = StyleSheet.create({
     color: theme.COLORS.DEFAULT.BLACK,
   },
   message: {
+    ...theme.TYPOGRAPHY.CAPTION1_BASIC,
     paddingVertical: 0,
-    fontSize: 12,
   },
   valid: {
     color: theme.COLORS.SUB.BLUE_60,
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_80,
   },
   buttonText: {
-    fontSize: 18,
+    ...theme.TYPOGRAPHY.TITLE_2,
     color: theme.COLORS.DEFAULT.WHITE,
   },
   modalContainer: {

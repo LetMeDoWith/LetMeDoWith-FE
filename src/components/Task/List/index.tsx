@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { theme } from 'styles/theme';
+import { theme, FONT_FAMILY } from 'styles/theme';
 import { Item } from 'components/Task';
 import type { TaskModeType } from 'types/shared';
 import type { dowithTaskSchemeType, todoTaskSchemeType } from 'types/task/scheme/api';
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FONT_FAMILY.SEMI_BOLD,
     color: theme.COLORS.DEFAULT.BLACK,
   },
 });

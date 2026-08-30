@@ -136,8 +136,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   userName: {
+    ...theme.TYPOGRAPHY.BODY_2,
     color: theme.COLORS.GRAY_SCALE.GRAY_80,
-    fontSize: 14,
   },
   likeButton: {
     flexDirection: 'row',

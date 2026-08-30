@@ -5,7 +5,7 @@ import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/
 import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop';
 
 import { Badge } from 'components/Mypage/Badge';
-import { theme } from 'styles/theme';
+import { theme, FONT_FAMILY } from 'styles/theme';
 import { isAos } from 'utils/device';
 
 type BadgeInfo = {
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   title: {
     color: theme.COLORS.DEFAULT.BLACK,
     fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily: FONT_FAMILY.BOLD,
   },
   subTitle: {
     color: theme.COLORS.GRAY_SCALE.GRAY_60,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: FONT_FAMILY.BOLD,
     color: theme.COLORS.DEFAULT.BLACK,
   },
   badgeImageWrap: {
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalDescription: {
-    fontSize: 16,
+    ...theme.TYPOGRAPHY.BODY_1,
     textAlign: 'center',
     color: theme.COLORS.DEFAULT.BLACK,
   },
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.COLORS.PRIMARY.RED_60,
   },
   buttonText: {
-    fontSize: 18,
+    ...theme.TYPOGRAPHY.TITLE_2,
     color: theme.COLORS.DEFAULT.WHITE,
   },
   flatListContentContainer: {

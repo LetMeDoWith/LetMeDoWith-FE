@@ -51,10 +51,7 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
         headerShadowVisible: false,
         tabBarActiveTintColor: GRAY_SCALE.GRAY_20,
         tabBarStyle: { borderTopWidth: 0, elevation: 0 },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          lineHeight: 14,
-        },
+        tabBarLabelStyle: { ...theme.TYPOGRAPHY.CAPTION_2 },
       }}
       sceneContainerStyle={{
         backgroundColor: theme.COLORS.DEFAULT.WHITE,

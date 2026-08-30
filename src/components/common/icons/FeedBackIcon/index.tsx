@@ -1,6 +1,6 @@
 import Svg, { Path, SvgProps, Text } from 'react-native-svg';
 
-import { theme } from 'styles/theme';
+import { theme, FONT_FAMILY } from 'styles/theme';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import type { TaskStatusEnumType } from 'types/task/scheme/enum';
 
@@ -20,7 +20,7 @@ const FeedBackIcon = ({
         x="12"
         y="10"
         fontSize="10"
-        fontWeight="bold"
+        fontFamily={FONT_FAMILY.BOLD}
         fill={theme.COLORS.DEFAULT.WHITE}
         textAnchor="middle"
         alignmentBaseline="middle"

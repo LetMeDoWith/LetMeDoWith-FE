@@ -1,3 +1,15 @@
+/*
+ * Pretendard는 굵기별 파일을 따로 등록해 쓴다. 커스텀 폰트는 안드로이드에서
+ * fontFamily + fontWeight 조합이 신뢰할 수 없어, 굵기를 패밀리 이름으로 직접 지정한다.
+ * 값은 폰트의 PostScript 이름이며 파일명과 같아 iOS·Android 모두 그대로 통한다.
+ */
+const FONT_FAMILY = {
+  REGULAR: 'Pretendard-Regular',
+  MEDIUM: 'Pretendard-Medium',
+  SEMI_BOLD: 'Pretendard-SemiBold',
+  BOLD: 'Pretendard-Bold',
+} as const;
+
 const theme = {
   COLORS: {
     DEFAULT: {
@@ -46,65 +58,76 @@ const theme = {
   },
   TYPOGRAPHY: {
     HEADER: {
-      fontWeight: '600',
+      fontFamily: FONT_FAMILY.SEMI_BOLD,
       fontSize: 24,
       color: '#000000',
       lineHeight: 32,
+      letterSpacing: -0.96,
     },
     TITLE_1: {
-      fontWeight: '600',
+      fontFamily: FONT_FAMILY.SEMI_BOLD,
       fontSize: 20,
       color: '#000000',
       lineHeight: 28,
+      letterSpacing: -0.8,
     },
     TITLE_2: {
-      fontWeight: '600',
+      fontFamily: FONT_FAMILY.SEMI_BOLD,
       fontSize: 18,
       color: '#000000',
       lineHeight: 26,
+      letterSpacing: -0.36,
     },
     TITLE_3: {
-      fontWeight: '600',
+      fontFamily: FONT_FAMILY.SEMI_BOLD,
       fontSize: 16,
       color: '#000000',
       lineHeight: 24,
+      letterSpacing: -0.32,
     },
     SUB_TITLE: {
-      fontWeight: 'bold',
+      fontFamily: FONT_FAMILY.BOLD,
       fontSize: 14,
       color: '#000000',
       lineHeight: 20,
+      letterSpacing: -0.28,
     },
     BODY_1: {
+      fontFamily: FONT_FAMILY.REGULAR,
       fontSize: 16,
       color: '#000000',
       lineHeight: 24,
+      letterSpacing: -0.32,
     },
     BODY_2: {
-      fontWeight: '500',
+      fontFamily: FONT_FAMILY.MEDIUM,
       fontSize: 14,
       color: '#000000',
       lineHeight: 20,
+      letterSpacing: -0.28,
     },
     CAPTION1_THICK: {
-      fontWeight: 'bold',
+      fontFamily: FONT_FAMILY.BOLD,
       fontSize: 12,
       color: '#000000',
       lineHeight: 16,
+      letterSpacing: -0.24,
     },
     CAPTION1_BASIC: {
-      fontWeight: '500',
+      fontFamily: FONT_FAMILY.MEDIUM,
       fontSize: 12,
       color: '#000000',
       lineHeight: 16,
+      letterSpacing: -0.24,
     },
     CAPTION_2: {
-      fontWeight: '500',
+      fontFamily: FONT_FAMILY.MEDIUM,
       fontSize: 11,
       color: '#000000',
       lineHeight: 14,
+      letterSpacing: -0.22,
     },
   },
 } as const;
 
-export { theme };
+export { theme, FONT_FAMILY };

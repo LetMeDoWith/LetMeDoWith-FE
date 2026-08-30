@@ -41,10 +41,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontSize: 16,
+    ...theme.TYPOGRAPHY.BODY_1,
   },
   subTitle: {
-    fontSize: 14,
+    ...theme.TYPOGRAPHY.BODY_2,
     color: theme.COLORS.GRAY_SCALE.GRAY_60,
     maxWidth: Dimensions.get('window').width - 100,
   },

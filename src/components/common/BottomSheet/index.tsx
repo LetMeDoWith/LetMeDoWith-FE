@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.COLORS.PRIMARY.RED_60,
   },
   buttonTitle: {
-    fontSize: 16,
+    ...theme.TYPOGRAPHY.BODY_1,
     color: theme.COLORS.DEFAULT.WHITE,
   },
 });

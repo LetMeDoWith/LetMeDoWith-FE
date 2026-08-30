@@ -255,8 +255,8 @@ const styles = StyleSheet.create({
     color: theme.COLORS.GRAY_SCALE.GRAY_60,
   },
   message: {
+    ...theme.TYPOGRAPHY.CAPTION1_BASIC,
     paddingVertical: 0,
-    fontSize: 12,
   },
   titleWrap: {
     gap: 4,
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   label: {
-    fontSize: 14,
+    ...theme.TYPOGRAPHY.BODY_2,
   },
   input: {
     height: 48,
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
   },
   genderButtonText: {
-    fontSize: 16,
+    ...theme.TYPOGRAPHY.BODY_1,
     color: theme.COLORS.DEFAULT.BLACK,
   },
   nextButton: {
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     backgroundColor: `${hexToRgba(theme.COLORS.PRIMARY.RED_60, 0.36)}`,
   },
   nextButtonText: {
-    fontSize: 18,
+    ...theme.TYPOGRAPHY.TITLE_2,
     color: theme.COLORS.DEFAULT.WHITE,
   },
 });

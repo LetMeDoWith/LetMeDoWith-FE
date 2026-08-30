@@ -4,7 +4,7 @@ import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { ProfileImage } from 'components/common/ProfileImage';
-import { theme } from 'styles/theme';
+import { theme, FONT_FAMILY } from 'styles/theme';
 import { SUCCESS_TASK_IMAGE_ITEM_WIDTH } from 'constants/Feed';
 
 const ITEM_HEIGHT = SUCCESS_TASK_IMAGE_ITEM_WIDTH * 1.3;
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   title: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: FONT_FAMILY.SEMI_BOLD,
   },
 });
 

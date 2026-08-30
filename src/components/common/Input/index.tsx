@@ -1,6 +1,8 @@
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 
+import { theme } from 'styles/theme';
+
 interface Props {
   label?: string;
   placeholder?: string;
@@ -34,7 +36,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   label: {
-    fontSize: 14,
+    ...theme.TYPOGRAPHY.BODY_2,
   },
   input: {
     height: 48,

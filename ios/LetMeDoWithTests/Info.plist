@@ -20,5 +20,12 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Pretendard-Regular.otf</string>
+		<string>Pretendard-Medium.otf</string>
+		<string>Pretendard-Bold.otf</string>
+		<string>Pretendard-SemiBold.otf</string>
+	</array>
 </dict>
 </plist>

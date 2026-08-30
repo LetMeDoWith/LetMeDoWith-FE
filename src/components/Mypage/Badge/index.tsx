@@ -3,7 +3,7 @@ import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { IconButton } from 'react-native-paper';
 
-import { theme } from 'styles/theme';
+import { theme, FONT_FAMILY } from 'styles/theme';
 
 interface Props {
   uri: string;
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  name: { fontSize: 14, fontWeight: 'bold', color: theme.COLORS.DEFAULT.BLACK },
+  name: { fontSize: 14, fontFamily: FONT_FAMILY.BOLD, color: theme.COLORS.DEFAULT.BLACK },
   representativeBadge: {
     position: 'absolute',
     top: -5,
@@ -63,6 +63,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.COLORS.PRIMARY.RED_60,
   },
   representativeText: {
+    /* 10px은 대응 프리셋이 없어 폰트와 자간만 시스템 규칙에 맞춘다. */
+    fontFamily: FONT_FAMILY.MEDIUM,
+    letterSpacing: -0.2,
     color: theme.COLORS.DEFAULT.WHITE,
     fontSize: 10,
   },

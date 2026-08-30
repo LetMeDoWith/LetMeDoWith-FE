@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabLabelText: {
-    fontWeight: theme.TYPOGRAPHY.TITLE_3.fontWeight,
+    fontFamily: theme.TYPOGRAPHY.TITLE_3.fontFamily,
     fontSize: theme.TYPOGRAPHY.TITLE_3.fontSize,
   },
   redDot: {

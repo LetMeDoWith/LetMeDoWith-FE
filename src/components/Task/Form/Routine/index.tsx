@@ -905,7 +905,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.COLORS.PRIMARY.RED_92,
   },
   buttonText: {
-    fontSize: 18,
+    ...theme.TYPOGRAPHY.TITLE_2,
     color: theme.COLORS.DEFAULT.WHITE,
   },
 });
