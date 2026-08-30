@@ -7,7 +7,6 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import dayjs from 'dayjs';
 import { launchCamera } from 'react-native-image-picker';
 
-import { TaskSuccess } from 'components/common/icons/TaskSuccess';
 import { EtcDots } from 'components/common/icons/EtcDots';
 import { theme } from 'styles/theme';
 import type { RootStackParamList, TaskModeType } from 'types/shared';
@@ -17,10 +16,10 @@ import { RoutineEdit } from 'components/common/icons/RoutineEdit';
 import { TaskDelete } from 'components/common/icons/TaskDelete';
 import type { TaskStatusEnumType } from 'types/task/scheme/enum';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
-import { TaskWait } from 'components/common/icons/TaskWait';
 import { Thunder } from 'components/common/icons/Thunder';
-import { TaskFail } from 'components/common/icons/TaskFail';
-import { UploadImage } from 'components/common/icons/UploadImage';
+import { TaskCheckedCircle } from 'components/common/icons/TaskCheckedCircle';
+import { TaskEmptyCircle } from 'components/common/icons/TaskEmptyCircle';
+import { CHECK_DARK } from 'components/common/icons/DoubleCalendarCheck';
 import { isNil } from 'utils/index';
 import { useUpdateTodoTaskStatus } from 'hooks/queries/task/useUpdateTodoTaskStatus';
 import { useUpdateTask } from 'hooks/queries/task/useUpdateTask';
@@ -124,20 +123,22 @@ const Item = memo(function Item({
     taskManagementBottomSheetModalRef.current?.present();
   };
 
+  /*
+   * 상태 아이콘은 채운 원(완료)과 빈 원(그 외) 두 모양뿐이고 색으로 모드·상태를 나타낸다.
+   * 투두에는 실패가 없다(성공/대기 API만 있다).
+   */
   const renderTaskStatusIcon = (mode: TaskModeType, status: TaskStatusEnumType) => {
+    const modeColor = mode === 'TODO' ? CHECK_DARK : theme.COLORS.PRIMARY.RED_60;
+
     switch (status) {
-      case TASK_STATUS_ENUM.enum.WAIT:
-        if (!isTodoMode) {
-          return <UploadImage width={24} height={24} />;
-        }
-
-        return <TaskWait mode={mode} />;
-
       case TASK_STATUS_ENUM.enum.SUCCESS:
-        return <TaskSuccess mode={mode} />;
+        return <TaskCheckedCircle fill={modeColor} />;
+
+      case TASK_STATUS_ENUM.enum.WAIT:
+        return <TaskEmptyCircle fill={modeColor} />;
 
       case TASK_STATUS_ENUM.enum.FAIL:
-        return <TaskFail />;
+        return <TaskEmptyCircle fill={theme.COLORS.GRAY_SCALE.GRAY_70} />;
 
       default:
         return null;
@@ -449,7 +450,7 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'center',
   },
-  title: theme.TYPOGRAPHY.BODY_2,
+  title: theme.TYPOGRAPHY.TITLE_3,
   option: {
     flexDirection: 'row',
     alignItems: 'center',

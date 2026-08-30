@@ -153,13 +153,14 @@ describe('getModeMarkingStatus', () => {
 describe('getDateMarkingStatus', () => {
   const task = (status: 'SUCCESS' | 'FAIL' | 'WAIT') => ({ status });
 
+  // 투두는 성공/대기만 오간다(실패 API가 없다). 실패는 두윗에만 있다.
   it('두 모드의 상태를 각각 돌려준다', () => {
     const result = getDateMarkingStatus({
-      dowithTasks: [task('SUCCESS')],
-      todoTasks: [task('FAIL')],
+      dowithTasks: [task('FAIL')],
+      todoTasks: [task('SUCCESS')],
     } as never);
 
-    expect(result).toEqual({ dowith: 'SUCCESS', todo: 'INCOMPLETE' });
+    expect(result).toEqual({ dowith: 'INCOMPLETE', todo: 'SUCCESS' });
   });
 
   it('한쪽만 있으면 다른 쪽은 NONE이다', () => {

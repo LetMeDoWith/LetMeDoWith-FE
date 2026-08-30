@@ -22,16 +22,16 @@ const List = memo(({ type, items, year, month, selectedDate }: Props) => {
       <View
         style={[
           styles.chipWrap,
-          { backgroundColor: isDoWithMode ? theme.COLORS.PRIMARY.RED_98 : theme.COLORS.SECONDARY.BLUE_95 },
+          { backgroundColor: isDoWithMode ? theme.COLORS.PRIMARY.RED_98 : theme.COLORS.GRAY_SCALE.GRAY_96 },
         ]}
       >
         <Text
           style={[
             styles.chipText,
-            { color: isDoWithMode ? theme.COLORS.PRIMARY.RED_60 : theme.COLORS.SECONDARY.BLUE_60 },
+            { color: isDoWithMode ? theme.COLORS.PRIMARY.RED_60 : theme.COLORS.GRAY_SCALE.GRAY_20 },
           ]}
         >
-          {isDoWithMode ? 'DO WITH' : ' TO DO'}
+          {isDoWithMode ? 'DORI' : 'TODO'}
         </Text>
       </View>
       {items.map(({ id, ...rest }) => (
@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
     height: 26,
     paddingVertical: 6,
     paddingHorizontal: 10,
-    backgroundColor: theme.COLORS.SECONDARY.BLUE_95,
     borderRadius: 100,
   },
   chipText: {
