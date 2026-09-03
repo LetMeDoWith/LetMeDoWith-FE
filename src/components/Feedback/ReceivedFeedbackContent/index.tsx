@@ -27,6 +27,11 @@ interface Props {
   showTotalCount?: boolean;
   ListComponent?: ComponentType<FlatListProps<dowithTaskFeedbackSchemeType>>;
   headerComponent?: ReactElement;
+  /*
+   * 받은 잡도리가 하나도 없을 때 목록 자리에 채울 내용.
+   * 빈 상태에서 무엇을 유도할지는 화면마다 다르므로 밖에서 주입받는다.
+   */
+  emptyComponent?: ReactElement;
   contentContainerStyle?: StyleProp<ViewStyle>;
 }
 
@@ -36,6 +41,7 @@ const ReceivedFeedbackContent = ({
   showTotalCount = true,
   ListComponent = FlatList,
   headerComponent,
+  emptyComponent,
   contentContainerStyle,
 }: Props) => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
@@ -91,36 +97,39 @@ const ReceivedFeedbackContent = ({
   const ListHeader = (
     <View>
       {headerComponent}
-      {showTotalCount && (
-        <View style={styles.totalCountRow}>
-          <Thunder width={14} height={14} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
-          <Text style={styles.totalCountText}>총 {totalCount.toLocaleString('ko-KR')}개</Text>
-        </View>
-      )}
-      <View style={styles.tabContainer}>
-        {aggregates?.map(item => {
-          const template = templateMap.get(item.feedbackTemplateId);
-          const isSelected = selectedTemplateId === item.feedbackTemplateId;
-          return (
-            <Pressable
-              key={item.feedbackTemplateId}
-              style={[styles.tab, isSelected && styles.tabSelected]}
-              onPress={() => setSelectedTemplateId(item.feedbackTemplateId)}
-            >
-              {template?.emojiUrl && <FeedbackEmoji uri={template.emojiUrl} size={44} />}
-              <Text style={[styles.tabCount, isSelected && styles.tabCountSelected]}>{item.count}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      {selectedTemplateName && (
-        <View style={styles.selectedTemplateWrapper}>
-          <View style={styles.selectedTemplateArrow} />
-          <View style={styles.selectedTemplateRow}>
-            <Text style={styles.selectedTemplateName}>{selectedTemplateName}</Text>
+      {/* headerComponent와 형제로 감싸, 절대 위치 기준(top:0)이 구분선 바로 아래가 되게 한다 */}
+      <View>
+        {showTotalCount && (
+          <View style={[styles.totalCountRow, emptyComponent && styles.totalCountRowAbsolute]}>
+            <Thunder width={14} height={14} fill={theme.COLORS.GRAY_SCALE.GRAY_40} />
+            <Text style={styles.totalCountText}>잡도리 {totalCount.toLocaleString('ko-KR')}</Text>
           </View>
+        )}
+        <View style={styles.tabContainer}>
+          {aggregates?.map(item => {
+            const template = templateMap.get(item.feedbackTemplateId);
+            const isSelected = selectedTemplateId === item.feedbackTemplateId;
+            return (
+              <Pressable
+                key={item.feedbackTemplateId}
+                style={[styles.tab, isSelected && styles.tabSelected]}
+                onPress={() => setSelectedTemplateId(item.feedbackTemplateId)}
+              >
+                {template?.emojiUrl && <FeedbackEmoji uri={template.emojiUrl} size={44} />}
+                <Text style={[styles.tabCount, isSelected && styles.tabCountSelected]}>{item.count}</Text>
+              </Pressable>
+            );
+          })}
         </View>
-      )}
+        {selectedTemplateName && (
+          <View style={styles.selectedTemplateWrapper}>
+            <View style={styles.selectedTemplateArrow} />
+            <View style={styles.selectedTemplateRow}>
+              <Text style={styles.selectedTemplateName}>{selectedTemplateName}</Text>
+            </View>
+          </View>
+        )}
+      </View>
     </View>
   );
 
@@ -133,7 +142,9 @@ const ReceivedFeedbackContent = ({
       onEndReachedThreshold={0.5}
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={ListHeader}
-      contentContainerStyle={[styles.listContent, contentContainerStyle]}
+      ListEmptyComponent={emptyComponent}
+      style={emptyComponent && styles.filledList}
+      contentContainerStyle={[styles.listContent, emptyComponent && styles.filledListContent, contentContainerStyle]}
     />
   );
 };
@@ -146,9 +157,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 8,
   },
+  totalCountRowAbsolute: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
   totalCountText: {
     ...theme.TYPOGRAPHY.BODY_2,
-    color: theme.COLORS.GRAY_SCALE.GRAY_50,
+    color: theme.COLORS.GRAY_SCALE.GRAY_20,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -200,6 +216,12 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+  },
+  filledList: {
+    flex: 1,
+  },
+  filledListContent: {
+    flexGrow: 1,
   },
   senderRow: {
     flexDirection: 'row',

@@ -1,53 +1,27 @@
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ReceivedFeedbackContent } from 'components/Feedback/ReceivedFeedbackContent';
+import { ReceivedFeedbackEmpty } from 'components/Feedback/ReceivedFeedbackEmpty';
+import { TaskInfoHeader } from 'components/Feedback/TaskInfoHeader';
+import { useFetchDowithTaskFeedbackAggregates } from 'hooks/queries/feedback/useFetchDowithTaskFeedbackAggregates';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
+import { useDowithCertification } from 'hooks/shared/useDowithCertification';
+import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { theme } from 'styles/theme';
 import type { RootStackScreenProps } from 'types/shared';
-import type { TaskStatusEnumType } from 'types/task/scheme/enum';
-
-const STATUS_CONFIG: Partial<Record<TaskStatusEnumType, { label: string; backgroundColor: string; color: string }>> = {
-  WAIT: {
-    label: '진행 중',
-    backgroundColor: theme.COLORS.STATUS.YELLOW_90,
-    color: theme.COLORS.STATUS.YELLOW_20,
-  },
-  FAIL: {
-    label: '실패',
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96,
-    color: theme.COLORS.GRAY_SCALE.GRAY_50,
-  },
-};
-
-const TaskInfoHeader = ({ title, status }: { title: string; status: TaskStatusEnumType }) => {
-  const config = STATUS_CONFIG[status];
-
-  return (
-    <>
-      <View style={styles.taskInfo}>
-        {config && (
-          <View style={[styles.statusChip, { backgroundColor: config.backgroundColor }]}>
-            <Text style={[styles.statusChipText, { color: config.color }]}>{config.label}</Text>
-          </View>
-        )}
-        <View style={styles.titleRow}>
-          <Text style={styles.quote}>“</Text>
-          <Text style={styles.taskTitle}>{title}</Text>
-          <Text style={styles.quote}>”</Text>
-        </View>
-      </View>
-      <View style={styles.sectionDivider} />
-    </>
-  );
-};
 
 const ReceivedFeedback = ({ navigation, route }: RootStackScreenProps<'RECEIVED_FEEDBACK'>) => {
   // 딥링크로 진입하면 dowithTaskId가 문자열로 전달될 수 있어 숫자로 보정
   const dowithTaskId = Number(route.params.dowithTaskId);
+  const { bottom } = useSafeAreaInsets();
 
   // 상태칩/제목은 상세 조회로 채운다 (Item 진입 시에는 캐시된 값이 즉시 사용됨)
   const { data: dowithTask } = useFetchDowithTask({ dowithTaskId });
+  /* 목록 쪽과 같은 쿼리라 추가 요청 없이 캐시를 읽는다 */
+  const { data: aggregates } = useFetchDowithTaskFeedbackAggregates(dowithTaskId);
+  const { certify } = useDowithCertification(dowithTaskId);
 
   // 인증 완료(성공) 태스크로 딥링크 진입한 경우 응원 모아보기 화면으로 대체 이동
   useEffect(() => {
@@ -58,15 +32,34 @@ const ReceivedFeedback = ({ navigation, route }: RootStackScreenProps<'RECEIVED_
   }, [dowithTask, dowithTaskId, navigation]);
 
   const title = dowithTask?.title ?? '';
-  const status = dowithTask?.status ?? 'WAIT';
+  const status = dowithTask?.status ?? TASK_STATUS_ENUM.enum.WAIT;
+
+  /*
+   * 인증 전에만 인증을 유도한다. 실패한 태스크는 더 이상 인증할 수 없다.
+   * 받은 잡도리가 없으면 목록 자리에 유도 화면이 들어가므로, 하단 고정 버튼은 잡도리가 있을 때만 띄운다.
+   *
+   * 두 응답이 모두 도착하기 전에는 아무것도 띄우지 않는다. 기본값(WAIT·잡도리 없음)으로 판단하면
+   * 실패한 태스크나 잡도리가 있는 태스크에서도 유도 화면이 잠깐 스쳤다가 사라진다.
+   */
+  const isLoaded = Boolean(dowithTask) && Boolean(aggregates);
+  const canCertify = isLoaded && status === TASK_STATUS_ENUM.enum.WAIT;
+  const hasFeedback = (aggregates?.length ?? 0) > 0;
 
   return (
     <View style={styles.container}>
       <ReceivedFeedbackContent
         dowithTaskId={dowithTaskId}
         headerComponent={<TaskInfoHeader title={title} status={status} />}
+        emptyComponent={canCertify && !hasFeedback ? <ReceivedFeedbackEmpty onCertify={certify} /> : undefined}
         contentContainerStyle={styles.listContent}
       />
+      {canCertify && hasFeedback && (
+        <View style={[styles.certifyButtonWrap, { paddingBottom: bottom + 20 }]}>
+          <Pressable style={styles.certifyButton} onPress={certify}>
+            <Text style={styles.certifyButtonText}>바로 인증하기</Text>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 };
@@ -79,35 +72,26 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 20,
   },
-  taskInfo: {
-    alignItems: 'center',
-    paddingVertical: 20,
+  /* 목록 위에 겹쳐 두어 마지막 항목까지 스크롤로 볼 수 있게 한다 */
+  certifyButtonWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    backgroundColor: theme.COLORS.DEFAULT.WHITE,
   },
-  sectionDivider: {
-    marginHorizontal: -20,
-    height: 8,
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_96,
-  },
-  statusChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  certifyButton: {
+    height: 52,
     borderRadius: 8,
-  },
-  statusChipText: {
-    ...theme.TYPOGRAPHY.CAPTION1_BASIC,
-  },
-  titleRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 12,
+    justifyContent: 'center',
+    backgroundColor: theme.COLORS.PRIMARY.RED_60,
   },
-  quote: {
-    ...theme.TYPOGRAPHY.TITLE_1,
-    color: theme.COLORS.GRAY_SCALE.GRAY_70,
-  },
-  taskTitle: {
-    ...theme.TYPOGRAPHY.TITLE_2,
+  certifyButtonText: {
+    ...theme.TYPOGRAPHY.BODY_1,
+    color: theme.COLORS.DEFAULT.WHITE,
   },
 });
 

@@ -9,9 +9,11 @@ import { ProfileImage } from 'components/common/ProfileImage';
 import { Thunder } from 'components/common/icons/Thunder';
 import { LikeIcon } from 'components/common/icons/LikeIcon';
 import { ReceivedFeedbackContent } from 'components/Feedback/ReceivedFeedbackContent';
+import { TaskInfoHeader } from 'components/Feedback/TaskInfoHeader';
 import { useFetchDowithTaskFeedbackAggregates } from 'hooks/queries/feedback/useFetchDowithTaskFeedbackAggregates';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
 import { useFetchDowithTaskLikers } from 'hooks/queries/task/useFetchDowithTaskLikers';
+import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { theme } from 'styles/theme';
 import type { CheerCollectionTabType, RootStackScreenProps } from 'types/shared';
 import type { dowithTaskLikerSchemeType } from 'types/task/scheme/api';
@@ -27,8 +29,11 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
    */
   const [activeTab, setActiveTab] = useState<CheerCollectionTabType>(route.params.tab === 'like' ? 'like' : 'feedback');
 
-  // Item 진입 시에는 params로 받은 이미지로 즉시 렌더, 딥링크 진입 시에는 상세 조회로 보완
-  const { data: dowithTask } = useFetchDowithTask({ dowithTaskId }, { enabled: !successImageUrlParam });
+  /*
+   * 사진은 Item 진입 시 params로 즉시 렌더하지만, 상태칩·제목은 params에 없어 상세 조회가 필요하다.
+   * (같은 태스크를 목록에서 이미 열어봤다면 캐시가 쓰인다)
+   */
+  const { data: dowithTask } = useFetchDowithTask({ dowithTaskId });
   const successImageUrl = successImageUrlParam ?? dowithTask?.successImageUrls?.[0] ?? '';
 
   const { data: aggregates } = useFetchDowithTaskFeedbackAggregates(dowithTaskId);
@@ -61,13 +66,23 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
     [],
   );
 
-  const listHeader = (
+  /*
+   * 두 탭이 공유하는 부분. 상태칩·제목은 시안상 잡도리 탭에만 있어 아래에서 따로 끼운다.
+   */
+  const renderListHeader = (withTaskInfo: boolean) => (
     <>
       <FastImage
         source={{ uri: successImageUrl }}
         style={styles.successImage}
         resizeMode={FastImage.resizeMode.cover}
       />
+      {withTaskInfo && (
+        <TaskInfoHeader
+          title={dowithTask?.title ?? ''}
+          status={dowithTask?.status ?? TASK_STATUS_ENUM.enum.SUCCESS}
+          layout="INLINE"
+        />
+      )}
       <View style={styles.tabRow}>
         <Pressable
           style={[styles.tabButton, activeTab === 'feedback' && styles.tabButtonActive]}
@@ -79,7 +94,7 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
             fill={activeTab === 'feedback' ? theme.COLORS.DEFAULT.WHITE : theme.COLORS.GRAY_SCALE.GRAY_40}
           />
           <Text style={[styles.tabButtonText, activeTab === 'feedback' && styles.tabButtonTextActive]}>
-            잔소리 {feedbackCount}
+            잡도리 {feedbackCount}
           </Text>
         </Pressable>
         <Pressable
@@ -117,7 +132,7 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
           <ReceivedFeedbackContent
             dowithTaskId={dowithTaskId}
             showTotalCount={false}
-            headerComponent={listHeader}
+            headerComponent={renderListHeader(true)}
             contentContainerStyle={styles.listContent}
           />
         </Freeze>
@@ -134,7 +149,7 @@ const CheerCollection = ({ route }: RootStackScreenProps<'CHEER_COLLECTION'>) =>
             onEndReached={handleLikersEndReached}
             onEndReachedThreshold={0.5}
             showsVerticalScrollIndicator={false}
-            ListHeaderComponent={listHeader}
+            ListHeaderComponent={renderListHeader(false)}
             contentContainerStyle={styles.listContent}
           />
         </Freeze>
