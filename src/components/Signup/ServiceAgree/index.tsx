@@ -59,7 +59,7 @@ const ServiceAgree = () => {
         content: '광고성 정보 수신 미동의시 다양한 혜택 및\n이벤트 참여에 제한이 있을 수 있습니다.',
         leftButtonText: '미동의',
         rightButtonText: '동의',
-        handleLeftButton: () => hideDialog,
+        handleLeftButton: hideDialog,
         handleRightButton: () => {
           setValue('agreements.advertisement', true);
           hideDialog();
