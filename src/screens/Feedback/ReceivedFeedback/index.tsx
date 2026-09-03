@@ -12,6 +12,12 @@ import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { theme } from 'styles/theme';
 import type { RootStackScreenProps } from 'types/shared';
 
+const CERTIFY_BUTTON_HEIGHT = 52;
+const CERTIFY_BAR_TOP_SPACE = 12;
+const CERTIFY_BAR_BOTTOM_SPACE = 20;
+/* 세이프에어리어를 뺀 하단 고정 버튼 영역의 높이. 목록 끝 여백을 여기에 맞춰야 마지막 항목이 버튼에 가려지지 않는다 */
+const CERTIFY_BAR_VERTICAL_SPACE = CERTIFY_BAR_TOP_SPACE + CERTIFY_BUTTON_HEIGHT + CERTIFY_BAR_BOTTOM_SPACE;
+
 const ReceivedFeedback = ({ navigation, route }: RootStackScreenProps<'RECEIVED_FEEDBACK'>) => {
   // 딥링크로 진입하면 dowithTaskId가 문자열로 전달될 수 있어 숫자로 보정
   const dowithTaskId = Number(route.params.dowithTaskId);
@@ -45,16 +51,20 @@ const ReceivedFeedback = ({ navigation, route }: RootStackScreenProps<'RECEIVED_
   const canCertify = isLoaded && status === TASK_STATUS_ENUM.enum.WAIT;
   const hasFeedback = (aggregates?.length ?? 0) > 0;
 
+  const showCertifyBar = canCertify && hasFeedback;
+  /* 하단 고정 버튼이 뜨는 만큼 목록 끝에도 같은 높이를 비워야, 스크롤 끝의 마지막 항목이 버튼에 가려지지 않는다 */
+  const certifyBarHeight = CERTIFY_BAR_VERTICAL_SPACE + bottom;
+
   return (
     <View style={styles.container}>
       <ReceivedFeedbackContent
         dowithTaskId={dowithTaskId}
         headerComponent={<TaskInfoHeader title={title} status={status} />}
         emptyComponent={canCertify && !hasFeedback ? <ReceivedFeedbackEmpty onCertify={certify} /> : undefined}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, showCertifyBar && { paddingBottom: certifyBarHeight }]}
       />
-      {canCertify && hasFeedback && (
-        <View style={[styles.certifyButtonWrap, { paddingBottom: bottom + 20 }]}>
+      {showCertifyBar && (
+        <View style={[styles.certifyButtonWrap, { paddingBottom: bottom + CERTIFY_BAR_BOTTOM_SPACE }]}>
           <Pressable style={styles.certifyButton} onPress={certify}>
             <Text style={styles.certifyButtonText}>바로 인증하기</Text>
           </Pressable>
@@ -72,18 +82,17 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 20,
   },
-  /* 목록 위에 겹쳐 두어 마지막 항목까지 스크롤로 볼 수 있게 한다 */
   certifyButtonWrap: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: CERTIFY_BAR_TOP_SPACE,
     backgroundColor: theme.COLORS.DEFAULT.WHITE,
   },
   certifyButton: {
-    height: 52,
+    height: CERTIFY_BUTTON_HEIGHT,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
