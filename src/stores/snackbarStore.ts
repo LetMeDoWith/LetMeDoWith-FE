@@ -12,9 +12,14 @@ const SNACKBAR_TYPE = {
 
 type SnackbarType = (typeof SNACKBAR_TYPE)[keyof typeof SNACKBAR_TYPE];
 
+/* 화면 아래에서 띄우는 기본 위치. 바텀시트 위에 띄울 때만 호출부가 값을 올려 잡는다. */
+const DEFAULT_SNACKBAR_BOTTOM_OFFSET = 16;
+
 interface ShowSnackbarOptions {
   type?: SnackbarType;
   duration?: number;
+  /* 화면 아래 끝에서 얼마나 띄울지(px). 바텀시트에 가리지 않게 할 때 시트 높이를 넘긴다. */
+  bottomOffset?: number;
 }
 
 interface SnackbarState {
@@ -22,6 +27,7 @@ interface SnackbarState {
   message: string;
   duration: number;
   type: SnackbarType;
+  bottomOffset: number;
   show: (message: string, options?: ShowSnackbarOptions) => void;
   hide: () => void;
 }
@@ -31,12 +37,14 @@ const useSnackbarStore = create<SnackbarState>(set => ({
   message: '',
   duration: DEFAULT_SNACKBAR_DURATION_MS,
   type: SNACKBAR_TYPE.INFO,
+  bottomOffset: DEFAULT_SNACKBAR_BOTTOM_OFFSET,
   show: (message, options) =>
     set({
       visible: true,
       message,
       type: options?.type ?? SNACKBAR_TYPE.INFO,
       duration: options?.duration ?? DEFAULT_SNACKBAR_DURATION_MS,
+      bottomOffset: options?.bottomOffset ?? DEFAULT_SNACKBAR_BOTTOM_OFFSET,
     }),
   hide: () => set({ visible: false }),
 }));
@@ -45,5 +53,5 @@ const useSnackbarStore = create<SnackbarState>(set => ({
 const showSnackbar = (message: string, options?: ShowSnackbarOptions) =>
   useSnackbarStore.getState().show(message, options);
 
-export { useSnackbarStore, showSnackbar, SNACKBAR_TYPE, DEFAULT_SNACKBAR_DURATION_MS };
+export { useSnackbarStore, showSnackbar, SNACKBAR_TYPE, DEFAULT_SNACKBAR_DURATION_MS, DEFAULT_SNACKBAR_BOTTOM_OFFSET };
 export type { SnackbarType, ShowSnackbarOptions };
