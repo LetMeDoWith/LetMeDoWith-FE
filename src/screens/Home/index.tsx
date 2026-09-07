@@ -1,5 +1,6 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
@@ -12,6 +13,7 @@ import { ProfileImage } from 'components/common/ProfileImage';
 import { ArrowRight } from 'components/common/icons/ArrowIcon';
 import { PlusIcon } from 'components/common/icons/PlusIcon';
 import { ListContainerView } from 'components/Task/ListContainerView';
+import { TaskRegisterSheet } from 'components/Task/Register';
 import type { HomeTabScreenProps } from 'types/shared';
 import { CustomCalendarHeader } from 'components/Task';
 import { CalendarCheck } from 'components/common/icons/CalendarCheck';
@@ -105,6 +107,7 @@ CalendarDay.displayName = 'CalendarDay';
 
 const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps<'MYTODO'>) => {
   const { top } = useSafeAreaInsets();
+  const registerSheetRef = useRef<BottomSheetModalMethods>(null);
 
   // 정시 기준 5분 간격(1분, 6분, ..., 56분)으로 TaskList 자동 refetch
   useScheduledRefetch([TASK_QUERY_KEY.LIST]);
@@ -203,8 +206,9 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
     navigate('FEEDBACK');
   };
 
+  /* 등록은 시트로, 수정은 기존 스택 화면(TASK_FORM)이 계속 담당한다 */
   const handlePressPlusIcon = () => {
-    navigate('TASK_FORM', { date: selectedDate, screen: 'COMMON' });
+    registerSheetRef.current?.present();
   };
 
   const handleDayPress = useCallback((dateString?: string) => {
@@ -329,6 +333,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
       <Pressable style={styles.fab} onPress={handlePressPlusIcon}>
         <PlusIcon width={FAB_ICON_SIZE} height={FAB_ICON_SIZE} fill={theme.COLORS.DEFAULT.WHITE} />
       </Pressable>
+      <TaskRegisterSheet ref={registerSheetRef} date={selectedDate} />
       {isDowithOnboardingPending && onboardingTargets && (
         <DowithCoachMark
           statusTarget={onboardingTargets.status}

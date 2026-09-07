@@ -8,7 +8,15 @@ import { addTodoTask } from 'services/rest/task';
 import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
 import type { RootStackParamList } from 'types/shared';
 
-const useAddTodoTask = () => {
+interface Options {
+  /*
+   * 등록 후 처리. 바텀시트에서 등록하면 이미 홈이라 시트만 닫으면 되고,
+   * 넘기지 않으면 기존 수정 화면처럼 홈으로 돌아간다.
+   */
+  onSuccess?: () => void;
+}
+
+const useAddTodoTask = ({ onSuccess }: Options = {}) => {
   const queryClient = useQueryClient();
   const { navigate } = useNavigation<StackNavigationProp<RootStackParamList, 'TASK_FORM'>>();
 
@@ -16,8 +24,12 @@ const useAddTodoTask = () => {
     mutationKey: TASK_QUERY_KEY.ADD_TODO,
     mutationFn: payload => addTodoTask(payload),
     onSuccess: () => {
-      console.log('투두 등록 성공! ');
-      navigate('HOME');
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate('HOME');
+      }
+
       queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.LIST });
     },
   });
