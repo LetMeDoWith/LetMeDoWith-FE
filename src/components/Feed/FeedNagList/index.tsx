@@ -28,7 +28,7 @@ const FeedNagList = ({ onItemExpand }: Props) => {
     <View style={styles.container}>
       <View style={styles.titleSection}>
         <DoubleThunder width={16} height={16} />
-        <Text style={theme.TYPOGRAPHY.TITLE_1}>실시간 잔소리하기</Text>
+        <Text style={theme.TYPOGRAPHY.TITLE_1}>실시간 잡도리하기</Text>
       </View>
       {isLoading && <ActivityIndicator />}
       {!isLoading && dowithTasks.length > 0 && (
@@ -55,7 +55,7 @@ const FeedNagList = ({ onItemExpand }: Props) => {
           </View>
           {hasMore && (
             <Pressable style={styles.moreButton} onPress={() => navigation.navigate('REALTIME_NAG')}>
-              <Text style={styles.moreButtonText}>잔소리 더 하러가기</Text>
+              <Text style={styles.moreButtonText}>잡도리 더 하러가기</Text>
             </Pressable>
           )}
         </>

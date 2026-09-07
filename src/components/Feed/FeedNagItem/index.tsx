@@ -128,8 +128,8 @@ const FeedNagItem = ({
     if (isExpired) {
       showDialog({
         type: 'ALERT',
-        title: '시간이 지난 두윗이에요!',
-        content: '잔소리를 고민하는 사이\n해당 두윗 시간이 지났어요.',
+        title: '도리의 인증 시간이 지났어요!',
+        content: '아직 인증할 수 있는 도리에\n잡도리 해보세요.',
         handleAlertButton: () => {
           hideDialog();
           queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS });
@@ -141,8 +141,8 @@ const FeedNagItem = ({
     if (status === TASK_STATUS_ENUM.enum.SUCCESS) {
       showDialog({
         type: 'ALERT',
-        title: '이미 완료된 두윗이에요!',
-        content: '잔소리를 고민하는 사이,\n해당 두윗러가 인증을 마쳤어요.',
+        title: '이미 완료된 도리에요!',
+        content: '잡도리를 고민하는 사이,\n해당 친구가 인증을 마쳤어요.',
         handleAlertButton: () => {
           hideDialog();
           queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.FEEDBACK_AVAILABLE_DOWITH_TASKS });
@@ -164,8 +164,8 @@ const FeedNagItem = ({
             if (e.response?.data?.statusCode === ErrorStatusCodeEnum.enum.E250) {
               showDialog({
                 type: 'ALERT',
-                title: '잔소리 쿨타임 ⏳',
-                content: '잔소리도 쿨타임이 필요해요.\n1분 후에 다시 발송할 수 있어요.',
+                title: '잡도리 쿨타임',
+                content: '잡도리도 쿨타임이 필요해요.\n1분 후에 다시 발송할 수 있어요.',
                 handleAlertButton: hideDialog,
               });
             }
@@ -287,7 +287,7 @@ const FeedNagItem = ({
                 }}
                 pointerEvents="none"
               >
-                <Text style={styles.sentLabel}>보낸 잔소리</Text>
+                <Text style={styles.sentLabel}>보낸 잡도리</Text>
                 {visibleFeedbacks.map((feedback, index) => {
                   const template = templateMap.get(feedback.templateId);
                   if (!template) {
