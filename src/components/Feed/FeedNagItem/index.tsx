@@ -38,8 +38,8 @@ interface Props {
   onExpand?: (reactionBarBottomY: number) => void;
 }
 
-// "보낸 잔소리" 라벨 예상 너비 + paddingHorizontal + gap
-const SENT_LABEL_WIDTH = 70;
+// "보낸 잡도리 N" 라벨 예상 너비 + paddingHorizontal + gap
+const SENT_LABEL_WIDTH = 88;
 const SENT_EMOJI_SIZE = 24;
 const SENT_EMOJI_GAP = 8;
 
@@ -288,6 +288,7 @@ const FeedNagItem = ({
                 pointerEvents="none"
               >
                 <Text style={styles.sentLabel}>보낸 잡도리</Text>
+                <Text style={styles.sentCount}>{myFeedbacks.length}</Text>
                 {visibleFeedbacks.map((feedback, index) => {
                   const template = templateMap.get(feedback.templateId);
                   if (!template) {
@@ -415,6 +416,12 @@ const styles = StyleSheet.create({
   sentLabel: {
     ...theme.TYPOGRAPHY.CAPTION1_BASIC,
     color: theme.COLORS.GRAY_SCALE.GRAY_60,
+  },
+  sentCount: {
+    ...theme.TYPOGRAPHY.CAPTION1_BASIC,
+    color: theme.COLORS.GRAY_SCALE.GRAY_40,
+    /* 바의 gap(8)에서 4를 덜어내 라벨과는 4, 뒤따르는 이모지와는 8을 띄운다 */
+    marginLeft: -4,
   },
   overflowCount: {
     ...theme.TYPOGRAPHY.CAPTION1_BASIC,

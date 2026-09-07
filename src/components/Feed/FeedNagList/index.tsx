@@ -27,7 +27,7 @@ const FeedNagList = ({ onItemExpand }: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.titleSection}>
-        <DoubleThunder width={16} height={16} />
+        <DoubleThunder width={24} height={24} />
         <Text style={theme.TYPOGRAPHY.TITLE_1}>실시간 잡도리하기</Text>
       </View>
       {isLoading && <ActivityIndicator />}
