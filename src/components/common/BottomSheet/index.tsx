@@ -32,7 +32,6 @@ interface Props {
   contentBottomInset?: number;
   /* 시트 안에 입력이 있어 키보드를 피해야 할 때만 넘긴다(기본값은 라이브러리 동작 유지) */
   keyboardBehavior?: BottomSheetModalProps['keyboardBehavior'];
-  keyboardBlurBehavior?: BottomSheetModalProps['keyboardBlurBehavior'];
   androidKeyboardInputMode?: BottomSheetModalProps['android_keyboardInputMode'];
   /*
    * 사용자가 닫기 버튼 외의 방법으로 시트를 닫을 수 있는지. 아래로 내리는 제스처와
@@ -103,7 +102,6 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     headerComponent,
     contentBottomInset,
     keyboardBehavior,
-    keyboardBlurBehavior,
     androidKeyboardInputMode,
     enablePanDownToClose = true,
     enableContentPanningGesture = true,
@@ -138,6 +136,17 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     ),
     [enablePanDownToClose],
   );
+
+  /*
+   * 닫힘 애니메이션이 시작될 때 키보드도 함께 내린다.
+   * 입력이 언마운트될 때까지 두면 시트가 다 닫힌 뒤에야 키보드가 내려가 한 박자 늦다.
+   * onChange는 애니메이션이 끝난 뒤라 늦고, onAnimate라야 닫기 버튼·딤드 탭·스와이프를 모두 잡는다.
+   */
+  const handleAnimate = useCallback((_fromIndex: number, toIndex: number) => {
+    if (toIndex === -1) {
+      Keyboard.dismiss();
+    }
+  }, []);
 
   const handleSheetChanges = useCallback(
     (index: number) => {
@@ -189,7 +198,6 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
       enablePanDownToClose={enablePanDownToClose}
       enableContentPanningGesture={enableContentPanningGesture}
       keyboardBehavior={keyboardBehavior}
-      keyboardBlurBehavior={keyboardBlurBehavior}
       android_keyboardInputMode={androidKeyboardInputMode}
       backdropComponent={renderBackdrop}
       /*
@@ -197,6 +205,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
        * 어포던스 없이 제스처만 열어두면 사용자가 닫을 수 있다는 걸 알 수 없다.
        */
       handleComponent={enablePanDownToClose ? Handle : null}
+      onAnimate={handleAnimate}
       onChange={handleSheetChanges}
       onDismiss={onDismiss}
     >

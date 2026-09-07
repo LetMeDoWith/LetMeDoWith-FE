@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, type TextInput, View } from 'react-native';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import dayjs from 'dayjs';
 
@@ -65,6 +65,8 @@ const Chip = ({ icon, label, isFilled, isRequired, onPress }: ChipProps) => (
 interface Props {
   /* 시트 높이를 콘텐츠에 맞추기 위해 실제 렌더된 높이를 올려보낸다 */
   onMeasure: (height: number) => void;
+  /* 안드로이드에서 autoFocus가 무시될 때 밖에서 다시 포커스를 잡기 위한 참조 */
+  inputRef?: React.RefObject<TextInput>;
   taskMode: TaskModeType;
   title: string;
   onChangeTitle: (title: string) => void;
@@ -83,6 +85,7 @@ interface Props {
 
 const MainStep = ({
   onMeasure,
+  inputRef,
   taskMode,
   title,
   onChangeTitle,
@@ -110,6 +113,11 @@ const MainStep = ({
         <View style={[styles.titleField, taskMode === 'TODO' && styles.titleFieldTodo]}>
           {/* 시트가 키보드 위로 올라오려면 라이브러리가 포커스를 추적할 수 있는 입력이어야 한다 */}
           <BottomSheetTextInput
+            /*
+             * 라이브러리가 ref 타입을 인스턴스가 아닌 컴포넌트 타입으로 잘못 선언해 두어 캐스팅한다.
+             * 런타임에는 RN TextInput 인스턴스가 그대로 들어온다.
+             */
+            ref={inputRef as never}
             style={styles.titleInput}
             placeholder={titlePlaceholder}
             placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_60}

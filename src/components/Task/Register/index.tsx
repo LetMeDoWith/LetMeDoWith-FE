@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Dimensions, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Keyboard, Pressable, StyleSheet, Text, type TextInput, View } from 'react-native';
 import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { FormProvider, useForm } from 'react-hook-form';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
@@ -93,6 +93,7 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
   const innerRef = useRef<BottomSheetModalMethods>(null);
   const routineFormRef = useRef<RoutineSheetContentRef>(null);
   const headerRef = useRef<View>(null);
+  const titleInputRef = useRef<TextInput>(null);
   const { showDialog, hideDialog } = useDialog();
 
   const [step, setStep] = useState<Step>('MAIN');
@@ -109,6 +110,7 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
   const [canConfirmRoutine, setCanConfirmRoutine] = useState(true);
   /* 확인 스텝의 콘텐츠 실측 높이. 시트를 콘텐츠에 맞춰야 초기화 위아래 여백이 같아진다. */
   const [stepContentHeight, setStepContentHeight] = useState(0);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const methods = useForm<taskFormSchemeType>({
     defaultValues: {
@@ -158,6 +160,8 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
     transform: [{ translateX: slideX.value }],
   }));
 
+  const focusTitleInput = useCallback(() => titleInputRef.current?.focus(), []);
+
   const commitStep = useCallback(
     (next: Step, isForward: boolean) => {
       // 이전 스텝의 높이가 남아 있으면 새 스텝이 잠깐 엉뚱한 높이로 열린다
@@ -165,9 +169,17 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
       setStep(next);
       slideX.value = isForward ? STEP_SLIDE_DISTANCE : -STEP_SLIDE_DISTANCE;
       slideX.value = withTiming(0, { duration: STEP_ENTER_DURATION, easing: Easing.out(Easing.cubic) });
-      fade.value = withTiming(1, { duration: STEP_ENTER_DURATION });
+      fade.value = withTiming(1, { duration: STEP_ENTER_DURATION }, finished => {
+        /*
+         * 전환이 끝난 뒤에 포커스를 잡는다. 안드로이드는 애니메이션 중에 마운트된 뷰의
+         * autoFocus 요청을 흘릴 때가 있어 마운트에만 기댈 수 없다.
+         */
+        if (finished && next === 'MAIN') {
+          runOnJS(focusTitleInput)();
+        }
+      });
     },
-    [fade, slideX],
+    [fade, slideX, focusTitleInput],
   );
 
   /*
@@ -333,6 +345,15 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
     reset({ title: '', taskCategoryId: null, date, startTime: null, routineCondition: EMPTY_ROUTINE });
   }, [reset, date]);
 
+  /* 시트를 처음 열었을 때도 메인이므로 같은 방식으로 포커스를 잡는다 */
+  useEffect(() => {
+    if (isSheetOpen && step === 'MAIN') {
+      focusTitleInput();
+    }
+    // 스텝 전환은 애니메이션 완료 콜백이 맡는다. 여기서는 시트가 열리는 순간만 본다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSheetOpen]);
+
   // 홈에서 다른 날짜를 고르고 열면 그 날짜로 맞춘다
   useEffect(() => {
     setValue('date', date);
@@ -404,6 +425,7 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
         return (
           <MainStep
             onMeasure={setMainContentHeight}
+            inputRef={titleInputRef}
             taskMode={taskMode}
             title={title}
             onChangeTitle={value => setValue('title', value, { shouldDirty: true })}
@@ -447,7 +469,6 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
         /* 달력의 가로 스와이프가 시트 팬 제스처와 충돌하지 않게 한다 */
         enableContentPanningGesture={step !== 'DATE' && step !== 'ROUTINE'}
         keyboardBehavior="interactive"
-        keyboardBlurBehavior="restore"
         /*
          * adjustResize를 주면 gorhom이 "창이 알아서 줄어든다"고 보고 시트를 직접 올리지 않는다.
          * 이 앱은 KeyboardProvider가 edge-to-edge를 켜서 창이 리사이즈되지 않으므로,
@@ -459,6 +480,7 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
         }
         handleCloseButton={handleClose}
         handleButtonSubmit={handleConfirm}
+        onChange={setIsSheetOpen}
         onDismiss={handleDismiss}
       >
         <Animated.View
