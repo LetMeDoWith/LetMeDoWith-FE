@@ -12,6 +12,24 @@ const getRemainingMinutes = (startTime: string): number => {
   return Math.max(0, diff);
 };
 
+/*
+ * 지금보다 뒤에 오는 가장 가까운 분 단위 경계(예: 5분 간격이면 10:08 → 10:10).
+ *
+ * 시각 선택의 최소값으로 raw 현재시각을 그대로 쓰면, 네이티브 피커가 10:08 같은
+ * 비경계 값으로 스냅되어 지난 시각이 저장된다. 최소값과 초기값을 모두 이 경계로 맞춘다.
+ */
+const getNextMinuteBoundary = (minuteInterval: number): Date => {
+  const now = dayjs();
+  // 현재 분이 경계에 정확히 걸쳐도 다음 경계로 보낸다(항상 현재보다 미래).
+  const nextMinutes = (Math.floor(now.minute() / minuteInterval) + 1) * minuteInterval;
+
+  if (nextMinutes >= 60) {
+    return now.add(1, 'hour').minute(0).second(0).millisecond(0).toDate();
+  }
+
+  return now.minute(nextMinutes).second(0).millisecond(0).toDate();
+};
+
 const formatRemainingTime = (startTime: string): string => {
   const diff = getRemainingMinutes(startTime);
 
@@ -69,4 +87,4 @@ const formatNotificationDate = (dateString: string): string => {
   return isThisYear ? target.format('M월 D일') : target.format('YYYY년 M월 D일');
 };
 
-export { getRemainingMinutes, formatRemainingTime, formatTimeAgo, formatNotificationDate };
+export { getRemainingMinutes, getNextMinuteBoundary, formatRemainingTime, formatTimeAgo, formatNotificationDate };

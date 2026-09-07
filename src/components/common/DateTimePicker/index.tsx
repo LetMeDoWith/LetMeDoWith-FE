@@ -5,6 +5,7 @@ import DatePicker, { DatePickerProps } from 'react-native-date-picker';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 
 import { BottomSheet } from 'components/common/BottomSheet';
+import { getNextMinuteBoundary } from 'utils/date';
 
 interface Props extends Pick<DatePickerProps, 'minimumDate' | 'maximumDate' | 'minuteInterval'> {
   title: string;
@@ -17,29 +18,14 @@ const DateTimePicker = forwardRef<BottomSheetModalMethods, Props>((props, ref) =
   const { title, description, mode, onConfirm, minimumDate, maximumDate, minuteInterval } = props;
   const innerRef = useRef<BottomSheetModalMethods>(null);
 
-  // time 모드일 경우, minimumDate가 있으면 가장 가까운 미래 시간으로 설정
-  const getInitialDate = () => {
-    if (mode === 'time' && minimumDate && minuteInterval) {
-      const now = dayjs();
-      const currentMinutes = now.minute();
-
-      // 현재 분이 5분 단위에 정확히 걸쳐도 다음 단위로 (항상 현재보다 미래인 5분 단위)
-      const nextMinutes = (Math.floor(currentMinutes / minuteInterval) + 1) * minuteInterval;
-
-      // 60분을 넘으면 다음 시간으로
-      if (nextMinutes >= 60) {
-        return now.add(1, 'hour').minute(0).second(0).millisecond(0).toDate();
-      }
-
-      return now.minute(nextMinutes).second(0).millisecond(0).toDate();
-    }
-
-    return dayjs().toDate();
-  };
+  /*
+   * 시각 선택의 초기값. 최소값이 있으면 raw 현재시각이 아니라 "다음 분 경계"로 맞춘다.
+   * (경계로 맞추는 이유는 getNextMinuteBoundary 주석 참고)
+   */
+  const getInitialDate = () =>
+    mode === 'time' && minimumDate && minuteInterval ? getNextMinuteBoundary(minuteInterval) : dayjs().toDate();
 
   const [selectedDate, setSelectedDate] = useState<Date>(getInitialDate());
-  // 최소 선택 가능 시각을 raw 현재시각(예: 10:08)이 아닌 "다음 5분 경계"(예: 10:10)로 맞춘다.
-  // raw 값을 쓰면 과거 시각 선택 시 네이티브 피커가 10:08 같은 비경계 값으로 스냅되어 저장되는 문제가 있음.
   const [currentMinimumDate, setCurrentMinimumDate] = useState<Date | undefined>(
     minimumDate ? getInitialDate() : undefined,
   );
