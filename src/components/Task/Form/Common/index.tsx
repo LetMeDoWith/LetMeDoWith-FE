@@ -31,7 +31,7 @@ const REGISTER_BLOCKED_DIALOG = {
   alertButtonText: '확인',
 };
 
-const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
+const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => {
   const { params } = route;
   const isEditMode = !!params.mode;
   const isRoutineTask = params.isRoutineTask;
@@ -472,7 +472,7 @@ const Form = ({ route, navigation }: StackScreenProps<TaskFormStackParamList, 'C
         taskCategoryId={taskCategoryId}
         prevSelectedCategory={prevSelectedCategory}
       />
-      <RoutineBottomSheet ref={routineBottomSheetMethodsRef} taskMode={taskMode} navigation={navigation} />
+      <RoutineBottomSheet ref={routineBottomSheetMethodsRef} taskMode={taskMode} />
     </>
   );
 };
