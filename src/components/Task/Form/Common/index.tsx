@@ -96,6 +96,9 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => 
    */
   const isRoutineMenuVisible = !isEditMode || !isRoutineTask;
 
+  /* 투두 수정에는 모드 표시 바가 없다(등록 화면의 모드 선택은 그대로 둔다) */
+  const hasModeBadge = !isEditMode || params.mode !== 'TODO';
+
   const renderTaskModeButtonView = () => {
     if (!isEditMode) {
       return (
@@ -167,49 +170,15 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => 
       );
     }
 
-    if (params.mode === 'TODO') {
-      return (
-        <View style={[styles.modeButtonWrap]}>
-          <Pressable
-            style={[
-              styles.modeButton,
-              {
-                flexDirection: 'row',
-                justifyContent: 'center',
-                gap: 4,
-                paddingVertical: 10,
-                backgroundColor: theme.COLORS.SECONDARY.BLUE_95,
-                borderColor: theme.COLORS.SECONDARY.BLUE_95,
-                borderRadius: 8,
-              },
-            ]}
-          >
-            <TodoMode width={20} height={20} />
-            <Text style={[theme.TYPOGRAPHY.SUB_TITLE, { color: theme.COLORS.SECONDARY.BLUE_60 }]}>TO DO</Text>
-          </Pressable>
-        </View>
-      );
+    /* 투두 수정은 모드 표시 없이 바로 필드부터 보여준다 */
+    if (!hasModeBadge) {
+      return null;
     }
 
+    /* 수정 화면에서는 모드를 바꿀 수 없어 선택이 아니라 표시다 */
     return (
-      <View style={[styles.modeButtonWrap]}>
-        <Pressable
-          style={[
-            styles.modeButton,
-            {
-              flexDirection: 'row',
-              justifyContent: 'center',
-              gap: 4,
-              paddingVertical: 10,
-              backgroundColor: theme.COLORS.PRIMARY.RED_98,
-              borderColor: theme.COLORS.PRIMARY.RED_98,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <DowithMode width={24} height={20} />
-          <Text style={[theme.TYPOGRAPHY.SUB_TITLE, { color: theme.COLORS.PRIMARY.RED_60 }]}>DO WITH</Text>
-        </Pressable>
+      <View style={styles.modeBadge}>
+        <Text style={styles.modeBadgeText}>도리 모드</Text>
       </View>
     );
   };
@@ -331,7 +300,8 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => 
       <View style={styles.container}>
         <View>
           <View style={styles.modeWrap}>{renderTaskModeButtonView()}</View>
-          <View style={{ gap: 16, marginTop: 32 }}>
+          {/* 모드 바가 없는 투두 수정에서는 컨테이너 상단 여백(24)만 남긴다 */}
+          <View style={[styles.fields, !hasModeBadge && styles.fieldsWithoutModeBadge]}>
             <View style={{ gap: 12 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text
@@ -486,9 +456,27 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   modeWrap: { gap: 16 },
+  fields: {
+    gap: 16,
+    marginTop: 32,
+  },
+  fieldsWithoutModeBadge: {
+    marginTop: 0,
+  },
   modeButtonWrap: {
     flexDirection: 'row',
     gap: 8,
+  },
+  /* 도리 수정 화면 상단의 모드 표시 바 */
+  modeBadge: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 100,
+    backgroundColor: theme.COLORS.PRIMARY.RED_98,
+  },
+  modeBadgeText: {
+    ...theme.TYPOGRAPHY.SUB_TITLE,
+    color: theme.COLORS.PRIMARY.RED_60,
   },
   modeButton: {
     flex: 1,
