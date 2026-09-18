@@ -3,11 +3,11 @@ import dayjs from 'dayjs';
 import { theme } from 'styles/theme';
 
 /*
- * 가로 페이징 CalendarList는 고정 높이가 필요하다. 커스텀 셀 높이(36) + 주 상하 마진(7×2)=50,
- * 헤더 약 48. 보이는 달의 주 수에 맞춰 높이를 동적으로 잡고 overflow로 잘라 불필요한 여백을 없앤다.
+ * 보이는 달의 주 수만큼만 노출하고 나머지는 overflow로 자르므로, 두 값이 실제 렌더 높이와 어긋나면 여백이 남는다.
+ * 행 = 셀 36 + week 상하 마진(7×2). 헤더 = 헤더 컨테이너 marginTop 6 + SUB_TITLE lineHeight 20.
  */
 const CALENDAR_ROW_HEIGHT = 50;
-const CALENDAR_HEADER_HEIGHT = 48;
+const CALENDAR_HEADER_HEIGHT = 26;
 /* CalendarList 자체 높이는 최대(6주)로 고정해 달 전환 시 재렌더를 줄이고, 실제 노출 높이는 wrapper의 overflow로 제어한다. */
 const CALENDAR_LIST_MAX_HEIGHT = CALENDAR_HEADER_HEIGHT + CALENDAR_ROW_HEIGHT * 6;
 
