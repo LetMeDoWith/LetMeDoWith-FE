@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import { Divider, Switch } from 'react-native-paper';
+import { Switch } from 'react-native-paper';
 import { CalendarList } from 'react-native-calendars';
 import type { DateData } from 'react-native-calendars/src/types';
 import type { DayProps } from 'react-native-calendars/src/calendar/day';
@@ -30,6 +30,10 @@ const REPEAT_CYCLES = [
 const MONTHLY_DAY_COUNT = 32;
 const LAST_DAY_OF_MONTH = 32;
 
+/* 펼친 카드는 테두리와 함께 화살표도 진해진다 */
+const getArrowColor = (isExpanded: boolean) =>
+  isExpanded ? theme.COLORS.DEFAULT.BLACK : theme.COLORS.GRAY_SCALE.GRAY_70;
+
 interface Props {
   routine: ReturnType<typeof useRoutineForm>;
   /* 화면과 시트의 좌우 여백·하단 여백이 달라 밖에서 넘긴다 */
@@ -58,6 +62,8 @@ const RoutineFields = ({ routine, contentContainerStyle }: Props) => {
     toggleMonthlyDay,
     expanded,
     toggleExpanded,
+    isPatternExpanded,
+    togglePatternExpanded,
     isExcludeHolidays,
     handleExcludeHolidays,
   } = routine;
@@ -115,134 +121,151 @@ const RoutineFields = ({ routine, contentContainerStyle }: Props) => {
     [handleDayPress],
   );
 
+  const cycleLabel = REPEAT_CYCLES.find(({ value }) => value === selectedPrimaryCategory)?.name;
+
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={contentContainerStyle}
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.dateSection}>
-        <View style={styles.dateLeftSection}>
-          <View style={styles.dateRow}>
-            <Text style={theme.TYPOGRAPHY.SUB_TITLE}>시작 날짜</Text>
-            <Text style={theme.TYPOGRAPHY.BODY_2}>
-              {dayjs(routineCondition?.startDate || targetDateString).format('YYYY. MM. DD (ddd)')}
-            </Text>
-          </View>
-          <View style={styles.dateRow}>
-            <Text style={theme.TYPOGRAPHY.SUB_TITLE}>종료 날짜</Text>
-            <Text style={[theme.TYPOGRAPHY.BODY_2, !selectedEndDate && styles.emptyDateText]}>
-              {selectedEndDate ? dayjs(selectedEndDate).format('YYYY. MM. DD (ddd)') : '날짜를 선택해주세요'}
-            </Text>
-          </View>
-        </View>
-        <Pressable style={styles.dateRightSection} onPress={toggleExpanded}>
-          <DropArrow direction={expanded ? 'UP' : 'DOWN'} />
-        </Pressable>
-      </View>
-      <Divider style={styles.divider} />
-      {expanded && (
-        <View
-          // 바깥 컨테이너 좌우 패딩(화면 20 / 시트 24)을 살짝 상쇄해 달력을 조금 더 넓게 편다(과하면 잘림).
-          style={styles.calendarWrap}
-          onLayout={event => {
-            const { width } = event.nativeEvent.layout;
-            if (width > 0 && width !== calendarWidth) {
-              setCalendarWidth(width);
-            }
-          }}
-        >
-          {calendarWidth > 0 && (
-            // 보이는 달 높이만큼만 노출(overflow 클립)해 여백 제거.
-            <View style={[styles.calendarClip, { height: calendarWrapperHeight }]}>
-              <MemoizedCalendarList
-                ref={calendarRef}
-                current={currentDate}
-                // 가로 페이징으로 좌우 스와이프 시 월이 슬라이드 애니메이션과 함께 이동한다.
-                horizontal
-                pagingEnabled
-                // 헤더(화살표 포함)는 고정하고 달력 본문만 슬라이드시킨다.
-                staticHeader
-                calendarWidth={calendarWidth}
-                // 자체 높이는 최대(6주)로 고정 → 달 전환 시 재렌더/재측정 최소화(실제 노출은 wrapper가 클립).
-                calendarHeight={CALENDAR_LIST_MAX_HEIGHT}
-                calendarStyle={CALENDAR_LIST_STYLE}
-                headerStyle={CALENDAR_HEADER_STYLE}
-                pastScrollRange={12}
-                futureScrollRange={24}
-                markingType={'period'}
-                markedDates={markedDates}
-                minDate={targetDateString}
-                renderHeader={renderCustomHeader}
-                onDayPress={handleDayPress}
-                dayComponent={renderDayComponent}
-                onMonthChange={handleVisibleMonthChange}
-                hideDayNames
-                hideArrows
-              />
+      <View style={[styles.card, expanded && styles.cardExpanded]}>
+        <Pressable style={styles.dateHeader} onPress={toggleExpanded}>
+          <View style={styles.dateRows}>
+            <View style={styles.dateRow}>
+              <Text style={theme.TYPOGRAPHY.SUB_TITLE}>시작 날짜</Text>
+              <Text style={theme.TYPOGRAPHY.BODY_2}>
+                {dayjs(routineCondition?.startDate || targetDateString).format('YYYY. MM. DD (ddd)')}
+              </Text>
             </View>
-          )}
-        </View>
-      )}
-      <View style={styles.routineSection}>
-        <Text style={styles.routineSectionTitle}>반복 패턴</Text>
-        <View style={styles.routinePrimaryCategoryButtonSection}>
-          {REPEAT_CYCLES.map(({ value, name }) => (
-            <Pressable
-              key={value}
-              style={[
-                styles.routinePrimaryCategoryButton,
-                selectedPrimaryCategory === value && styles.routinePrimaryCategoryButtonSelected,
-              ]}
-              onPress={handlePrimaryCategory(value)}
-            >
-              <Text style={styles.routinePrimaryCategoryButtonText}>{name}</Text>
-            </Pressable>
-          ))}
-        </View>
-        {selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY && (
-          <View style={styles.weeklyRow}>
-            {WEEKLY_DAY_INFO.map(({ code, value, name }) => {
-              const isSelected = selectedWeeklyDaySet.has(value);
-
-              return (
-                <Pressable
-                  key={code}
-                  style={[styles.weeklyDay, isSelected && styles.patternDaySelected]}
-                  onPress={() => toggleWeeklyDay(value)}
-                >
-                  <Text style={[styles.patternDayText, isSelected && styles.patternDayTextSelected]}>{name}</Text>
-                </Pressable>
-              );
-            })}
+            <View style={styles.dateRow}>
+              <Text style={theme.TYPOGRAPHY.SUB_TITLE}>종료 날짜</Text>
+              <Text style={[theme.TYPOGRAPHY.BODY_2, !selectedEndDate && styles.emptyValue]}>
+                {selectedEndDate ? dayjs(selectedEndDate).format('YYYY. MM. DD (ddd)') : '날짜를 선택해주세요'}
+              </Text>
+            </View>
           </View>
+          <DropArrow direction={expanded ? 'UP' : 'DOWN'} fill={getArrowColor(expanded)} />
+        </Pressable>
+        {expanded && (
+          <>
+            <View style={styles.cardDivider} />
+            <View
+              style={styles.calendarWrap}
+              onLayout={event => {
+                const { width } = event.nativeEvent.layout;
+                if (width > 0 && width !== calendarWidth) {
+                  setCalendarWidth(width);
+                }
+              }}
+            >
+              {calendarWidth > 0 && (
+                // 보이는 달 높이만큼만 노출(overflow 클립)해 여백 제거.
+                <View style={[styles.calendarClip, { height: calendarWrapperHeight }]}>
+                  <MemoizedCalendarList
+                    ref={calendarRef}
+                    current={currentDate}
+                    // 가로 페이징으로 좌우 스와이프 시 월이 슬라이드 애니메이션과 함께 이동한다.
+                    horizontal
+                    pagingEnabled
+                    // 헤더(화살표 포함)는 고정하고 달력 본문만 슬라이드시킨다.
+                    staticHeader
+                    calendarWidth={calendarWidth}
+                    // 자체 높이는 최대(6주)로 고정 → 달 전환 시 재렌더/재측정 최소화(실제 노출은 wrapper가 클립).
+                    calendarHeight={CALENDAR_LIST_MAX_HEIGHT}
+                    calendarStyle={CALENDAR_LIST_STYLE}
+                    headerStyle={CALENDAR_HEADER_STYLE}
+                    pastScrollRange={12}
+                    futureScrollRange={24}
+                    markingType={'period'}
+                    markedDates={markedDates}
+                    minDate={targetDateString}
+                    renderHeader={renderCustomHeader}
+                    onDayPress={handleDayPress}
+                    dayComponent={renderDayComponent}
+                    onMonthChange={handleVisibleMonthChange}
+                    hideDayNames
+                    hideArrows
+                  />
+                </View>
+              )}
+            </View>
+          </>
         )}
-        {selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY && (
-          <View style={styles.monthlyGrid}>
-            {Array.from({ length: MONTHLY_DAY_COUNT }, (_, index) => {
-              const day = index + 1;
-              const isLastDay = day === LAST_DAY_OF_MONTH;
-              const isSelected = selectedMonthlyDaySet.has(day);
+      </View>
 
-              return (
+      <View style={[styles.card, isPatternExpanded && styles.cardExpanded]}>
+        <Pressable style={styles.cardRow} onPress={togglePatternExpanded}>
+          <Text style={theme.TYPOGRAPHY.SUB_TITLE}>반복 패턴</Text>
+          <View style={styles.cardValueWrap}>
+            <Text style={[theme.TYPOGRAPHY.BODY_2, !cycleLabel && styles.emptyValue]}>
+              {cycleLabel ?? '선택해주세요'}
+            </Text>
+            <DropArrow direction={isPatternExpanded ? 'UP' : 'DOWN'} fill={getArrowColor(isPatternExpanded)} />
+          </View>
+        </Pressable>
+        {isPatternExpanded && (
+          <View style={styles.patternBody}>
+            <View style={styles.routinePrimaryCategoryButtonSection}>
+              {REPEAT_CYCLES.map(({ value, name }) => (
                 <Pressable
-                  key={day}
+                  key={value}
                   style={[
-                    isLastDay ? styles.monthlyLastDay : styles.monthlyDay,
-                    isSelected && styles.patternDaySelected,
+                    styles.routinePrimaryCategoryButton,
+                    selectedPrimaryCategory === value && styles.routinePrimaryCategoryButtonSelected,
                   ]}
-                  onPress={() => toggleMonthlyDay(day)}
+                  onPress={handlePrimaryCategory(value)}
                 >
-                  <Text style={[styles.patternDayText, isSelected && styles.patternDayTextSelected]}>
-                    {isLastDay ? '마지막 날' : day}
-                  </Text>
+                  <Text style={styles.routinePrimaryCategoryButtonText}>{name}</Text>
                 </Pressable>
-              );
-            })}
+              ))}
+            </View>
+            {selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.WEEKLY && (
+              <View style={styles.weeklyRow}>
+                {WEEKLY_DAY_INFO.map(({ code, value, name }) => {
+                  const isSelected = selectedWeeklyDaySet.has(value);
+
+                  return (
+                    <Pressable
+                      key={code}
+                      style={[styles.weeklyDay, isSelected && styles.patternDaySelected]}
+                      onPress={() => toggleWeeklyDay(value)}
+                    >
+                      <Text style={[styles.patternDayText, isSelected && styles.patternDayTextSelected]}>{name}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+            {selectedPrimaryCategory === TASK_ROUTINE_CYCLE_ENUM.enum.MONTHLY && (
+              <View style={styles.monthlyGrid}>
+                {Array.from({ length: MONTHLY_DAY_COUNT }, (_, index) => {
+                  const day = index + 1;
+                  const isLastDay = day === LAST_DAY_OF_MONTH;
+                  const isSelected = selectedMonthlyDaySet.has(day);
+
+                  return (
+                    <Pressable
+                      key={day}
+                      style={[
+                        isLastDay ? styles.monthlyLastDay : styles.monthlyDay,
+                        isSelected && styles.patternDaySelected,
+                      ]}
+                      onPress={() => toggleMonthlyDay(day)}
+                    >
+                      <Text style={[styles.patternDayText, isSelected && styles.patternDayTextSelected]}>
+                        {isLastDay ? '마지막 날' : day}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
           </View>
         )}
       </View>
-      <View style={styles.selectHolidaySection}>
+
+      <View style={[styles.card, styles.cardRow]}>
         <View style={styles.selectHolidayTitleWrap}>
           <Text style={theme.TYPOGRAPHY.SUB_TITLE}>공휴일 제외하기</Text>
           <Text style={styles.optionalLabel}>(선택)</Text>
@@ -259,43 +282,66 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 24,
   },
-  dateSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+  /* 날짜·반복 패턴·공휴일을 각각 감싸는 카드 */
+  card: {
+    borderWidth: 1,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_92,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 16,
   },
-  dateLeftSection: {
+  /* 펼친 카드는 테두리를 진하게 해 지금 다루는 곳을 드러낸다 */
+  cardExpanded: {
+    borderColor: theme.COLORS.DEFAULT.BLACK,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cardValueWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
-    flex: 8,
+  },
+  emptyValue: {
+    color: theme.COLORS.GRAY_SCALE.GRAY_60,
+  },
+  dateHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  dateRows: {
+    flex: 1,
+    gap: 8,
   },
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    /* 화살표 자리만큼 비워 두 줄의 값이 화살표와 겹치지 않게 한다 */
+    paddingRight: 12,
   },
-  emptyDateText: {
-    color: theme.COLORS.GRAY_SCALE.GRAY_60,
-  },
-  dateRightSection: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: 4,
-  },
-  divider: {
-    marginVertical: 20,
+  /* 카드 좌우 패딩을 상쇄해 카드 폭을 꽉 채우는 구분선 */
+  cardDivider: {
+    height: 1,
+    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_92,
+    marginTop: 16,
+    marginHorizontal: -16,
   },
   calendarWrap: {
-    marginBottom: 32,
+    marginTop: 16,
+    /* 카드 좌우 패딩을 상쇄해 달력을 조금 더 넓게 편다(과하면 잘림) */
     marginHorizontal: -8,
   },
   calendarClip: {
     overflow: 'hidden',
   },
-  routineSection: {
+  patternBody: {
+    marginTop: 16,
     gap: 12,
   },
-  routineSectionTitle: theme.TYPOGRAPHY.SUB_TITLE,
   routinePrimaryCategoryButtonSection: { flexDirection: 'row', gap: 8 },
   routinePrimaryCategoryButton: {
     paddingHorizontal: 16,
@@ -352,12 +398,6 @@ const styles = StyleSheet.create({
   },
   patternDayTextSelected: {
     color: theme.COLORS.DEFAULT.WHITE,
-  },
-  selectHolidaySection: {
-    marginTop: 32,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
   selectHolidayTitleWrap: {
     flexDirection: 'row',

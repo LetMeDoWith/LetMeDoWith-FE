@@ -51,7 +51,9 @@ const useRoutineForm = ({ mirrorToForm, setValue, watch }: Params) => {
   const [selectedPrimaryCategory, setSelectedPrimaryCategory] = useState<TaskRoutineCycleEnumType | null>(null);
   const [selectedWeeklyDaySet, setSelectedWeeklyDaySet] = useState<Set<number>>(new Set());
   const [selectedMonthlyDaySet, setSelectedMonthlyDaySet] = useState<Set<number>>(new Set());
+  /* 날짜와 반복 패턴은 각각 독립적으로 열고 닫는다 */
   const [expanded, setExpanded] = useState(true);
+  const [isPatternExpanded, setIsPatternExpanded] = useState(false);
   const [isExcludeHolidays, setIsExcludeHolidays] = useState(false);
 
   // wrapper는 보이는 달의 주 수만큼만 노출(overflow로 클립)해 여백을 없앤다.
@@ -328,6 +330,8 @@ const useRoutineForm = ({ mirrorToForm, setValue, watch }: Params) => {
     toggleMonthlyDay: togglePatternDay(setSelectedMonthlyDaySet),
     expanded,
     toggleExpanded: () => setExpanded(prev => !prev),
+    isPatternExpanded,
+    togglePatternExpanded: () => setIsPatternExpanded(prev => !prev),
     isExcludeHolidays,
     handleExcludeHolidays,
     hasAnySelection,
