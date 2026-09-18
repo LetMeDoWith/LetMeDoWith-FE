@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
@@ -7,8 +7,6 @@ import dayjs from 'dayjs';
 
 import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
-import { TodoMode } from 'components/common/icons/TodoMode';
-import { DowithMode } from 'components/common/icons/DowithMode';
 import type { TaskFormStackParamList, TaskModeType } from 'types/shared';
 import { CategoryBottomSheet } from 'components/Task/BottomSheet/CategoryBottomSheet';
 import { RoutineBottomSheet } from 'components/Task/BottomSheet/RoutineBottomSheet';
@@ -47,7 +45,8 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => 
   const routineBottomSheetMethodsRef = useRef<BottomSheetModalMethods>(null);
   const dateTimePickerRef = useRef<BottomSheetModalMethods>(null);
 
-  const [taskMode, setTaskMode] = useState<TaskModeType | null>(params.mode ?? null);
+  /* 수정 화면은 진입한 모드가 고정이라 상태로 들고 있지 않는다 */
+  const taskMode: TaskModeType | null = params.mode ?? null;
   const isTodoMode = taskMode === 'TODO';
 
   const { data: taskCategoryList } = useFetchTaskCategoryList();
@@ -96,80 +95,10 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => 
    */
   const isRoutineMenuVisible = !isEditMode || !isRoutineTask;
 
-  /* 투두 수정에는 모드 표시 바가 없다(등록 화면의 모드 선택은 그대로 둔다) */
+  /* 투두 수정에는 모드 표시 바가 없다 */
   const hasModeBadge = !isEditMode || params.mode !== 'TODO';
 
   const renderTaskModeButtonView = () => {
-    if (!isEditMode) {
-      return (
-        <>
-          <Text style={theme.TYPOGRAPHY.SUB_TITLE}>모드 선택</Text>
-          <View style={styles.modeButtonWrap}>
-            <Pressable
-              style={[
-                styles.modeButton,
-                taskMode === 'TODO' && {
-                  backgroundColor: theme.COLORS.SECONDARY.BLUE_95,
-                  borderColor: theme.COLORS.SECONDARY.BLUE_95,
-                },
-              ]}
-              onPress={handleTaskMode('TODO')}
-            >
-              <TodoMode />
-              <View style={styles.modeButtonTextWrap}>
-                <Text
-                  style={[
-                    theme.TYPOGRAPHY.CAPTION1_BASIC,
-                    { color: taskMode === 'TODO' ? theme.COLORS.SECONDARY.BLUE_60 : theme.COLORS.GRAY_SCALE.GRAY_50 },
-                  ]}
-                >
-                  자유롭게 혼자하는
-                </Text>
-                <Text
-                  style={[
-                    theme.TYPOGRAPHY.SUB_TITLE,
-                    { color: taskMode === 'TODO' ? theme.COLORS.SECONDARY.BLUE_60 : theme.COLORS.GRAY_SCALE.GRAY_10 },
-                  ]}
-                >
-                  TO DO
-                </Text>
-              </View>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.modeButton,
-                taskMode === 'DOWITH' && {
-                  backgroundColor: theme.COLORS.PRIMARY.RED_98,
-                  borderColor: theme.COLORS.PRIMARY.RED_98,
-                },
-              ]}
-              onPress={handleTaskMode('DOWITH')}
-            >
-              <DowithMode />
-              <View style={styles.modeButtonTextWrap}>
-                <Text
-                  style={[
-                    theme.TYPOGRAPHY.CAPTION1_BASIC,
-                    { color: taskMode === 'DOWITH' ? theme.COLORS.PRIMARY.RED_60 : theme.COLORS.GRAY_SCALE.GRAY_50 },
-                  ]}
-                >
-                  잔소리와 함께하는
-                </Text>
-                <Text
-                  style={[
-                    theme.TYPOGRAPHY.SUB_TITLE,
-                    { color: taskMode === 'DOWITH' ? theme.COLORS.PRIMARY.RED_60 : theme.COLORS.GRAY_SCALE.GRAY_10 },
-                  ]}
-                >
-                  DO WITH
-                </Text>
-              </View>
-            </Pressable>
-          </View>
-        </>
-      );
-    }
-
     /* 투두 수정은 모드 표시 없이 바로 필드부터 보여준다 */
     if (!hasModeBadge) {
       return null;
@@ -208,19 +137,6 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => 
       dateTimePickerRef.current?.dismiss();
     },
     [setValue],
-  );
-
-  const handleTaskMode = useCallback(
-    (mode: TaskModeType) => () => {
-      // 지난 날짜에는 두윗 등록 불가
-      const isInvalidAddDowithTask = mode === 'DOWITH' && dayjs(date).isBefore(dayjs(), 'day');
-      if (isInvalidAddDowithTask) {
-        showDialog({ ...REGISTER_BLOCKED_DIALOG, handleAlertButton: hideDialog });
-        return;
-      }
-      setTaskMode(mode);
-    },
-    [date],
   );
 
   const handleTaskRoutine = useCallback(() => {
@@ -463,10 +379,6 @@ const styles = StyleSheet.create({
   fieldsWithoutModeBadge: {
     marginTop: 0,
   },
-  modeButtonWrap: {
-    flexDirection: 'row',
-    gap: 8,
-  },
   /* 도리 수정 화면 상단의 모드 표시 바 */
   modeBadge: {
     alignItems: 'center',
@@ -477,21 +389,6 @@ const styles = StyleSheet.create({
   modeBadgeText: {
     ...theme.TYPOGRAPHY.SUB_TITLE,
     color: theme.COLORS.PRIMARY.RED_60,
-  },
-  modeButton: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-    backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_98,
-    borderColor: theme.COLORS.GRAY_SCALE.GRAY_96,
-    borderWidth: 1,
-    borderRadius: 16,
-  },
-  modeButtonTextWrap: {
-    alignItems: 'center',
-    gap: 2,
   },
   optionalLabelWrap: {
     flexDirection: 'row',
