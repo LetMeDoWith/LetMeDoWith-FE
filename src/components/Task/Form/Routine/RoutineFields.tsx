@@ -123,6 +123,12 @@ const RoutineFields = ({ routine, contentContainerStyle }: Props) => {
 
   const cycleLabel = REPEAT_CYCLES.find(({ value }) => value === selectedPrimaryCategory)?.name;
 
+  /*
+   * 공휴일 제외는 반복 주기에 딸린 옵션이다. 주기가 없으면 routineCondition 자체가 저장되지 않아
+   * 켜도 값이 버려지므로, 주기를 고르기 전에는 아예 누르지 못하게 막는다.
+   */
+  const isHolidayDisabled = selectedPrimaryCategory === null;
+
   return (
     <ScrollView
       style={styles.container}
@@ -267,10 +273,15 @@ const RoutineFields = ({ routine, contentContainerStyle }: Props) => {
 
       <View style={[styles.card, styles.cardRow]}>
         <View style={styles.selectHolidayTitleWrap}>
-          <Text style={theme.TYPOGRAPHY.SUB_TITLE}>공휴일 제외하기</Text>
+          <Text style={[theme.TYPOGRAPHY.SUB_TITLE, isHolidayDisabled && styles.disabledLabel]}>공휴일 제외하기</Text>
           <Text style={styles.optionalLabel}>(선택)</Text>
         </View>
-        <Switch value={isExcludeHolidays} color={theme.COLORS.PRIMARY.RED_60} onValueChange={handleExcludeHolidays} />
+        <Switch
+          value={isExcludeHolidays}
+          color={theme.COLORS.PRIMARY.RED_60}
+          onValueChange={handleExcludeHolidays}
+          disabled={isHolidayDisabled}
+        />
       </View>
     </ScrollView>
   );
@@ -406,6 +417,9 @@ const styles = StyleSheet.create({
   },
   optionalLabel: {
     ...theme.TYPOGRAPHY.CAPTION1_BASIC,
+    color: theme.COLORS.GRAY_SCALE.GRAY_70,
+  },
+  disabledLabel: {
     color: theme.COLORS.GRAY_SCALE.GRAY_70,
   },
   // 라이브러리 dayContainer(flex:1, column)의 가로 폭을 채운다(alignSelf:stretch). flex:1은 세로로 늘어나 붕괴하므로 금지.
