@@ -21,8 +21,11 @@ interface Props {
   watch: UseFormWatch<taskFormSchemeType>;
   /* 확인/닫기 후 시트를 이전 화면으로 되돌리는 콜백 */
   closeBottomSheet?: () => void;
-  /* 확인 버튼을 눌러도 되는 상태인지 시트에 알린다 */
-  onCanConfirmChange?: (canConfirm: boolean) => void;
+  /*
+   * 선택 상태를 시트에 알린다. 버튼을 언제 열어줄지는 시트마다 달라 판단은 넘기지 않는다
+   * (등록 시트는 미설정도 통과, 루틴 등록 시트는 완성돼야 통과).
+   */
+  onValidityChange?: (state: { hasAnySelection: boolean; isValid: boolean }) => void;
 }
 
 /*
@@ -32,7 +35,7 @@ interface Props {
  * 확인·닫기는 시트가 자기 버튼으로 처리하므로 ref로 노출한다.
  */
 const RoutineSheetContent = forwardRef<RoutineSheetContentRef, Props>(
-  ({ taskMode = null, setValue, watch, closeBottomSheet = () => {}, onCanConfirmChange }, ref) => {
+  ({ taskMode = null, setValue, watch, closeBottomSheet = () => {}, onValidityChange }, ref) => {
     const routine = useRoutineForm({ mirrorToForm: false, setValue, watch });
     const {
       routineCondition,
@@ -54,7 +57,11 @@ const RoutineSheetContent = forwardRef<RoutineSheetContentRef, Props>(
     } = routine;
 
     const handleSubmit = () => {
-      setValue('routineCondition', buildRoutineCondition());
+      /*
+       * shouldDirty가 없으면 폼이 변경된 것으로 잡히지 않는다.
+       * 수정 화면의 저장 버튼이 dirtyFields를 보기 때문에, 루틴만 설정하면 저장이 막힌다.
+       */
+      setValue('routineCondition', buildRoutineCondition(), { shouldDirty: true, shouldTouch: true });
       closeBottomSheet();
     };
 
@@ -128,12 +135,8 @@ const RoutineSheetContent = forwardRef<RoutineSheetContentRef, Props>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [taskMode]);
 
-    /*
-     * 루틴은 선택 사항이라 아무것도 안 고른 상태로도 확인할 수 있다(미설정으로 넘어간다).
-     * 하나라도 골랐다면 기간·반복 패턴을 제대로 채웠을 때만 확인할 수 있다.
-     */
     useEffect(() => {
-      onCanConfirmChange?.(!hasAnySelection || getIsValidRoutineCondition());
+      onValidityChange?.({ hasAnySelection, isValid: getIsValidRoutineCondition() });
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hasAnySelection, selectedEndDate, selectedPrimaryCategory, selectedWeeklyDaySet, selectedMonthlyDaySet]);
 

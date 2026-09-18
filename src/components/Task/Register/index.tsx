@@ -417,7 +417,8 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
             closeBottomSheet={() => goToStep('MAIN')}
             setValue={setValue}
             watch={watch}
-            onCanConfirmChange={setCanConfirmRoutine}
+            /* 루틴은 선택 사항이라 아무것도 안 고른 상태로도 확인할 수 있다 */
+            onValidityChange={({ hasAnySelection, isValid }) => setCanConfirmRoutine(!hasAnySelection || isValid)}
           />
         );
 
