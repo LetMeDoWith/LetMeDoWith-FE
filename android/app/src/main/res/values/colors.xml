@@ -4,4 +4,6 @@
     <color name="notification_color">#F67A51</color>
     <!-- 스플래시 배경 (theme.COLORS.PRIMARY.RED_60) -->
     <color name="bootsplash_background">#FF5F33</color>
+    <!-- 앱 아이콘 배경 (흰색) -->
+    <color name="ic_launcher_background">#FFFFFF</color>
 </resources>
