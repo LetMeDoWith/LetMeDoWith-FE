@@ -47,7 +47,7 @@ const mergeTasksByDate = (taskLists: (fetchTaskListResponseSchemeDataType | unde
   return map;
 };
 
-type CalendarMarking = { selected?: boolean };
+type CalendarMarking = { selected?: boolean; taskStatus?: DateMarkingStatus };
 
 /*
  * 달력에 넘길 markedDates를 만든다.
@@ -60,14 +60,27 @@ type CalendarMarking = { selected?: boolean };
  * 이 객체는 주 뷰의 갱신 신호이기도 하다 — WeekCalendar의 renderItem은 의존성에 dayComponent가
  * 없고 markedDates만 있어서, 이 값이 바뀌지 않으면 날짜를 눌러도 셀이 다시 그려지지 않는다.
  */
-const buildCalendarMarkedDates = ({ selectedDate, visibleDate }: { selectedDate: string; visibleDate: string }) => {
+const buildCalendarMarkedDates = ({
+  selectedDate,
+  visibleDate,
+  statusByDate,
+}: {
+  selectedDate: string;
+  visibleDate: string;
+  /* 날짜별 마킹 상태. 여기 함께 실어야 데이터가 늦게 도착해도 달력이 다시 그려진다. */
+  statusByDate?: Map<string, DateMarkingStatus>;
+}) => {
   const marks: Record<string, CalendarMarking> = {};
 
   getSurroundingMonths(visibleDate).forEach(({ year, month }) => {
     marks[`${year}-${String(month).padStart(2, '0')}-01`] = {};
   });
 
-  marks[selectedDate] = { selected: true };
+  statusByDate?.forEach((taskStatus, date) => {
+    marks[date] = { ...marks[date], taskStatus };
+  });
+
+  marks[selectedDate] = { ...marks[selectedDate], selected: true };
 
   return marks;
 };

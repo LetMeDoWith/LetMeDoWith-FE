@@ -243,9 +243,14 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
     [statusByDate, handleDayPress],
   );
 
+  /*
+   * 마킹 상태를 markedDates에도 실어 보낸다. 달력은 markedDates가 바뀔 때만 셀을 다시 그려서,
+   * 태스크 조회가 첫 렌더보다 늦게 끝나면 dayComponent만 새로 줘서는 아이콘이 나타나지 않는다.
+   * (셀이 읽는 값은 여전히 statusByDate다 — markedDates는 달마다 걸러져 옆 달 날짜가 빠진다)
+   */
   const markedDates = useMemo(
-    () => buildCalendarMarkedDates({ selectedDate, visibleDate: currentDate }),
-    [selectedDate, currentDate],
+    () => buildCalendarMarkedDates({ selectedDate, visibleDate: currentDate, statusByDate }),
+    [selectedDate, currentDate, statusByDate],
   );
 
   const renderCustomHeader = useCallback(

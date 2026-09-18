@@ -93,6 +93,24 @@ describe('buildCalendarMarkedDates', () => {
     expect(marks['2026-11-01']).toEqual({});
     expect(marks['2027-01-01']).toEqual({});
   });
+
+  /*
+   * 달력은 markedDates가 바뀔 때만 셀을 다시 그린다. 태스크 상태를 여기 싣지 않으면
+   * 조회가 첫 렌더보다 늦게 끝났을 때 마킹 아이콘이 나타나지 않는다.
+   */
+  it('날짜별 마킹 상태를 함께 싣는다', () => {
+    const statusByDate = new Map([['2026-09-10', { dowith: 'SUCCESS' as const, todo: 'NONE' as const }]]);
+    const marks = buildCalendarMarkedDates({ selectedDate: '2026-09-15', visibleDate: '2026-09-10', statusByDate });
+
+    expect(marks['2026-09-10']).toEqual({ taskStatus: { dowith: 'SUCCESS', todo: 'NONE' } });
+  });
+
+  it('마킹 상태가 있는 날짜를 선택해도 두 값이 모두 남는다', () => {
+    const statusByDate = new Map([['2026-09-10', { dowith: 'NONE' as const, todo: 'INCOMPLETE' as const }]]);
+    const marks = buildCalendarMarkedDates({ selectedDate: '2026-09-10', visibleDate: '2026-09-10', statusByDate });
+
+    expect(marks['2026-09-10']).toEqual({ selected: true, taskStatus: { dowith: 'NONE', todo: 'INCOMPLETE' } });
+  });
 });
 
 describe('mergeTasksByDate', () => {
