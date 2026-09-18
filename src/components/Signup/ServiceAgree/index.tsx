@@ -44,58 +44,61 @@ const ServiceAgree = () => {
     return true;
   }, [ageOfAgree, allChecked, privacy, termsOfAgree]);
 
-  const onSubmit: SubmitHandler<signUpRequestSchemeType> = useCallback(values => {
-    console.log(values);
-    const {
-      nickname,
-      dateOfBirth,
-      agreements: { advertisement },
-    } = values;
+  const onSubmit: SubmitHandler<signUpRequestSchemeType> = useCallback(
+    values => {
+      const {
+        nickname,
+        dateOfBirth,
+        agreements: { advertisement },
+      } = values;
 
-    // 광고성 알림 동의 안했을 경우 동의 강조 관련 Dialog 노출
-    if (!advertisement) {
+      /*
+       * 수신 동의 여부는 다이얼로그에서 최종 결정되므로 인자로 받아 쓴다.
+       * onSubmit 진입 시점에 캡처된 values를 그대로 쓰면 다이얼로그에서 동의를 눌러도 미동의로 전송된다.
+       */
+      const submitWith = (isAdvertisementAgreed: boolean) => {
+        updateNotificationSettings({ marketing: isAdvertisementAgreed });
+        mutate({
+          ...values,
+          agreements: { ...values.agreements, advertisement: isAdvertisementAgreed },
+          dateOfBirth: dateOfBirth.replaceAll(' / ', '-'),
+        });
+        hideDialog();
+      };
+
+      /* 선택 결과를 확인시키고, 확인을 눌러야 가입이 진행된다. */
+      const showResultDialog = (isAdvertisementAgreed: boolean) => {
+        showDialog({
+          type: 'ALERT',
+          title: `광고성 정보 수신${isAdvertisementAgreed ? '동의' : '거부'} 처리`,
+          content: '광고성 수신 정보 동의는 설정 >\n마케팅ㆍ혜택 알림에서 변경 가능합니다.',
+          subContent: `작성자 : ${nickname}\n일시 : ${dayjs().format('YYYY년 MM월 DD일')}\n상태 : 광고성 정보 수신 ${
+            isAdvertisementAgreed ? '동의' : '거부'
+          }`,
+          handleAlertButton: () => submitWith(isAdvertisementAgreed),
+        });
+      };
+
+      if (advertisement) {
+        submitWith(true);
+        return;
+      }
+
+      /* 미동의 상태로 가입하려 할 때만 한 번 더 동의를 권한다. */
       showDialog({
         title: '광고성 정보 수신 동의',
         content: '광고성 정보 수신 미동의시 다양한 혜택 및\n이벤트 참여에 제한이 있을 수 있습니다.',
         leftButtonText: '미동의',
         rightButtonText: '동의',
-        handleLeftButton: hideDialog,
+        handleLeftButton: () => showResultDialog(false),
         handleRightButton: () => {
           setValue('agreements.advertisement', true);
-          hideDialog();
+          showResultDialog(true);
         },
       });
-
-      showDialog({
-        type: 'ALERT',
-        title: '광고성 정보 수신거부 처리',
-        content: '광고성 수신 정보 동의는 설정 >\n마케팅ㆍ혜택 알림에서 변경 가능합니다.',
-        subContent: `작성자 : ${nickname}\n일시 : ${dayjs().format('YYYY년 MM월 DD일')}\n상태 : 광고성 정보 수신 ${
-          advertisement ? '동의' : '미동의'
-        }`,
-        handleAlertButton: () => {
-          mutate({
-            ...values,
-            dateOfBirth: dateOfBirth.replaceAll(' / ', '-'),
-          });
-          hideDialog();
-        },
-      });
-
-      updateNotificationSettings({
-        marketing: advertisement,
-      });
-      return;
-    }
-
-    updateNotificationSettings({
-      marketing: true,
-    });
-    mutate({
-      ...values,
-      dateOfBirth: dateOfBirth.replaceAll(' / ', '-'),
-    });
-  }, []);
+    },
+    [hideDialog, mutate, setValue, showDialog, updateNotificationSettings],
+  );
 
   const onPressCheckBox = useCallback(
     (label: AgreementLabels) => () => {
