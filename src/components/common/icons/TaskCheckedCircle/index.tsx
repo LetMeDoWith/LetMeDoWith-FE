@@ -5,7 +5,7 @@ import { theme } from 'styles/theme';
 
 /*
  * 완료한 태스크에 쓰는 체크가 찍힌 원. 원 색만 받고 체크는 흰색으로 고정한다.
- * 두윗은 주황, 투두는 검정으로 넘긴다.
+ * 도리는 주황, 투두는 검정으로 넘긴다.
  */
 const TaskCheckedCircle = ({
   width = 24,

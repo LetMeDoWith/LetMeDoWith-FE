@@ -87,7 +87,7 @@ const buildCalendarMarkedDates = ({
 
 /*
  * 달력 마킹에 쓰는 모드별 상태.
- * 하루에 두윗과 투두가 함께 있을 수 있어 모드마다 따로 판정해야 좌우 색을 각각 칠할 수 있다.
+ * 하루에 도리와 투두가 함께 있을 수 있어 모드마다 따로 판정해야 좌우 색을 각각 칠할 수 있다.
  */
 type ModeMarkingStatus = 'SUCCESS' | 'INCOMPLETE' | 'NONE';
 
@@ -108,7 +108,7 @@ interface DateMarkingStatus {
   todo: ModeMarkingStatus;
 }
 
-/* 하루치 목록을 두윗·투두 각각의 마킹 상태로 나눈다. */
+/* 하루치 목록을 도리·투두 각각의 마킹 상태로 나눈다. */
 const getDateMarkingStatus = (taskList: fetchTaskListResponseSchemeDataType): DateMarkingStatus => ({
   dowith: getModeMarkingStatus(taskList.dowithTasks),
   todo: getModeMarkingStatus(taskList.todoTasks),

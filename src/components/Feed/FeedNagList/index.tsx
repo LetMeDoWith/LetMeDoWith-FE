@@ -12,7 +12,7 @@ import { theme } from 'styles/theme';
 const DISPLAY_COUNT = 5;
 
 interface Props {
-  // 항목의 잔소리 이모지가 펼쳐질 때 호출(이모지 바 하단 Y 전달). 부모 ScrollView가 가려지면 스크롤한다.
+  // 항목의 잡도리 이모지가 펼쳐질 때 호출(이모지 바 하단 Y 전달). 부모 ScrollView가 가려지면 스크롤한다.
   onItemExpand?: (reactionBarBottomY: number) => void;
 }
 

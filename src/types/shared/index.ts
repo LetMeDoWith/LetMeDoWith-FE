@@ -39,7 +39,7 @@ type RootStackParamList = {
     dowithTaskId: number;
     // Item 진입 시 즉시 렌더용으로 전달, 딥링크 진입 시에는 미전달 (화면에서 상세 조회로 보완)
     successImageUrl?: string;
-    // 진입 시 열 탭. 공감 알림 딥링크는 'like'를 넘기고, 미전달이면 잔소리 탭으로 연다.
+    // 진입 시 열 탭. 공감 알림 딥링크는 'like'를 넘기고, 미전달이면 잡도리 탭으로 연다.
     tab?: CheerCollectionTabType;
   };
 };

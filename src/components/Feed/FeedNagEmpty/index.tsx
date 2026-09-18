@@ -68,7 +68,7 @@ const ListEmpty = () => <Image source={nagCompleteImage} style={styles.nagComple
 interface Props {
   /*
    * 빈 상태에서는 이 목록이 화면의 스크롤 컨테이너라, 당겨서 새로고침도 여기에 붙는다.
-   * 실시간 잔소리하기 화면처럼 당겨서 새로고침이 없는 곳에서는 넘기지 않는다.
+   * 실시간 잡도리하기 화면처럼 당겨서 새로고침이 없는 곳에서는 넘기지 않는다.
    */
   onRefresh?: () => Promise<unknown>;
 }

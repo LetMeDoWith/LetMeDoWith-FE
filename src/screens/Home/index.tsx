@@ -57,7 +57,7 @@ const EMPTY_TASK_LIST: fetchTaskListResponseSchemeDataType = { dowithTasks: [], 
 const getCheckColor = (status: ModeMarkingStatus, successColor: string) =>
   status === 'SUCCESS' ? successColor : theme.COLORS.GRAY_SCALE.GRAY_80;
 
-/* 날짜 아래 마킹. 두윗·투두가 모두 있으면 겹친 체크, 한쪽만 있으면 단일 체크. */
+/* 날짜 아래 마킹. 도리·투두가 모두 있으면 겹친 체크, 한쪽만 있으면 단일 체크. */
 const DateMarking = memo(({ dowith, todo }: DateMarkingStatus) => {
   if (dowith === 'NONE' && todo === 'NONE') {
     return null;
@@ -159,7 +159,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
   const { data: receivedFeedbacks } = useFetchReceivedFeedbacks();
 
   /*
-   * 첫 두윗 등록 후 한 번만 뜨는 코치마크.
+   * 첫 도리 등록 후 한 번만 뜨는 코치마크.
    * 등록 성공이 예약해 준 경우에만 띄운다 — 플래그만 보면 기존 사용자에게도 뜬다.
    */
   const isDowithOnboardingPending = useStore(state => state.isDowithOnboardingPending);
@@ -175,8 +175,8 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
   }, []);
 
   /*
-   * '내 잡도리'는 받은 잔소리 화면으로 가므로, 점은 안 읽은 잔소리를 뜻한다.
-   * 무한 스크롤이라 불러온 페이지 안에서만 판단한다 — 안 읽은 잔소리는 최신이라 첫 페이지에 들어온다.
+   * '내 잡도리'는 받은 잡도리 화면으로 가므로, 점은 안 읽은 잡도리를 뜻한다.
+   * 무한 스크롤이라 불러온 페이지 안에서만 판단한다 — 안 읽은 잡도리는 최신이라 첫 페이지에 들어온다.
    */
   const hasUncheckedFeedback =
     receivedFeedbacks?.pages.some(page => page.data.feedbacks.some(feedback => !feedback.isChecked)) ?? false;
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.COLORS.PRIMARY.RED_60,
     alignItems: 'center',
     justifyContent: 'center',
-    /* 잔소리 탭 FAB과 같은 값. iOS는 shadow*, Android는 elevation이 각각 필요하다. */
+    /* 잡도리 탭 FAB과 같은 값. iOS는 shadow*, Android는 elevation이 각각 필요하다. */
     shadowColor: theme.COLORS.DEFAULT.BLACK,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,

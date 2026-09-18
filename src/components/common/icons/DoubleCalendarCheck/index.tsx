@@ -20,7 +20,7 @@ const RIGHT_CHECK_PATH =
 const GAP_WIDTH = 1.5;
 
 /*
- * 두윗과 투두가 모두 등록된 날에 쓰는 겹친 체크.
+ * 도리와 투두가 모두 등록된 날에 쓰는 겹친 체크.
  * 왼쪽·오른쪽 색을 따로 받아 각 모드의 상태를 나타낸다.
  */
 const DoubleCalendarCheck = ({

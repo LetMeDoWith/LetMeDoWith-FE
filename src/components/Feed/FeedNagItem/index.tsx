@@ -32,8 +32,8 @@ interface Props {
   feedbackCount: number;
   myFeedbacks: myFeedbackSchemeType[];
   /*
-   * 잔소리 이모지가 펼쳐졌을 때 호출. 이모지 바의 화면상 하단 Y(window 기준)를 넘겨, 부모가 가려지면 스크롤한다.
-   * FlatList(실시간 잔소리)는 인자를 무시하고 scrollToIndex를 쓰고, ScrollView(둘러보기)는 이 값으로 스크롤 양을 계산한다.
+   * 잡도리 이모지가 펼쳐졌을 때 호출. 이모지 바의 화면상 하단 Y(window 기준)를 넘겨, 부모가 가려지면 스크롤한다.
+   * FlatList(실시간 잡도리)는 인자를 무시하고 scrollToIndex를 쓰고, ScrollView(둘러보기)는 이 값으로 스크롤 양을 계산한다.
    */
   onExpand?: (reactionBarBottomY: number) => void;
 }
@@ -53,7 +53,7 @@ const CONTENT_GAP = 12;
 const WOBBLE_START_ANGLE = -18;
 
 /*
- * "보낸 잔소리"에 새로 추가된 아이콘.
+ * "보낸 잡도리"에 새로 추가된 아이콘.
  * 회전에 감쇠가 약한 스프링을 걸어 좌우로 몇 번 흔들리다 멈추게 한다(오뚜기).
  * 크기는 감쇠를 세게 줘서 흔들리지 않고 한 번에 자리잡는다.
  */
@@ -271,7 +271,7 @@ const FeedNagItem = ({
                   {templates.map(template => (
                     <Pressable key={template.id} style={styles.reactionButton} onPress={() => handleReaction(template)}>
                       <FeedbackEmoji uri={template.emojiUrl} size={48} />
-                      {/* 둘러보기·실시간 잔소리하기의 잔소리 이모지 선택 UI에서만 줄바꿈으로 결합 */}
+                      {/* 둘러보기·실시간 잡도리하기의 잡도리 이모지 선택 UI에서만 줄바꿈으로 결합 */}
                       <Text style={styles.reactionMessage}>{template.nameTokens.join('\n')}</Text>
                     </Pressable>
                   ))}

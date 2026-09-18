@@ -31,7 +31,7 @@ const useUploadDowithTaskSuccessImageList = (id: number) => {
       });
     },
     onSuccess: async () => {
-      console.log('두윗 성공 이미지 업로드 성공 !');
+      console.log('도리 성공 이미지 업로드 성공 !');
       queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.LIST });
     },
   });

@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 
 /*
- * 두윗 마감(시작시간 + 1시간)까지 남은 분. 마감했으면 0.
+ * 도리 마감(시작시간 + 1시간)까지 남은 분. 마감했으면 0.
  * 표시 문자열과 임박 여부 판단이 같은 값을 쓰도록 계산을 한곳에 둔다.
  */
 const getRemainingMinutes = (startTime: string): number => {

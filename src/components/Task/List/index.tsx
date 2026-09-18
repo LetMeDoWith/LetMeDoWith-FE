@@ -13,7 +13,7 @@ interface Props {
   year: number;
   month: number;
   selectedDate: string;
-  /* 첫 두윗 온보딩이 가리킬 좌표. 두윗 목록의 첫 항목만 측정한다. */
+  /* 첫 도리 온보딩이 가리킬 좌표. 도리 목록의 첫 항목만 측정한다. */
   onMeasureOnboardingTargets?: (targets: { status: Rect; thunder: Rect }) => void;
 }
 

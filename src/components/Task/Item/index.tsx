@@ -44,7 +44,7 @@ interface Props {
   successImageUrls?: string[] | null;
   feedBackCount?: number | null;
   /*
-   * 첫 두윗 온보딩이 가리킬 두 요소의 화면 좌표를 올려보낸다.
+   * 첫 도리 온보딩이 가리킬 두 요소의 화면 좌표를 올려보낸다.
    * 온보딩이 필요 없으면 넘기지 않으며, 그때는 측정도 일어나지 않는다.
    */
   onMeasureOnboardingTargets?: (targets: { status: Rect; thunder: Rect }) => void;
@@ -77,12 +77,12 @@ const Item = memo(function Item({
 
   const [showUploadImageBottomSheet, setShowUploadImageBottomSheet] = useState(false);
 
-  // 두윗이고, 시작 시간으로부터 1시간을 초과했을 경우 (list의 selectedDate=task 날짜, startTime은 prop이라 상세 조회 불필요)
+  // 도리고, 시작 시간으로부터 1시간을 초과했을 경우 (list의 selectedDate=task 날짜, startTime은 prop이라 상세 조회 불필요)
   const isInvalidUpdateDowithTask =
     !isTodoMode && dayjs(`${selectedDate} ${startTime}`).add(1, 'hour').isBefore(dayjs());
   const isFailed = localStatus === TASK_STATUS_ENUM.enum.FAIL;
 
-  // 인증 완료(성공)한 두윗은 수정/삭제(관리 메뉴) 불가
+  // 인증 완료(성공)한 도리는 수정/삭제(관리 메뉴) 불가
   const isDowithSuccess = !isTodoMode && localStatus === TASK_STATUS_ENUM.enum.SUCCESS;
   const isManageDisabled = isInvalidUpdateDowithTask || isFailed || isDowithSuccess;
 
@@ -210,7 +210,7 @@ const Item = memo(function Item({
   };
 
   const handleTaskStatus = (mode: TaskModeType, id: number, status: TaskStatusEnumType) => () => {
-    // 성공 인증하지 않은 두윗 Task이면 이미지 업로드 바텀시트 노출
+    // 성공 인증하지 않은 도리 Task이면 이미지 업로드 바텀시트 노출
     if (mode === 'DOWITH') {
       if (status === 'SUCCESS') {
         return;

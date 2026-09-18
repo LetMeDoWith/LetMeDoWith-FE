@@ -7,7 +7,7 @@ import { useUploadDowithTaskSuccessImageList } from 'hooks/queries/task/useFetch
 import { isAos } from 'utils/device';
 
 /*
- * 두윗 인증(즉석 촬영 → S3 업로드 → 성공 처리) 흐름.
+ * 도리 인증(즉석 촬영 → S3 업로드 → 성공 처리) 흐름.
  *
  * 홈 목록의 상태 아이콘과 잡도리 모아보기의 "바로 인증하기"가 같은 동작을 해야 해서
  * 한 곳에 모아 둔다. 인증에 성공하면 태스크 목록 쿼리가 무효화되므로,
@@ -17,7 +17,7 @@ const useDowithCertification = (dowithTaskId: number) => {
   const { showDialog, hideDialog } = useDialog();
   const { mutate: uploadDowithTaskSuccessImageUrlListMutate } = useUploadDowithTaskSuccessImageList(dowithTaskId);
 
-  /* 두윗 인증은 즉석 촬영만 허용한다(갤러리 선택 불가) */
+  /* 도리 인증은 즉석 촬영만 허용한다(갤러리 선택 불가) */
   const certify = useCallback(async () => {
     const options = {
       mediaType: 'photo' as const,

@@ -53,8 +53,8 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => 
   const { data: dowithTaskSamples } = useFetchDowithTaskSamples();
 
   /*
-   * 두윗 모드를 실제로 선택했을 때만 서버가 내려준 샘플 중 하나를 제목 placeholder로 보여준다.
-   * 모드 미선택(null) 상태는 제외한다 — 아직 두윗을 고르지 않았는데 두윗 샘플을 보여줄 이유가 없다.
+   * 도리 모드를 실제로 선택했을 때만 서버가 내려준 샘플 중 하나를 제목 placeholder로 보여준다.
+   * 모드 미선택(null) 상태는 제외한다 — 아직 도리를 고르지 않았는데 도리 샘플을 보여줄 이유가 없다.
    * 샘플은 마운트 시점에 한 번만 고른다. 렌더마다 고르면 입력하는 동안 문구가 계속 바뀐다.
    * 조회 전이거나 실패하면 기존 문구를 그대로 쓴다.
    */
@@ -85,7 +85,7 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => 
     ? !isFieldChanged || !title || isAddTodoTaskMutateLoading || isUpdateTaskMutateLoading
     : !isFieldChanged || !title || !startTime || isAddDowithTaskMutateLoading;
   const prevSelectedCategory = taskCategoryList?.find(({ id }) => taskCategoryId === id);
-  // 오늘 날짜에 두윗 등록할 때만 지난 시각 선택을 제한 (미래 날짜는 시간 제약 없음)
+  // 오늘 날짜에 도리 등록할 때만 지난 시각 선택을 제한 (미래 날짜는 시간 제약 없음)
   const isDowithOnToday = !isTodoMode && dayjs(date).isSame(dayjs(), 'day');
 
   /**

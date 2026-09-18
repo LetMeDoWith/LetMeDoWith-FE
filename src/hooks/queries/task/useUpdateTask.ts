@@ -57,7 +57,7 @@ const useUpdateTask = ({
     },
     onSuccess: (_, { withRoutineTask }) => {
       console.log(
-        `${withRoutineTask ? '루틴' : '일반'} ${isTodoMode ? '투두' : '두윗'} ${
+        `${withRoutineTask ? '루틴' : '일반'} ${isTodoMode ? '투두' : '도리'} ${
           isEditType ? '업데이트' : '삭제'
         } 성공! `,
       );
