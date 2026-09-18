@@ -91,7 +91,7 @@ const ReceivedFeedbackContent = ({
     [],
   );
 
-  // 잔소리 선택 UI가 아닌 화면(잡도리 모아보기 등)에서는 공백으로 결합
+  // 잡도리 선택 UI가 아닌 화면(잡도리 모아보기 등)에서는 공백으로 결합
   const selectedTemplateName = selectedTemplateId ? templateMap.get(selectedTemplateId)?.nameTokens.join(' ') : '';
 
   const ListHeader = (

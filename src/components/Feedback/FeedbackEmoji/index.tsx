@@ -5,7 +5,7 @@ import { SvgXml } from 'react-native-svg';
 import { fetchAndCacheSvgXml, getCachedSvgXml } from 'utils/feedbackSvgCache';
 
 /*
- * 잔소리 템플릿 이모지 렌더러(SVG 전용 — 잔소리 이모지는 SVG로 통일).
+ * 잡도리 템플릿 이모지 렌더러(SVG 전용 — 잡도리 이모지는 SVG로 통일).
  * URL별 SVG XML을 세션 캐시(재요청 방지)로 받아 SvgXml로 그린다. 이모지는 정사각형이라 size 하나로 width/height를 지정한다.
  */
 interface Props {

@@ -38,7 +38,7 @@ const ReceiveFeedback = () => {
     );
   }
 
-  // 잔소리 항목을 탭하면 해당 두윗이 등록된 홈 화면으로 이동 (deepLink 미제공 시 아무 동작 안 함)
+  // 잡도리 항목을 탭하면 해당 두윗이 등록된 홈 화면으로 이동 (deepLink 미제공 시 아무 동작 안 함)
   const renderItem = ({ item, index }: { item: receivedFeedbackSchemeType; index: number }) => (
     <Pressable disabled={!item.deepLink} onPress={() => navigateByDeepLink(item.deepLink)}>
       <ReceivedComment

@@ -11,12 +11,12 @@ interface Props {
 
 const EMPTY_COMMENT_TEXT: Record<EmptyCommentType, { title: string; descriptions: string[] }> = {
   SEND: {
-    title: '아직 보낸 잔소리가 없어요!',
+    title: '아직 보낸 잡도리가 없어요!',
     descriptions: ['멘트 변경 필요'],
   },
   RECEIVE: {
-    title: '아직 받은 잔소리가 없어요!',
-    descriptions: ['내가 먼저 잔소리를 보내면', '잔소리 받을 확률 UP!'],
+    title: '아직 받은 잡도리가 없어요!',
+    descriptions: ['내가 먼저 잡도리를 보내면', '잡도리 받을 확률 UP!'],
   },
 };
 

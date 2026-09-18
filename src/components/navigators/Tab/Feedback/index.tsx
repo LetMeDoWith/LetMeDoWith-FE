@@ -26,12 +26,12 @@ const FeedbackTopTabNavigator = () => {
           tabBarIndicatorStyle: { backgroundColor: theme.COLORS.DEFAULT.BLACK },
         }}
       >
-        <Tab.Screen name="RECEIVE" component={ReceiveFeedback} options={{ tabBarLabel: '받은 잔소리' }} />
-        <Tab.Screen name="SEND" component={SendFeedback} options={{ tabBarLabel: '보낸 잔소리' }} />
+        <Tab.Screen name="RECEIVE" component={ReceiveFeedback} options={{ tabBarLabel: '받은 잡도리' }} />
+        <Tab.Screen name="SEND" component={SendFeedback} options={{ tabBarLabel: '보낸 잡도리' }} />
       </Tab.Navigator>
       <Pressable style={styles.fab} onPress={handlePressNag}>
         <Thunder width={16} height={16} fill={theme.COLORS.DEFAULT.WHITE} />
-        <Text style={styles.fabText}>잔소리하기</Text>
+        <Text style={styles.fabText}>잡도리하기</Text>
       </Pressable>
     </View>
   );
