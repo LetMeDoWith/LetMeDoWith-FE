@@ -123,7 +123,6 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
   });
   const { watch, setValue, reset, getValues } = methods;
 
-  const title = watch('title');
   const formDate = watch('date');
   const startTime = watch('startTime');
   const taskCategoryId = watch('taskCategoryId');
@@ -428,8 +427,7 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
             onMeasure={setMainContentHeight}
             inputRef={titleInputRef}
             taskMode={taskMode}
-            title={title}
-            onChangeTitle={value => setValue('title', value, { shouldDirty: true })}
+            control={methods.control}
             titlePlaceholder={titlePlaceholder}
             date={formDate}
             startTime={startTime}

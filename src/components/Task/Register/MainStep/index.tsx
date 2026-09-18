@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, type TextInput, View } from 'react-native';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { Controller, useWatch, type Control } from 'react-hook-form';
 import dayjs from 'dayjs';
 
 import { Calendar } from 'components/common/icons/Calendar';
@@ -11,6 +12,7 @@ import { RoutineArrow } from 'components/common/icons/RoutineArrow';
 import { CheckCircle } from 'components/common/icons/CheckCircle';
 import { theme } from 'styles/theme';
 import type { TaskModeType } from 'types/shared';
+import type { taskFormSchemeType } from 'types/task/scheme/api';
 
 const TITLE_MAX_LENGTH = 20;
 
@@ -68,8 +70,12 @@ interface Props {
   /* 안드로이드에서 autoFocus가 무시될 때 밖에서 다시 포커스를 잡기 위한 참조 */
   inputRef?: React.RefObject<TextInput>;
   taskMode: TaskModeType;
-  title: string;
-  onChangeTitle: (title: string) => void;
+  /*
+   * 제목은 Controller로 연결한다. watch + setValue로 값을 왕복시키면 리렌더가 한 박자 늦어,
+   * 그 사이 낡은 값이 네이티브 입력에 다시 쓰이면서 한글 조합이 확정돼 자모가 합쳐지지 않는다.
+   * 시트 내용은 portal로 그려져 FormProvider 컨텍스트가 닿지 않으므로 control을 직접 받는다.
+   */
+  control: Control<taskFormSchemeType>;
   titlePlaceholder: string;
   date: string;
   startTime: string | null;
@@ -87,8 +93,7 @@ const MainStep = ({
   onMeasure,
   inputRef,
   taskMode,
-  title,
-  onChangeTitle,
+  control,
   titlePlaceholder,
   date,
   startTime,
@@ -101,6 +106,7 @@ const MainStep = ({
   onSubmit,
   isSubmitting,
 }: Props) => {
+  const title = useWatch({ control, name: 'title' });
   const canSubmit = title.trim().length > 0 && !isSubmitting;
   const chipIconColor = theme.COLORS.GRAY_SCALE.GRAY_60;
   /* 확인 버튼은 밑줄과 같이 선택한 모드 색을 따른다 */
@@ -112,19 +118,25 @@ const MainStep = ({
         {/* 밑줄은 입력과 글자 수까지만 긋는다. 확인 버튼은 밑줄 밖에 둔다. 색은 선택한 모드를 따른다. */}
         <View style={[styles.titleField, taskMode === 'TODO' && styles.titleFieldTodo]}>
           {/* 시트가 키보드 위로 올라오려면 라이브러리가 포커스를 추적할 수 있는 입력이어야 한다 */}
-          <BottomSheetTextInput
-            /*
-             * 라이브러리가 ref 타입을 인스턴스가 아닌 컴포넌트 타입으로 잘못 선언해 두어 캐스팅한다.
-             * 런타임에는 RN TextInput 인스턴스가 그대로 들어온다.
-             */
-            ref={inputRef as never}
-            style={styles.titleInput}
-            placeholder={titlePlaceholder}
-            placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_60}
-            value={title}
-            onChangeText={onChangeTitle}
-            maxLength={TITLE_MAX_LENGTH}
-            autoFocus
+          <Controller
+            control={control}
+            name="title"
+            render={({ field: { value, onChange } }) => (
+              <BottomSheetTextInput
+                /*
+                 * 라이브러리가 ref 타입을 인스턴스가 아닌 컴포넌트 타입으로 잘못 선언해 두어 캐스팅한다.
+                 * 런타임에는 RN TextInput 인스턴스가 그대로 들어온다.
+                 */
+                ref={inputRef as never}
+                style={styles.titleInput}
+                placeholder={titlePlaceholder}
+                placeholderTextColor={theme.COLORS.GRAY_SCALE.GRAY_60}
+                value={value}
+                onChangeText={onChange}
+                maxLength={TITLE_MAX_LENGTH}
+                autoFocus
+              />
+            )}
           />
           <Text style={styles.counter}>
             {title.length}/{TITLE_MAX_LENGTH}
