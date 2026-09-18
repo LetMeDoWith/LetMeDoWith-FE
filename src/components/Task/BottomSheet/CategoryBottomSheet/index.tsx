@@ -50,7 +50,8 @@ const CategoryBottomSheet = forwardRef<BottomSheetModalMethods, Props>(
     );
 
     const handleCategoryBottomSheetButton = useCallback(() => {
-      setValue('taskCategoryId', selectedCategory?.id, {
+      /* 선택 해제는 undefined가 아니라 null로 넘겨야 서버에 "카테고리 없음"으로 전달된다 */
+      setValue('taskCategoryId', selectedCategory?.id ?? null, {
         shouldDirty: true,
         shouldTouch: true,
       });
@@ -76,7 +77,8 @@ const CategoryBottomSheet = forwardRef<BottomSheetModalMethods, Props>(
       <BottomSheet
         ref={innerRef}
         title="카테고리"
-        buttonConfig={{ title: '저장하기', isDisabled: selectedCategory === null }}
+        /* 카테고리는 선택 항목이라 아무것도 고르지 않아도 저장할 수 있다 */
+        buttonConfig={{ title: '저장하기' }}
         snapPoints={['60%']}
         onDismiss={onDismissCategoryBottomSheet}
         handleButtonSubmit={handleCategoryBottomSheetButton}

@@ -44,7 +44,8 @@ interface Props {
   useScrollView?: boolean;
   buttonConfig?: {
     title: string;
-    isDisabled: boolean;
+    /* 입력 조건이 없어 항상 누를 수 있는 시트는 넘기지 않는다 */
+    isDisabled?: boolean;
     /*
      * FILLED(기본) — 브랜드 색으로 채운 확정 버튼.
      * OUTLINED — 테두리만 있는 버튼. 등록 시트의 스텝처럼 "확정"이 아니라
@@ -69,7 +70,7 @@ const Handle = () => (
 );
 
 const renderButton = (config: NonNullable<Props['buttonConfig']>, onPress?: () => void) => {
-  const { title, isDisabled, variant = 'FILLED' } = config;
+  const { title, isDisabled = false, variant = 'FILLED' } = config;
   const isOutlined = variant === 'OUTLINED';
 
   return (
