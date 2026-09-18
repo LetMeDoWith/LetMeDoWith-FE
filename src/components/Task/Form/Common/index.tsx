@@ -296,8 +296,8 @@ const Form = ({ route }: StackScreenProps<TaskFormStackParamList, 'COMMON'>) => 
         // 루틴이 설정되어 있는 Task는 "모두/이번만 수정" 선택 다이얼로그를 띄운다
         if (isRoutineTask) {
           showDialog({
-            title: `루틴 ${isTodoMode ? '투두' : '두윗'} 수정하기`,
-            content: `루틴으로 수정한 앞으로의 ${isTodoMode ? '투두를' : '두윗을'}\n모두 수정하시겠어요?`,
+            title: `루틴 ${isTodoMode ? '투두' : '도리'} 수정하기`,
+            content: `루틴으로 수정한 앞으로의 ${isTodoMode ? '투두를' : '도리를'}\n모두 수정하시겠어요?`,
             leftButtonText: '모두 수정하기',
             rightButtonText: '이번만 수정하기',
             handleLeftButton: handleButton({ withRoutineTask: true }),

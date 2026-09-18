@@ -102,10 +102,10 @@ const Item = memo(function Item({
     }
 
     if (isTodoMode) {
-      return 'TO DO 관리하기';
+      return '투두 관리하기';
     }
 
-    return 'DO WITH 관리하기';
+    return '도리 관리하기';
   };
 
   const getSnapPoints = () => {
@@ -193,7 +193,7 @@ const Item = memo(function Item({
       <>
         <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT', isRoutineTask })}>
           <TaskEdit />
-          <Text style={styles.modalContentText}>할 일 수정하기</Text>
+          <Text style={styles.modalContentText}>{isTodoMode ? '투두' : '도리'} 수정하기</Text>
         </Pressable>
         {isRoutineTask ? (
           <Pressable style={styles.modalContentRow} onPress={handleTask({ type: 'EDIT_ROUTINE', isRoutineTask })}>
@@ -250,14 +250,14 @@ const Item = memo(function Item({
         if (isInvalidUpdateDowithTask) {
           showDialog({
             type: 'ALERT',
-            title: '두윗모드 삭제 불가',
-            content: '시작 시간이 지난 두윗모드는\n삭제할 수 없어요.',
+            title: '도리모드 삭제 불가',
+            content: '시작 시간이 지난 도리모드는\n삭제할 수 없어요.',
             handleAlertButton: hideDialog,
           });
         } else {
           showDialog({
-            title: `${isRoutineTask ? '루틴 ' : ''}${isTodoMode ? '투두' : '두윗'} 삭제하기`,
-            content: `${isRoutineTask ? '루틴으로 ' : ''}등록한 ${isTodoMode ? '투두를' : '두윗을'} ${
+            title: `${isRoutineTask ? '루틴 ' : ''}${isTodoMode ? '투두' : '도리'} 삭제하기`,
+            content: `${isRoutineTask ? '루틴으로 ' : ''}등록한 ${isTodoMode ? '투두를' : '도리를'} ${
               isRoutineTask ? '\n모두 ' : ''
             }삭제하시겠어요?`,
             leftButtonText: `${isRoutineTask ? '모두 삭제하기' : '취소'}`,

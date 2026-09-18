@@ -21,10 +21,10 @@ const TaskFormStackNavigator = ({ id, isRoutineTask, mode, initialScreen = 'COMM
     }
 
     if (isTodoMode) {
-      return 'TO DO 수정하기';
+      return '투두 수정하기';
     }
 
-    return 'DO WITH 수정하기';
+    return '도리 수정하기';
   };
 
   return (
