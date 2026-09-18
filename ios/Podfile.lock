@@ -1205,6 +1205,8 @@ PODS:
     - React-perflogger (= 0.73.3)
   - RNAppleAuthentication (2.3.0):
     - React-Core
+  - RNBootSplash (6.3.12):
+    - React-Core
   - RNCMaskedView (0.3.1):
     - React-Core
   - RNFastImage (8.6.3):
@@ -1330,6 +1332,7 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
+  - RNBootSplash (from `../node_modules/react-native-bootsplash`)
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
@@ -1487,6 +1490,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNAppleAuthentication:
     :path: "../node_modules/@invertase/react-native-apple-authentication"
+  RNBootSplash:
+    :path: "../node_modules/react-native-bootsplash"
   RNCMaskedView:
     :path: "../node_modules/@react-native-masked-view/masked-view"
   RNFastImage:
@@ -1590,6 +1595,7 @@ SPEC CHECKSUMS:
   React-utils: 2d25ca0a6e635c095bc5e67ac1202c7939ec4af3
   ReactCommon: 8564d71cf76b1715740cb8bdc5b382d1ddd12dd1
   RNAppleAuthentication: e99eaf3c4c01ad8ecb6125dd6f0cfd98871685b5
+  RNBootSplash: 3d02faefc01d08e28e8cdcdeecd6a865ab1a9922
   RNCMaskedView: 090213d32d8b3bb83a4dcb7d12c18f0152591906
   RNFastImage: 5c9c9fed9c076e521b3f509fe79e790418a544e8
   RNFBApp: a3e139715386fe79a09c387f2dbeb6890eb05b39
@@ -1607,4 +1613,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: e7dacbbf096d11eb19b885daa0c514a71bc53c61
 
-COCOAPODS: 1.13.0
+COCOAPODS: 1.14.3

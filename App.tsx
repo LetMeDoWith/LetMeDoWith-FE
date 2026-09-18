@@ -4,6 +4,7 @@ import { NavigationContainer, DefaultTheme, createNavigationContainerRef } from 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import BootSplash from 'react-native-bootsplash';
 import {
   MutationCacheNotifyEvent,
   QueryCacheNotifyEvent,
@@ -182,6 +183,18 @@ function AppContent() {
       }
     }
   });
+
+  /*
+   * 스플래시는 스토어 복원이 끝난 뒤 내린다.
+   * 복원 전에 내리면 로그인 화면이 잠깐 비쳤다가 홈으로 바뀐다.
+   */
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
+    BootSplash.hide({ fade: true });
+  }, [isHydrated]);
 
   /**
    * 토큰 재발급 로직

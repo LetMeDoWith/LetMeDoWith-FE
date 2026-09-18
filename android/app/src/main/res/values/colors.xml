@@ -2,4 +2,6 @@
 <resources>
     <!-- FCM 알림 틴트 색상 (브랜드 RED_60) -->
     <color name="notification_color">#F67A51</color>
+    <!-- 스플래시 배경 (theme.COLORS.PRIMARY.RED_60) -->
+    <color name="bootsplash_background">#FF5F33</color>
 </resources>
