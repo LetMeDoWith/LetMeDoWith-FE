@@ -111,6 +111,8 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
   /* 확인 스텝의 콘텐츠 실측 높이. 시트를 콘텐츠에 맞춰야 초기화 위아래 여백이 같아진다. */
   const [stepContentHeight, setStepContentHeight] = useState(0);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  /* 시트를 닫을 때 올려 다음에 열 때 다른 placeholder가 나오게 한다(닫힌 동안 바꿔야 깜빡이지 않는다) */
+  const [placeholderSeed, setPlaceholderSeed] = useState(0);
 
   const methods = useForm<taskFormSchemeType>({
     defaultValues: {
@@ -136,8 +138,9 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
   const { mutate: addDowithTaskMutate, isPending: isAddDowithPending } = useAddDowithTask({ onSuccess: closeSheet });
 
   /*
-   * 도리 모드일 때만 서버 샘플을 제목 placeholder로 쓴다. 모드가 바뀔 때만 새로 고르고
-   * 입력하는 동안에는 문구가 바뀌지 않게 한다.
+   * 도리 모드일 때만 서버 샘플을 제목 placeholder로 쓴다.
+   * 모드가 바뀌거나 시트를 닫을 때만 새로 고르고, 입력하는 동안에는 문구가 바뀌지 않게 한다.
+   * 의존성에 배열 자체를 넣으면 매 렌더마다 참조가 바뀌어 문구가 계속 흔들린다.
    */
   const titlePlaceholder = useMemo(() => {
     if (taskMode !== 'DOWITH' || !dowithTaskSamples?.length) {
@@ -146,7 +149,7 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
 
     return dowithTaskSamples[Math.floor(Math.random() * dowithTaskSamples.length)];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [taskMode, dowithTaskSamples?.length]);
+  }, [taskMode, dowithTaskSamples?.length, placeholderSeed]);
 
   const categoryName = taskCategoryList?.find(({ id }) => id === taskCategoryId)?.title;
   const hasRoutine = !isNil(routineCondition?.cycle);
@@ -341,6 +344,7 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
   const handleDismiss = useCallback(() => {
     setStep('MAIN');
     setTaskMode('DOWITH');
+    setPlaceholderSeed(prev => prev + 1);
     reset({ title: '', taskCategoryId: null, date, startTime: null, routineCondition: EMPTY_ROUTINE });
   }, [reset, date]);
 
