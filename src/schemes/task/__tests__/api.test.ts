@@ -28,7 +28,7 @@ describe('태스크 목록 스킴', () => {
     expect(parsed.isRoutine).toBe(true);
   });
 
-  it('두윗 항목의 isRoutine을 보존한다', () => {
+  it('도리 항목의 isRoutine을 보존한다', () => {
     const parsed = dowithTaskScheme.parse({
       ...baseTask,
       isRoutine: false,

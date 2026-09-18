@@ -121,7 +121,7 @@ describe('mergeTasksByDate', () => {
     expect(merged.get('2026-08-01')?.todoTasks).toHaveLength(1);
   });
 
-  it('같은 날짜의 투두와 두윗을 한 항목으로 묶는다', () => {
+  it('같은 날짜의 투두와 도리를 한 항목으로 묶는다', () => {
     const merged = mergeTasksByDate([makeList(['2026-08-05'], ['2026-08-05'])]);
 
     expect(merged.get('2026-08-05')?.todoTasks).toHaveLength(1);
@@ -143,7 +143,7 @@ describe('mergeTasksByDate', () => {
 /*
  * 달력 마킹 상태 판정
  *
- * 하루에 두윗과 투두가 함께 있을 수 있어 모드마다 따로 판정해야
+ * 하루에 도리와 투두가 함께 있을 수 있어 모드마다 따로 판정해야
  * 겹친 체크의 좌우 색을 각각 칠할 수 있다.
  */
 describe('getModeMarkingStatus', () => {
@@ -171,7 +171,7 @@ describe('getModeMarkingStatus', () => {
 describe('getDateMarkingStatus', () => {
   const task = (status: 'SUCCESS' | 'FAIL' | 'WAIT') => ({ status });
 
-  // 투두는 성공/대기만 오간다(실패 API가 없다). 실패는 두윗에만 있다.
+  // 투두는 성공/대기만 오간다(실패 API가 없다). 실패는 도리에만 있다.
   it('두 모드의 상태를 각각 돌려준다', () => {
     const result = getDateMarkingStatus({
       dowithTasks: [task('FAIL')],

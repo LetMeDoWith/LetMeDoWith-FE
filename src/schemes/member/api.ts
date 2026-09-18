@@ -33,7 +33,7 @@ const updateMemberRequestScheme = z.object({
 const notificationSettingsRequestScheme = z.object({
   baseAlarmYn: z.boolean().describe('기본 알람 수신 여부'),
   todoBotYn: z.boolean().describe('투두 알림봇 알람 수신 여부'),
-  feedbackYn: z.boolean().describe('잔소리 (피드백) 알람 수신 여부'),
+  feedbackYn: z.boolean().describe('잡도리 (피드백) 알람 수신 여부'),
   marketingYn: z.boolean().describe('마케팅, 광고성 알람 수신 여부'),
 });
 
@@ -55,7 +55,7 @@ const myDowithInfoResponseScheme = BaseResponseScheme.extend({
     nickname: z.string().describe('닉네임'),
     selfDescription: z.string().nullable().describe('자기소개'),
     profileImageUrl: z.string().nullable().describe('프로필 이미지 URL'),
-    successDowithCount: z.number().describe('성공한 두윗 수'),
+    successDowithCount: z.number().describe('성공한 도리 수'),
   }),
 });
 

@@ -13,28 +13,28 @@ const taskFeedbackTemplateScheme = z.object({
 
 const sentFeedbackScheme = z.object({
   id: z.number().describe('피드백 ID'),
-  dowithTaskId: z.number().describe('두윗 Task ID'),
-  dowithTaskTitle: z.string().describe('두윗 Task 제목'),
+  dowithTaskId: z.number().describe('도리 Task ID'),
+  dowithTaskTitle: z.string().describe('도리 Task 제목'),
   receiverId: z.string().describe('받는 사람 member ID'),
   receiverNickname: z.string().describe('받는 사람 닉네임'),
   receiverProfileImageUrl: z.string().describe('받는 사람 프로필 이미지 URL'),
   isChecked: z.boolean().describe('피드백 확인 여부'),
-  dowithTaskStatus: z.enum(['WAIT', 'SUCCESS', 'FAIL']).describe('두윗 Task 달성 상태'),
-  parsedMessage: z.string().describe('닉네임 치환된 잔소리 메시지'),
+  dowithTaskStatus: z.enum(['WAIT', 'SUCCESS', 'FAIL']).describe('도리 Task 달성 상태'),
+  parsedMessage: z.string().describe('닉네임 치환된 잡도리 메시지'),
   taskFeedbackTemplate: taskFeedbackTemplateScheme,
 });
 
 const receivedFeedbackScheme = z.object({
   id: z.number().describe('피드백 ID'),
-  dowithTaskId: z.number().describe('두윗 Task ID'),
+  dowithTaskId: z.number().describe('도리 Task ID'),
   senderId: z.string().describe('보낸 사람 member ID'),
   senderNickname: z.string().describe('보낸 사람 닉네임'),
   senderProfileImageUrl: z.string().describe('보낸 사람 프로필 이미지 URL'),
   isChecked: z.boolean().describe('피드백 확인 여부'),
   receivedAt: z.string().describe('피드백 수신 일시'),
-  dowithTaskTitle: z.string().describe('두윗 Task 제목'),
-  parsedMessage: z.string().describe('닉네임 치환된 잔소리 메시지'),
-  deepLink: z.string().describe('두윗이 등록된 홈 화면으로 이동하는 딥링크'),
+  dowithTaskTitle: z.string().describe('도리 Task 제목'),
+  parsedMessage: z.string().describe('닉네임 치환된 잡도리 메시지'),
+  deepLink: z.string().describe('도리가 등록된 홈 화면으로 이동하는 딥링크'),
   taskFeedbackTemplate: taskFeedbackTemplateScheme,
 });
 
@@ -58,7 +58,7 @@ const fetchFeedbackTemplatesResponseScheme = BaseResponseScheme.extend({
 
 const feedbackAggregateItemScheme = z.object({
   feedbackTemplateId: z.number().describe('피드백 템플릿 ID'),
-  count: z.number().describe('해당 템플릿 잔소리 수'),
+  count: z.number().describe('해당 템플릿 잡도리 수'),
 });
 
 const fetchFeedbackAggregatesResponseScheme = BaseResponseScheme.extend({
@@ -76,8 +76,8 @@ const dowithTaskFeedbackTemplateScheme = z.object({
 
 const dowithTaskFeedbackScheme = z.object({
   id: z.number().describe('피드백 ID'),
-  dowithTaskId: z.number().describe('두윗 Task ID'),
-  dowithTaskTitle: z.string().describe('두윗 Task 제목'),
+  dowithTaskId: z.number().describe('도리 Task ID'),
+  dowithTaskTitle: z.string().describe('도리 Task 제목'),
   senderId: z.string().describe('보낸 사람 member ID'),
   senderNickname: z.string().describe('보낸 사람 닉네임'),
   senderProfileImageUrl: z.string().describe('보낸 사람 프로필 이미지 URL'),

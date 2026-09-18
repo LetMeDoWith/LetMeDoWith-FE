@@ -87,7 +87,7 @@ const fetchTodoTaskResponseDataScheme = todoTaskScheme.omit({ isRoutine: true })
 const fetchTodoTaskResponseScheme = BaseResponseScheme.extend({ data: fetchTodoTaskResponseDataScheme });
 
 const fetchDowithTaskRequestScheme = z.object({
-  dowithTaskId: z.number().describe('두윗 task id'),
+  dowithTaskId: z.number().describe('도리 task id'),
 });
 
 const fetchDowithTaskResponseDataScheme = dowithTaskScheme.omit({ isRoutine: true }).extend({
@@ -186,7 +186,7 @@ const fetchDowithTaskLikersResponseScheme = BasePageResponseScheme.extend({
 });
 
 const fetchDowithTaskSamplesResponseScheme = BaseResponseScheme.extend({
-  data: z.array(z.string()).describe('두윗모드 Task 샘플 목록'),
+  data: z.array(z.string()).describe('도리모드 Task 샘플 목록'),
 });
 
 export {
