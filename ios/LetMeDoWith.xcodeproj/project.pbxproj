@@ -736,7 +736,6 @@
 				DEVELOPMENT_TEAM = U3N4285KF6;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = LetMeDoWith/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "렛미두윗";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -763,10 +762,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = LetMeDoWith/LetMeDoWith.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 32;
 				DEVELOPMENT_TEAM = U3N4285KF6;
 				INFOPLIST_FILE = LetMeDoWith/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "렛미두윗";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -779,6 +779,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith2;
+				PROVISIONING_PROFILE_SPECIFIER = "dev-provisioning-profile";
 				PRODUCT_NAME = LetMeDoWith;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -990,7 +991,8 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 32;
 				DEVELOPMENT_TEAM = U3N4285KF6;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1003,6 +1005,7 @@
 				);
 				MARKETING_VERSION = 0.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith2.NotificationService;
+				PROVISIONING_PROFILE_SPECIFIER = "dev-notification-provisioning-profile";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
