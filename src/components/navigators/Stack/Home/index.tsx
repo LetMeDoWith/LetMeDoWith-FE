@@ -32,7 +32,7 @@ const HomeStackNavigator = () => {
       <Screen name="SETTING" component={SettingStackNavigator} options={{ headerShown: false }} />
       <Screen name="TASK_FORM" component={TaskForm} options={{ headerShown: false }} />
       <Screen name="FEEDBACK" component={FeedbackStackNavigator} options={{ headerShown: false }} />
-      <Screen name="REALTIME_NAG" component={RealtimeNag} options={{ headerTitle: '실시간 잔소리하기' }} />
+      <Screen name="REALTIME_NAG" component={RealtimeNag} options={{ headerTitle: '실시간 잡도리하기' }} />
       <Screen name="MYINFO" component={Myinfo} options={{ headerTitle: '내 정보 관리' }} />
       <Screen name="NOTIFICATION_LIST" component={NotificationScreen} options={{ headerTitle: '알림' }} />
       <Screen name="RECEIVED_FEEDBACK" component={ReceivedFeedback} options={{ headerTitle: '잡도리 모아보기' }} />

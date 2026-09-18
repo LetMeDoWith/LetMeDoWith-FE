@@ -23,7 +23,7 @@ const mockData: BadgeInfo[] = Array(9)
           uri: 'https://media.bunjang.co.kr/images/crop/981758465_w320.jpg',
           name: `test 뱃지${index + 1}`,
           description:
-            '3번 이상 두윗 모드를 이행하지 않거나\n상태가 (빨간불)인 사용자에게 부여되는 뱃지로특정 행위를 하기 전, 해지할 수 없습니다',
+            '3번 이상 도리 모드를 이행하지 않거나\n상태가 (빨간불)인 사용자에게 부여되는 뱃지로특정 행위를 하기 전, 해지할 수 없습니다',
           isRepresentative: index === 1,
         }
       : {

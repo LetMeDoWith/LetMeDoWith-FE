@@ -7,7 +7,7 @@ const LOGOUT_CONFIRM_MODAL_CONTENT = {
 
 const DELETE_ACCOUNT_CONFIRM_MODAL_CONTENT = {
   title: '정말 탈퇴하시겠어요?',
-  description: '탈퇴 버튼 선택 시, 계정은 삭제되며\n진행하신 투두와 잔소리 등\n모든 기록이 사라져요.',
+  description: '탈퇴 버튼 선택 시, 계정은 삭제되며\n진행하신 투두와 잡도리 등\n모든 기록이 사라져요.',
   cancelButtonText: '탈퇴',
   confirmButtonText: '취소',
 } as const;

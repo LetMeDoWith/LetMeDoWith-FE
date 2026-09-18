@@ -93,7 +93,7 @@ const Notification = () => {
     <View style={styles.container}>
       <NotificationMenu
         title="기본 알림"
-        subTitle="렛미두윗의 필수 알림으로 중요한 순간을 안내해요."
+        subTitle="잡도리의 필수 알림으로 중요한 순간을 안내해요."
         value={base}
         handleValue={handleValue({ name: 'base', value: !base })}
       />
@@ -104,13 +104,13 @@ const Notification = () => {
         handleValue={handleValue({ name: 'todoBot', value: !todoBot })}
       />
       <NotificationMenu
-        title="잔소리 알림"
-        subTitle="잔소리와 공감으로 타두윗러들과 소통할 수 있는 알림입니다."
+        title="잡도리 알림"
+        subTitle="잡도리와 공감으로 도리러들과 소통할 수 있는 알림입니다."
         value={feedback}
         handleValue={handleValue({ name: 'feedback', value: !feedback })}
       />
       <NotificationMenu
-        title="마케팅 혜택 알림 "
+        title="마케팅 혜택 알림"
         subTitle="다양한 소식과 혜택에 대한 알림입니다."
         value={marketing}
         handleValue={handleValue({ name: 'marketing', value: !marketing })}

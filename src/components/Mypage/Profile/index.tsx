@@ -25,7 +25,7 @@ const Profile = ({ data }: Props) => {
       </Pressable>
       {data.selfDescription && <Text style={styles.selfDescription}>{data.selfDescription}</Text>}
       <View style={styles.statBadge}>
-        <Text style={styles.statLabel}>성공한 두윗</Text>
+        <Text style={styles.statLabel}>성공한 도리</Text>
         <Text style={styles.statCount}>
           <Text style={styles.statCountHighlight}>{data.successDowithCount}</Text> 개
         </Text>

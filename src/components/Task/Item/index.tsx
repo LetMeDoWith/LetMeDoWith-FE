@@ -381,7 +381,7 @@ const Item = memo(function Item({
       <BottomSheet
         ref={taskManagementBottomSheetModalRef}
         title={getBottomSheetTitle()}
-        description={showUploadImageBottomSheet ? '사진을 올리면 잔소리 알림이 중지돼요.' : ''}
+        description={showUploadImageBottomSheet ? '사진을 올리면 잡도리 알림이 중지돼요.' : ''}
         snapPoints={getSnapPoints()}
       >
         <View style={styles.modalContainer}>{renderBottomSheetContent()}</View>
