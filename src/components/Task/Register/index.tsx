@@ -376,12 +376,36 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
 
     const maxHeight = SCREEN_HEIGHT * STEP_MAX_HEIGHT_RATIO;
     const chrome = STEP_CHROME_HEIGHT + (step === 'TIME' ? STEP_DESCRIPTION_HEIGHT : 0);
+    /*
+     * 루틴만 콘텐츠 실측을 쓰지 않는다. 루틴 폼의 뿌리는 flex: 1 ScrollView라 고유 높이가 없어,
+     * 높이가 정해지지 않은 부모 안에서 재면 0에 가깝게 나온다. 그 값으로 시트를 맞추면 절반만 열린다.
+     * 어차피 상한(90%)까지 차는 내용이므로 지정 높이로 연다.
+     */
+    const canUseMeasuredHeight = step !== 'ROUTINE' && stepContentHeight > 0;
     // 아직 재기 전(0)에는 스텝별 기본값으로 열고, 실측되면 콘텐츠에 맞춘다
-    const desired =
-      stepContentHeight > 0 ? stepContentHeight + chrome : (SCREEN_HEIGHT * parseFloat(config.snapPoint)) / 100;
+    const desired = canUseMeasuredHeight
+      ? stepContentHeight + chrome
+      : (SCREEN_HEIGHT * parseFloat(config.snapPoint)) / 100;
 
     return [Math.min(desired, maxHeight)];
   }, [step, mainContentHeight, stepContentHeight, config.snapPoint]);
+
+  /*
+   * 스텝이 바뀌면 새 높이로 다시 스냅시킨다.
+   *
+   * 메인에서는 입력 때문에 키보드가 떠 있고, gorhom은 그만큼 시트를 밀어 올린 "임시 위치"에 둔다.
+   * 다른 스텝으로 갈 때 키보드를 내리는데, keyboardBlurBehavior 기본값(none)은 키보드가 내려가도
+   * 위치를 되돌리지 않는다. 그래서 snapPoints만 바뀌고 시트는 임시 위치에 갇혀 절반만 열렸다.
+   * (restore로 바꾸면 닫기 동작을 덮어써 시트가 다시 열리는 문제가 생겨 쓰지 않는다)
+   */
+  useEffect(() => {
+    if (!isSheetOpen || step === 'MAIN') {
+      return;
+    }
+
+    innerRef.current?.snapToIndex(0);
+  }, [isSheetOpen, step, snapPoints]);
+
   const isSubmitting = isAddTodoPending || isAddDowithPending;
 
   const isConfirmDisabled =
