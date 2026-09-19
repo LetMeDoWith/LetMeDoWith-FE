@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
 import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
 import { Positions } from 'react-native-calendars/src/expandableCalendar';
 import type { DateData } from 'react-native-calendars/src/types';
@@ -29,6 +30,7 @@ import { DowithCoachMark } from 'components/Onboarding/DowithCoachMark';
 import type { Rect } from 'utils/onboarding';
 import { TASK_QUERY_KEY } from 'constants/queries';
 import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
+import { logEvent } from 'utils/analytics';
 
 // 요일 시작: 0=일, 1=월
 const FIRST_DAY = 0;
@@ -111,6 +113,13 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
 
   // 정시 기준 5분 간격(1분, 6분, ..., 56분)으로 TaskList 자동 refetch
   useScheduledRefetch([TASK_QUERY_KEY.LIST]);
+
+  /* 탭 복귀도 방문으로 집계한다 — focus마다 발송 */
+  useFocusEffect(
+    useCallback(() => {
+      logEvent('home_view');
+    }, []),
+  );
 
   const todayDateString = dayjs().format('YYYY-MM-DD');
 

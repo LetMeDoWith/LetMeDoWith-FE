@@ -1,5 +1,7 @@
 import { StateCreator } from 'zustand';
 
+import type { ProviderEnumType } from 'types/auth/scheme/enum';
+
 import { secureStorage, STORAGE_KEY } from 'stores/secure';
 import { INITIAL_NOTIFICATION_STORAGE_VALUE } from 'stores/notification/slice';
 
@@ -19,6 +21,8 @@ export interface AuthSlice {
   isNeedSignUp: boolean;
   isNeedRefreshToken: boolean;
   isHydrated: boolean;
+  /* 마지막 소셜 로그인 제공자. 가입 완료 이벤트 파라미터용 — 세션 한정이라 영속하지 않는다. */
+  lastLoginProvider: ProviderEnumType | null;
   authActions: {
     setTokenInfo: (token: Partial<AuthSlice['tokenInfo']>) => void;
     setMemberId: (id: AuthSlice['memberId']) => void;
@@ -27,6 +31,7 @@ export interface AuthSlice {
     setIsNeedSignUp: (value: boolean) => void;
     setIsNeedRefreshToken: (value: boolean) => void;
     setIsHydrated: (value: boolean) => void;
+    setLastLoginProvider: (provider: ProviderEnumType) => void;
   };
 }
 
@@ -45,6 +50,7 @@ const initialAuthState = {
   isNeedSignUp: true,
   isNeedRefreshToken: false,
   isHydrated: false,
+  lastLoginProvider: null,
 };
 
 export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set, get) => ({
@@ -55,6 +61,7 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set,
     setIsNeedSignUp: isNeedSignUp => set({ isNeedSignUp }),
     setIsNeedRefreshToken: isNeedRefreshToken => set({ isNeedRefreshToken }),
     setIsHydrated: isHydrated => set({ isHydrated }),
+    setLastLoginProvider: provider => set({ lastLoginProvider: provider }),
     setTokenInfo: info => {
       set({ tokenInfo: { ...get().tokenInfo, ...info } });
     },

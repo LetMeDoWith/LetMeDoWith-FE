@@ -18,6 +18,7 @@ import { useSendFeedback } from 'hooks/queries/feedback/useSendFeedback';
 import { useFeedbackBarSwap } from 'hooks/shared/useFeedbackBarSwap';
 import { theme } from 'styles/theme';
 import { formatRemainingTime, getRemainingMinutes } from 'utils/date';
+import { logDoriImpression } from 'utils/analytics';
 import type { taskFeedbackTemplateSchemeType } from 'types/feedback/scheme/api';
 import type { myFeedbackSchemeType, feedbackAvailableDowithTaskSchemeType } from 'types/task/scheme/api';
 
@@ -36,6 +37,12 @@ interface Props {
    * FlatList(실시간 잡도리)는 인자를 무시하고 scrollToIndex를 쓰고, ScrollView(둘러보기)는 이 값으로 스크롤 양을 계산한다.
    */
   onExpand?: (reactionBarBottomY: number) => void;
+  /*
+   * 둘러보기 방문마다 증가하는 토큰. 탭 화면은 blur돼도 unmount되지 않아 마운트 기준으로는
+   * 재방문 노출을 못 세므로, 이 값의 변화로 재발송을 트리거한다.
+   * undefined면 노출을 추적하지 않는다(실시간 잡도리 재사용 경로).
+   */
+  impressionVisitId?: number;
 }
 
 // "보낸 잡도리 N" 라벨 예상 너비 + paddingHorizontal + gap
@@ -90,6 +97,7 @@ const FeedNagItem = ({
   feedbackCount,
   myFeedbacks,
   onExpand,
+  impressionVisitId,
 }: Props) => {
   const queryClient = useQueryClient();
   const { data: templates } = useFetchFeedbackTemplates();
@@ -218,6 +226,13 @@ const FeedNagItem = ({
       overflowCount: myFeedbacks.length - visibleCount,
     };
   }, [bubbleWidth, myFeedbacks]);
+
+  useEffect(() => {
+    if (impressionVisitId !== undefined) {
+      logDoriImpression(taskId);
+    }
+    /* 같은 방문 내 중복은 코어의 Set이 걸러 의존성 변화에 안전하다 */
+  }, [impressionVisitId, taskId]);
 
   const remainingTime = formatRemainingTime(startTime);
   /* 마감이 임박하면(5분 이하) 시간 표시를 강조한다. */

@@ -5,6 +5,7 @@ import { signUp } from 'services/rest/member';
 import { MEMBER_QUERY_KEY } from 'constants/queries';
 import { useStore } from 'stores/index';
 import type { signUpRequestSchemeType, signUpResponseSchemeType } from 'types/member/scheme/api';
+import { logEvent } from 'utils/analytics';
 
 const useSignUp = () => {
   const { setTokenInfo, setIsNeedSignUp, setMemberId } = useStore(
@@ -19,10 +20,13 @@ const useSignUp = () => {
     mutationKey: MEMBER_QUERY_KEY.SIGN_UP,
     mutationFn: payload => signUp(payload),
     onSuccess: ({ data }) => {
-      console.log('signup success data: ', data);
       setTokenInfo({ access: data.accessToken, refresh: data.refreshToken, signup: null });
       setMemberId(data.memberId);
       setIsNeedSignUp(false);
+
+      logEvent('sign_up_complete', {
+        provider: useStore.getState().lastLoginProvider ?? 'UNKNOWN',
+      });
     },
     onError: e => {
       console.error(e.response?.data);

@@ -23,7 +23,9 @@ const useFetchTokenQuery = () => {
   return useMutation<fetchTokenResponseSchemeType, ApiError, fetchTokenRequestSchemeType>({
     mutationKey: AUTH_QUERY_KEY.FETCH_TOKEN,
     mutationFn: payload => fetchToken(payload),
-    onSuccess: ({ data }) => {
+    onSuccess: ({ data }, { provider }) => {
+      useStore.getState().authActions.setLastLoginProvider(provider);
+
       setIsLoggedIn(true);
 
       // 회원 가입이 필요한 경우

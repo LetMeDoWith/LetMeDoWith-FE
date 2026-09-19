@@ -7,6 +7,7 @@ import { isAos } from 'utils/device';
 import { useStore } from 'stores/index';
 import { updateNotificationSettings as mutateNotificationSettings } from 'services/rest/member';
 import { navigateByDeepLink } from 'utils/deepLink';
+import { logEvent } from 'utils/analytics';
 
 let initialized = false;
 let initializing = false;
@@ -145,6 +146,8 @@ const displayNotification = async (message: FirebaseMessagingTypes.RemoteMessage
 const handleDeepLinkFromData = (data?: { [key: string]: unknown }) => {
   const deepLink = data?.deepLink;
   if (typeof deepLink === 'string') {
+    /* 클릭 경로 3곳(포그라운드·백그라운드·종료 상태)이 모두 이 함수로 수렴한다 */
+    logEvent('push_open', { deep_link: deepLink });
     navigateByDeepLink(deepLink);
   }
 };

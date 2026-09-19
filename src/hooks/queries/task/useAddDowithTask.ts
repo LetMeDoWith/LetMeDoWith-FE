@@ -8,6 +8,8 @@ import { addDowithTask } from 'services/rest/task';
 import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
 import type { RootStackParamList } from 'types/shared';
 import { useStore } from 'stores/index';
+import { logEvent } from 'utils/analytics';
+import { isNil } from 'utils/index';
 
 interface Options {
   /*
@@ -24,7 +26,12 @@ const useAddDowithTask = ({ onSuccess }: Options = {}) => {
   return useMutation<undefined, ApiError, addTaskRequestSchemeType>({
     mutationKey: TASK_QUERY_KEY.ADD_DOWITH,
     mutationFn: payload => addDowithTask(payload),
-    onSuccess: () => {
+    onSuccess: (_, payload) => {
+      logEvent('dori_create_complete', {
+        has_routine: isNil(payload.routineCondition?.cycle) ? 0 : 1,
+        has_category: isNil(payload.taskCategoryId) ? 0 : 1,
+      });
+
       if (onSuccess) {
         onSuccess();
       } else {

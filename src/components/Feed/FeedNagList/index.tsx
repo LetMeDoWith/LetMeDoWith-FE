@@ -14,9 +14,11 @@ const DISPLAY_COUNT = 5;
 interface Props {
   // 항목의 잡도리 이모지가 펼쳐질 때 호출(이모지 바 하단 Y 전달). 부모 ScrollView가 가려지면 스크롤한다.
   onItemExpand?: (reactionBarBottomY: number) => void;
+  /* 둘러보기 노출 측정용 방문 토큰. FeedNagItem까지 그대로 관통시킨다 — 실시간 잡도리는 FeedNagItem을 직접 사용하므로 이 prop이 없다 */
+  impressionVisitId?: number;
 }
 
-const FeedNagList = ({ onItemExpand }: Props) => {
+const FeedNagList = ({ onItemExpand, impressionVisitId }: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { data, isLoading } = useFetchFeedbackAvailableDowithTasksInfinite();
 
@@ -49,6 +51,7 @@ const FeedNagList = ({ onItemExpand }: Props) => {
                   feedbackCount={item.feedbackCount}
                   myFeedbacks={item.myFeedbacks}
                   onExpand={onItemExpand}
+                  impressionVisitId={impressionVisitId}
                 />
               </React.Fragment>
             ))}
