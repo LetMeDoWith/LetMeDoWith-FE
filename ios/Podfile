@@ -12,6 +12,9 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, '16.0'
 prepare_react_native_project!
 
+# 광고 식별자(IDFA)를 쓰지 않으므로 AdIdSupport 없이 링크 — ATT 프롬프트·프라이버시 라벨 부담 회피
+$RNFirebaseAnalyticsWithoutAdIdSupport = true
+
 # Flipper Off
 flipper_config = FlipperConfiguration.disabled
 

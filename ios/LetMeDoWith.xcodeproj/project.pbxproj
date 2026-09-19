@@ -750,8 +750,8 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith2;
-				PROVISIONING_PROFILE_SPECIFIER = "dev-provisioning-profile";
 				PRODUCT_NAME = LetMeDoWith;
+				PROVISIONING_PROFILE_SPECIFIER = "dev-provisioning-profile";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -782,8 +782,8 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith2;
-				PROVISIONING_PROFILE_SPECIFIER = "dev-provisioning-profile";
 				PRODUCT_NAME = LetMeDoWith;
+				PROVISIONING_PROFILE_SPECIFIER = "dev-provisioning-profile";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -808,8 +808,8 @@
 				);
 				MARKETING_VERSION = 0.10.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith2.NotificationService;
-				PROVISIONING_PROFILE_SPECIFIER = "dev-notification-provisioning-profile";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "dev-notification-provisioning-profile";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1010,8 +1010,8 @@
 				);
 				MARKETING_VERSION = 0.10.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.teamdowith.letmedowith2.NotificationService;
-				PROVISIONING_PROFILE_SPECIFIER = "dev-notification-provisioning-profile";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "dev-notification-provisioning-profile";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
