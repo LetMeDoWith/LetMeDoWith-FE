@@ -1,3 +1,5 @@
+import type { AnalyticsCategory } from 'utils/analytics';
+
 export type LogLevel = 'log' | 'info' | 'warn' | 'error';
 
 export interface ConsoleEntry {
@@ -23,4 +25,14 @@ export interface NetworkEntry {
   responseBody?: unknown;
 }
 
-export type DevToolsTab = 'Elements' | 'Console' | 'Network' | 'Storage' | 'Query';
+export type DevToolsTab = 'Elements' | 'Console' | 'Network' | 'Storage' | 'Query' | 'Analytics';
+
+export interface AnalyticsEntry {
+  id: number;
+  timestamp: number;
+  name: string;
+  params?: Record<string, unknown>;
+  category: AnalyticsCategory;
+  /* __DEV__에서는 전송되지 않으므로 기록만인지 실제 전송인지 구분한다 */
+  sent: boolean;
+}

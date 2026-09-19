@@ -10,8 +10,9 @@ import { ConsoleTab } from 'components/__dev__/tabs/ConsoleTab';
 import { NetworkTab } from 'components/__dev__/tabs/NetworkTab';
 import { StorageTab } from 'components/__dev__/tabs/StorageTab';
 import { QueryTab } from 'components/__dev__/tabs/QueryTab';
+import { AnalyticsTab } from 'components/__dev__/tabs/AnalyticsTab';
 
-const TABS: DevToolsTab[] = ['Elements', 'Console', 'Network', 'Storage', 'Query'];
+const TABS: DevToolsTab[] = ['Elements', 'Console', 'Network', 'Storage', 'Query', 'Analytics'];
 const SNAP_POINTS = ['75%'];
 
 const DevToolsSheet = () => {
@@ -45,9 +46,9 @@ const DevToolsSheet = () => {
     [setIsSheetOpen],
   );
 
-  // Elements, Storage → ScrollView로 감싸기 (내부 FlatList 없음)
-  // Console, Network → 자체 FlatList 사용 (ScrollView 불필요)
-  const usesFlatList = activeTab === 'Console' || activeTab === 'Network';
+  // Elements, Storage, Query → ScrollView로 감싸기 (내부 FlatList 없음)
+  // Console, Network, Analytics → 자체 FlatList 사용 (ScrollView 불필요)
+  const usesFlatList = activeTab === 'Console' || activeTab === 'Network' || activeTab === 'Analytics';
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -61,6 +62,8 @@ const DevToolsSheet = () => {
         return <StorageTab />;
       case 'Query':
         return <QueryTab />;
+      case 'Analytics':
+        return <AnalyticsTab />;
     }
   };
 

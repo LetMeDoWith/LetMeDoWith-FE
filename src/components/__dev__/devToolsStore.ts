@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 
-import type { ConsoleEntry, DevToolsTab, NetworkEntry } from 'components/__dev__/types';
+import type { AnalyticsEntry, ConsoleEntry, DevToolsTab, NetworkEntry } from 'components/__dev__/types';
 
 const MAX_CONSOLE_ENTRIES = 200;
 const MAX_NETWORK_ENTRIES = 100;
+const MAX_ANALYTICS_ENTRIES = 200;
 
 interface DevToolsState {
   // UI 상태
@@ -16,6 +17,9 @@ interface DevToolsState {
   // 네트워크
   networkRequests: NetworkEntry[];
 
+  // 애널리틱스
+  analyticsLogs: AnalyticsEntry[];
+
   // 액션
   setActiveTab: (tab: DevToolsTab) => void;
   setIsSheetOpen: (open: boolean) => void;
@@ -24,19 +28,24 @@ interface DevToolsState {
   pushNetworkRequest: (entry: NetworkEntry) => void;
   updateNetworkRequest: (id: number, update: Partial<NetworkEntry>) => void;
   clearNetworkRequests: () => void;
+  pushAnalyticsLog: (entry: AnalyticsEntry) => void;
+  clearAnalyticsLogs: () => void;
 }
 
 let _nextConsoleId = 0;
 let _nextNetworkId = 0;
+let _nextAnalyticsId = 0;
 
 export const getNextConsoleId = () => ++_nextConsoleId;
 export const getNextNetworkId = () => ++_nextNetworkId;
+export const getNextAnalyticsId = () => ++_nextAnalyticsId;
 
 export const useDevToolsStore = create<DevToolsState>(set => ({
   activeTab: 'Elements',
   isSheetOpen: false,
   consoleLogs: [],
   networkRequests: [],
+  analyticsLogs: [],
 
   setActiveTab: tab => set({ activeTab: tab }),
   setIsSheetOpen: open => set({ isSheetOpen: open }),
@@ -59,4 +68,11 @@ export const useDevToolsStore = create<DevToolsState>(set => ({
     })),
 
   clearNetworkRequests: () => set({ networkRequests: [] }),
+
+  pushAnalyticsLog: entry =>
+    set(state => ({
+      analyticsLogs: [entry, ...state.analyticsLogs].slice(0, MAX_ANALYTICS_ENTRIES),
+    })),
+
+  clearAnalyticsLogs: () => set({ analyticsLogs: [] }),
 }));

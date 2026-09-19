@@ -2,9 +2,10 @@ import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { apiClient } from 'services/apiClient';
+import { setAnalyticsListener } from 'utils/analytics';
 import { DevToolsFAB } from 'components/__dev__/DevToolsFAB';
 import { DevToolsSheet } from 'components/__dev__/DevToolsSheet';
-import { useDevToolsStore } from 'components/__dev__/devToolsStore';
+import { getNextAnalyticsId, useDevToolsStore } from 'components/__dev__/devToolsStore';
 import {
   installConsoleInterceptor,
   uninstallConsoleInterceptor,
@@ -21,10 +22,18 @@ const DevToolsRoot = () => {
   useEffect(() => {
     installConsoleInterceptor();
     installNetworkInterceptor(apiClient);
+    setAnalyticsListener(entry => {
+      useDevToolsStore.getState().pushAnalyticsLog({
+        id: getNextAnalyticsId(),
+        timestamp: Date.now(),
+        ...entry,
+      });
+    });
 
     return () => {
       uninstallConsoleInterceptor();
       uninstallNetworkInterceptor(apiClient);
+      setAnalyticsListener(null);
     };
   }, []);
 
