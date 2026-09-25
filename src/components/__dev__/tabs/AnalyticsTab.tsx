@@ -1,38 +1,59 @@
-import React, { useCallback } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import dayjs from 'dayjs';
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 
 import { DevToolsButton } from 'components/__dev__/DevToolsButton';
 import { useDevToolsStore } from 'components/__dev__/devToolsStore';
 import type { AnalyticsEntry } from 'components/__dev__/types';
-import type { AnalyticsCategory } from 'utils/analytics';
+import type { AnalyticsEventType } from 'utils/analytics';
 
-/* 카테고리별 색 — ConsoleTab의 LEVEL_COLORS 패턴 */
-const CATEGORY_COLORS: Record<AnalyticsCategory, string> = {
+/* 이벤트 타입별 색 — ConsoleTab의 LEVEL_COLORS 패턴 */
+const TYPE_COLORS: Record<AnalyticsEventType, string> = {
   유입: '#E5C07B',
   조회: '#61DAFB',
   생성: '#98C379',
   상호작용: '#C678DD',
 };
 
-function AnalyticsItem({ item }: { item: AnalyticsEntry }) {
-  const color = CATEGORY_COLORS[item.category];
+/* 파라미터 값은 문자열이면 따옴표로 감싸 숫자와 구분한다 */
+const formatParamValue = (value: unknown) => (typeof value === 'string' ? `'${value}'` : String(value));
+
+interface AnalyticsItemProps {
+  item: AnalyticsEntry;
+  expanded: boolean;
+  onToggle: (id: number) => void;
+}
+
+function AnalyticsItem({ item, expanded, onToggle }: AnalyticsItemProps) {
+  const color = TYPE_COLORS[item.type];
+  const paramEntries = item.params ? Object.entries(item.params) : [];
+  const hasParams = paramEntries.length > 0;
+
+  const handlePress = useCallback(() => onToggle(item.id), [onToggle, item.id]);
 
   return (
-    <View style={styles.row}>
-      <Text style={styles.timestamp}>{dayjs(item.timestamp).format('HH:mm:ss')}</Text>
-      <View style={[styles.categoryBadge, { borderColor: color }]}>
-        <Text style={[styles.categoryText, { color }]}>{item.category}</Text>
-      </View>
-      <View style={styles.body}>
+    <Pressable onPress={handlePress} disabled={!hasParams}>
+      <View style={styles.row}>
+        {/* 파라미터가 없는 이벤트는 펼칠 게 없어 자리만 맞춘다 */}
+        <Text style={styles.toggle}>{hasParams ? (expanded ? '▾' : '▸') : ''}</Text>
+        <Text style={styles.timestamp}>{dayjs(item.timestamp).format('HH:mm:ss')}</Text>
+        <View style={[styles.typeBadge, { borderColor: color }]}>
+          <Text style={[styles.typeText, { color }]}>{item.type}</Text>
+        </View>
         <Text style={[styles.name, { color }]}>{item.name}</Text>
-        {item.params ? <Text style={styles.params}>{JSON.stringify(item.params)}</Text> : null}
       </View>
-      <Text style={[styles.sentBadge, item.sent ? styles.sentYes : styles.sentNo]}>
-        {item.sent ? '전송됨' : '기록만'}
-      </Text>
-    </View>
+      {expanded && hasParams && (
+        <View style={styles.detail}>
+          {paramEntries.map(([key, value]) => (
+            <View key={key} style={styles.paramRow}>
+              <Text style={styles.paramKey}>{key}</Text>
+              <Text style={styles.paramValue}>{formatParamValue(value)}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </Pressable>
   );
 }
 
@@ -42,7 +63,32 @@ const AnalyticsTab = () => {
   const analyticsLogs = useDevToolsStore(s => s.analyticsLogs);
   const clearAnalyticsLogs = useDevToolsStore(s => s.clearAnalyticsLogs);
 
-  const renderItem = useCallback(({ item }: { item: AnalyticsEntry }) => <MemoAnalyticsItem item={item} />, []);
+  /* 여러 이벤트를 동시에 펼쳐 파라미터를 비교할 수 있게 id 집합으로 관리한다 */
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(() => new Set());
+
+  const handleToggle = useCallback((id: number) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleClear = useCallback(() => {
+    clearAnalyticsLogs();
+    setExpandedIds(new Set());
+  }, [clearAnalyticsLogs]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: AnalyticsEntry }) => (
+      <MemoAnalyticsItem item={item} expanded={expandedIds.has(item.id)} onToggle={handleToggle} />
+    ),
+    [expandedIds, handleToggle],
+  );
 
   const keyExtractor = useCallback((item: AnalyticsEntry) => String(item.id), []);
 
@@ -50,12 +96,13 @@ const AnalyticsTab = () => {
     <View style={styles.container}>
       <View style={styles.toolbar}>
         <Text style={styles.count}>{analyticsLogs.length} events</Text>
-        <DevToolsButton label="Clear" doneLabel="Cleared" onPress={clearAnalyticsLogs} />
+        <DevToolsButton label="Clear" doneLabel="Cleared" onPress={handleClear} />
       </View>
       <BottomSheetFlatList
         data={analyticsLogs}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
+        extraData={expandedIds}
         initialNumToRender={30}
         maxToRenderPerBatch={20}
         windowSize={11}
@@ -87,57 +134,63 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 8,
     paddingVertical: 6,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#333',
   },
+  toggle: {
+    color: '#888',
+    fontSize: 14,
+    fontFamily: 'monospace',
+    width: 14,
+    textAlign: 'center',
+  },
   timestamp: {
     color: '#666',
     fontSize: 10,
     fontFamily: 'monospace',
-    minWidth: 60,
   },
-  categoryBadge: {
+  typeBadge: {
     borderWidth: 1,
     borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 1,
   },
-  categoryText: {
+  typeText: {
     fontSize: 10,
     fontFamily: 'monospace',
   },
-  body: {
-    flex: 1,
-  },
   name: {
+    flex: 1,
     fontSize: 12,
     fontFamily: 'monospace',
     fontWeight: '600',
   },
-  params: {
+  detail: {
+    paddingVertical: 6,
+    paddingLeft: 22,
+    gap: 2,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#333',
+  },
+  paramRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  paramKey: {
+    color: '#7F848E',
+    fontSize: 11,
+    fontFamily: 'monospace',
+    minWidth: 150,
+  },
+  paramValue: {
+    flex: 1,
     color: '#ABB2BF',
     fontSize: 11,
     fontFamily: 'monospace',
-    marginTop: 2,
-  },
-  sentBadge: {
-    fontSize: 10,
-    fontFamily: 'monospace',
-    borderRadius: 4,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    overflow: 'hidden',
-  },
-  sentYes: {
-    color: '#98C379',
-    backgroundColor: 'rgba(152,195,121,0.15)',
-  },
-  sentNo: {
-    color: '#7F848E',
-    backgroundColor: 'rgba(127,132,142,0.15)',
   },
   empty: {
     color: '#7F848E',

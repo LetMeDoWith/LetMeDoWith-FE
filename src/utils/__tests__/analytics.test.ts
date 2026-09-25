@@ -15,7 +15,9 @@ import {
   logDoriImpression,
   resetDoriImpressions,
   setAnalyticsListener,
-  EVENT_CATEGORY,
+  toAnalyticsFlag,
+  buildTaskCreateParams,
+  EVENT_TYPE,
 } from 'utils/analytics';
 
 describe('logEvent', () => {
@@ -31,15 +33,14 @@ describe('logEvent', () => {
     expect(mockLogEvent).not.toHaveBeenCalled();
   });
 
-  it('리스너에 이름·파라미터·카테고리·전송 여부를 알린다', () => {
+  it('리스너에 이름·파라미터·이벤트 타입을 알린다', () => {
     const listener = jest.fn();
     setAnalyticsListener(listener);
-    logEvent('dori_create_complete', { has_routine: 1, has_category: 0 });
+    logEvent('dori_create_complete', { routine_cycle: 'NONE', category_type: 'NONE', start_time: '09:00' });
     expect(listener).toHaveBeenCalledWith({
       name: 'dori_create_complete',
-      params: { has_routine: 1, has_category: 0 },
-      category: '생성',
-      sent: false,
+      params: { routine_cycle: 'NONE', category_type: 'NONE', start_time: '09:00' },
+      type: '생성',
     });
   });
 
@@ -51,9 +52,9 @@ describe('logEvent', () => {
   });
 });
 
-describe('EVENT_CATEGORY', () => {
-  it('9개 이벤트가 모두 카테고리를 가진다', () => {
-    expect(Object.keys(EVENT_CATEGORY).sort()).toEqual(
+describe('EVENT_TYPE', () => {
+  it('9개 이벤트가 모두 이벤트 타입을 가진다', () => {
+    expect(Object.keys(EVENT_TYPE).sort()).toEqual(
       [
         'sign_up_complete',
         'home_view',
@@ -91,5 +92,66 @@ describe('logDoriImpression', () => {
     resetDoriImpressions();
     logDoriImpression(7);
     expect(listener).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('toAnalyticsFlag', () => {
+  it('boolean을 리포트에서 읽히는 문자열로 바꾼다', () => {
+    expect(toAnalyticsFlag(true)).toBe('true');
+    expect(toAnalyticsFlag(false)).toBe('false');
+  });
+});
+
+describe('buildTaskCreateParams', () => {
+  const basePayload = {
+    title: '운동',
+    date: '2026-09-25',
+    taskCategoryId: null,
+    startTime: null,
+    routineCondition: null,
+  };
+
+  it('루틴·카테고리·시작 시간이 없으면 NONE만 보내고 나머지는 생략한다', () => {
+    expect(buildTaskCreateParams(basePayload)).toEqual({
+      routine_cycle: 'NONE',
+      category_type: 'NONE',
+      start_time: 'NONE',
+    });
+  });
+
+  it('루틴·카테고리·시작 시간을 필드 단위로 펼친다', () => {
+    const params = buildTaskCreateParams(
+      {
+        ...basePayload,
+        taskCategoryId: 12,
+        startTime: '09:30:00',
+        routineCondition: {
+          startDate: '2026-09-25',
+          endDate: '2026-10-25',
+          cycle: 'WEEKLY',
+          pattern: [1, 3, 5],
+          isExcludeHolidays: true,
+        },
+      },
+      [{ id: 12, title: '운동', creationType: 'COMMON', emoji: '🏃', categoryHolderId: '' }],
+    );
+    expect(params).toEqual({
+      routine_cycle: 'WEEKLY',
+      routine_pattern: '1,3,5',
+      routine_exclude_holidays: 'true',
+      routine_start_date: '2026-09-25',
+      routine_end_date: '2026-10-25',
+      category_id: 12,
+      category_name: '운동',
+      category_type: 'COMMON',
+      start_time: '09:30',
+    });
+  });
+
+  it('카테고리 캐시에 없으면 id만 보내고 타입은 UNKNOWN이다', () => {
+    const params = buildTaskCreateParams({ ...basePayload, taskCategoryId: 99 });
+    expect(params.category_id).toBe(99);
+    expect(params.category_type).toBe('UNKNOWN');
+    expect(params).not.toHaveProperty('category_name');
   });
 });

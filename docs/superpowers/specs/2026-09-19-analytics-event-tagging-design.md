@@ -8,13 +8,13 @@
 
 ## 결정 사항
 
-| 항목 | 결정 | 근거 |
-| --- | --- | --- |
-| 백엔드 | Firebase Analytics (`@react-native-firebase/analytics`) | `@react-native-firebase/app`이 이미 설치돼 네이티브 설정 재사용. 푸시(FCM)와 같은 콘솔 |
-| 파라미터 | 주요 맥락 포함 | 이벤트별 표 참조 |
-| 전송 게이트 | `__DEV__`만 차단 | App Distribution 배포 빌드는 `ENABLE_DEVTOOLS=true`(= `IS_DEV_MODE`)라, `IS_DEV_MODE`로 막으면 테스터 데이터가 전혀 안 잡힌다 |
-| Firebase 프로젝트 | 현재 dev 프로젝트 사용 | prod 프로젝트는 이후 생성. 전환은 설정 파일 교체만으로 끝나며 이벤트 코드는 무변경 (아래 "prod 전환" 절) |
-| 검증 | 개발자도구 Analytics 탭 | DebugView는 쓰지 않는다 |
+| 항목              | 결정                                                    | 근거                                                                                                                          |
+| ----------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 백엔드            | Firebase Analytics (`@react-native-firebase/analytics`) | `@react-native-firebase/app`이 이미 설치돼 네이티브 설정 재사용. 푸시(FCM)와 같은 콘솔                                        |
+| 파라미터          | 주요 맥락 포함                                          | 이벤트별 표 참조                                                                                                              |
+| 전송 게이트       | `__DEV__`만 차단                                        | App Distribution 배포 빌드는 `ENABLE_DEVTOOLS=true`(= `IS_DEV_MODE`)라, `IS_DEV_MODE`로 막으면 테스터 데이터가 전혀 안 잡힌다 |
+| Firebase 프로젝트 | 현재 dev 프로젝트 사용                                  | prod 프로젝트는 이후 생성. 전환은 설정 파일 교체만으로 끝나며 이벤트 코드는 무변경 (아래 "prod 전환" 절)                      |
+| 검증              | 개발자도구 Analytics 탭                                 | DebugView는 쓰지 않는다                                                                                                       |
 
 ## 아키텍처
 
@@ -23,12 +23,18 @@
 알림을 `utils/notification.ts`에 모은 것과 같은 관례로, 이벤트 정의·전송·개발자도구 연결을 한 파일에 모은다. mutation `onSuccess`·알림 핸들러처럼 컴포넌트 밖에서도 호출해야 하므로 훅이 아닌 유틸 함수다.
 
 ```ts
+/* 여부 플래그 — 아래 "생성 이벤트 파라미터" 참조 */
+type AnalyticsFlag = 'true' | 'false';
+
+/* 도리·투두 생성 공통 파라미터 — 아래 "생성 이벤트 파라미터" 참조 */
+type TaskCreateParams = { routine_cycle: ...; category_type: ...; start_time: string; /* 외 선택 필드 */ };
+
 /* 이벤트명 → 파라미터 타입 맵. 오타·파라미터 누락을 컴파일에서 잡는다 */
 type AnalyticsEventMap = {
   sign_up_complete: { provider: string };
   home_view: undefined;
-  dori_create_complete: { has_routine: boolean; has_category: boolean };
-  todo_create_complete: { has_routine: boolean; has_category: boolean; has_start_time: boolean };
+  dori_create_complete: TaskCreateParams;
+  todo_create_complete: TaskCreateParams;
   browse_view: undefined;
   dori_impression: { dori_id: number };
   feedback_complete: { template_id: number };
@@ -36,12 +42,12 @@ type AnalyticsEventMap = {
   push_open: { deep_link: string };
 };
 
-/* 개발자도구 Analytics 탭용 카테고리. 이벤트를 추가하면 여기 누락 시 컴파일 오류 */
-type AnalyticsCategory = '유입' | '조회' | '생성' | '상호작용';
-const EVENT_CATEGORY: Record<keyof AnalyticsEventMap, AnalyticsCategory> = { ... };
+/* 개발자도구 Analytics 탭용 이벤트 타입. 이벤트를 추가하면 여기 누락 시 컴파일 오류 */
+type AnalyticsEventType = '유입' | '조회' | '생성' | '상호작용';
+const EVENT_TYPE: Record<keyof AnalyticsEventMap, AnalyticsEventType> = { ... };
 
 const logEvent = <E extends keyof AnalyticsEventMap>(name: E, params?: AnalyticsEventMap[E]) => {
-  notifyListener(name, params, /* sent: */ !__DEV__);   // 개발자도구 탭으로
+  notifyListener(name, params);                         // 개발자도구 탭으로
   if (__DEV__) {
     return;                                             // Metro 개발 빌드는 전송하지 않는다
   }
@@ -62,19 +68,39 @@ const logEvent = <E extends keyof AnalyticsEventMap>(name: E, params?: Analytics
 
 ## 이벤트별 훅 지점과 파라미터
 
-| 이벤트 | 훅 지점 | 파라미터 | 비고 |
-| --- | --- | --- | --- |
-| `sign_up_complete` | `useSignUp` onSuccess | `provider` (GOOGLE/KAKAO/APPLE) | 아래 "provider 전달" 참조 |
-| `home_view` | 홈 화면 `useFocusEffect` | — | 탭 복귀도 방문으로 집계 |
-| `dori_create_complete` | `useAddDowithTask` onSuccess | `has_routine`, `has_category` | 시작 시간은 도리 필수라 제외 |
-| `todo_create_complete` | `useAddTodoTask` onSuccess | `has_routine`, `has_category`, `has_start_time` | |
-| `browse_view` | 둘러보기 화면 `useFocusEffect` | — | |
-| `dori_impression` | 아래 "노출 측정" 참조 | `dori_id` | |
-| `feedback_complete` | `useSendFeedback` onSuccess | `template_id` | 페이로드에 이미 존재 |
-| `certification_complete` | `useDowithCertification` 성공 처리 지점 | `dori_id` | |
-| `push_open` | `utils/notification.ts` 클릭 핸들러 3곳 (foreground PRESS · background · quit) | `deep_link` | |
+| 이벤트                   | 훅 지점                                                                        | 파라미터                        | 비고                             |
+| ------------------------ | ------------------------------------------------------------------------------ | ------------------------------- | -------------------------------- |
+| `sign_up_complete`       | `useSignUp` onSuccess                                                          | `provider` (GOOGLE/KAKAO/APPLE) | 아래 "provider 전달" 참조        |
+| `home_view`              | 홈 화면 `useFocusEffect`                                                       | —                               | 탭 복귀도 방문으로 집계          |
+| `dori_create_complete`   | `useAddDowithTask` onSuccess                                                   | 루틴·카테고리·시작 시간         | 아래 "생성 이벤트 파라미터" 참조 |
+| `todo_create_complete`   | `useAddTodoTask` onSuccess                                                     | 루틴·카테고리·시작 시간         | 도리와 동일                      |
+| `browse_view`            | 둘러보기 화면 `useFocusEffect`                                                 | —                               |                                  |
+| `dori_impression`        | 아래 "노출 측정" 참조                                                          | `dori_id`                       |                                  |
+| `feedback_complete`      | `useSendFeedback` onSuccess                                                    | `template_id`                   | 페이로드에 이미 존재             |
+| `certification_complete` | `useDowithCertification` 성공 처리 지점                                        | `dori_id`                       |                                  |
+| `push_open`              | `utils/notification.ts` 클릭 핸들러 3곳 (foreground PRESS · background · quit) | `deep_link`                     |                                  |
 
 mutation 계열은 서버 성공이 확정된 `onSuccess`에서만 보낸다.
+
+### 생성 이벤트 파라미터
+
+`dori_create_complete`·`todo_create_complete`는 요청 페이로드의 루틴·카테고리·시작 시간을 통째로 싣는다(`buildTaskCreateParams`). GA4 파라미터는 객체·배열을 받지 못하므로 필드 단위로 펼친다.
+
+| 파라미터                                  | 값                                          | 없을 때                             |
+| ----------------------------------------- | ------------------------------------------- | ----------------------------------- |
+| `routine_cycle`                           | `DAILY` / `WEEKLY` / `MONTHLY`              | `'NONE'`                            |
+| `routine_pattern`                         | 패턴 배열을 쉼표로 이은 문자열 (`'1,3,5'`)  | 생략                                |
+| `routine_exclude_holidays`                | `'true'` / `'false'`                        | 생략                                |
+| `routine_start_date` / `routine_end_date` | `'YYYY-MM-DD'`                              | 생략                                |
+| `category_id`                             | 카테고리 id (number)                        | 생략                                |
+| `category_name`                           | 카테고리 이름 (카테고리 목록 캐시에서 조회) | 생략                                |
+| `category_type`                           | `COMMON` / `USER_CUSTOM`                    | `'NONE'`, 캐시에 없으면 `'UNKNOWN'` |
+| `start_time`                              | `'HH:mm'`                                   | `'NONE'`                            |
+
+- 여부 값은 boolean 대신 문자열 `'true'` / `'false'`로 보낸다(`toAnalyticsFlag`). GA4 파라미터는 string/number만 안전하고(boolean은 Android에서 유실될 수 있다), 숫자 0/1은 맞춤 측정기준에서 `"0"`/`"1"`로 보여 뜻이 불분명하다.
+- 요청 페이로드에는 카테고리 id만 있으므로 이름·타입은 호출부가 `TASK_QUERY_KEY.CATEGORY_LIST` 캐시를 넘겨 찾는다.
+- `category_name`의 개인 카테고리(`USER_CUSTOM`) 값은 사용자가 입력한 텍스트다. GA4 값 길이 제한(100자)을 넘으면 잘린다.
+- 모든 파라미터는 GA4 콘솔에 **맞춤 측정기준**으로 등록한다.
 
 ### provider 전달
 
@@ -91,29 +117,29 @@ provider는 로그인 버튼(`GoogleLoginButton` 등)에서만 쓰이고 저장�
 - `TABS`에 `'Analytics'` 추가, `tabs/AnalyticsTab.tsx` 신설 — ConsoleTab 구조 재사용 (시각·이벤트명·파라미터 목록, 비우기 버튼)
 - `devToolsStore`에 `analyticsLogs` / `addAnalyticsLog` / `clearAnalyticsLogs` 추가
 - 초기화 시 `setAnalyticsListener`로 스토어에 연결 (기존 인터셉터 방식)
-- **카테고리별 색 구분** — ConsoleTab의 `LEVEL_COLORS` 패턴:
+- **이벤트 타입별 색 구분** — ConsoleTab의 `LEVEL_COLORS` 패턴:
 
-| 카테고리 | 이벤트 | 색 |
-| --- | --- | --- |
-| 유입 | `sign_up_complete`, `push_open` | 노랑 |
-| 조회 | `home_view`, `browse_view` | 파랑 |
-| 생성 | `dori_create_complete`, `todo_create_complete` | 초록 |
-| 상호작용 | `feedback_complete`, `certification_complete`, `dori_impression` | 보라 |
+| 이벤트 타입 | 이벤트                                                           | 색   |
+| ----------- | ---------------------------------------------------------------- | ---- |
+| 유입        | `sign_up_complete`, `push_open`                                  | 노랑 |
+| 조회        | `home_view`, `browse_view`                                       | 파랑 |
+| 생성        | `dori_create_complete`, `todo_create_complete`                   | 초록 |
+| 상호작용    | `feedback_complete`, `certification_complete`, `dori_impression` | 보라 |
 
-- **전송 여부 배지** — `__DEV__`에서는 전송되지 않으므로 각 로그에 "전송됨 / 기록만" 배지를 달아 혼동을 막는다.
+- **파라미터 아코디언** — 파라미터가 있는 이벤트는 행을 눌러 펼치면 key/value 목록으로 보인다(Network 탭의 ▸/▾ 패턴). 여러 행을 동시에 펼칠 수 있다.
 
 ## 검증 경로
 
-| 상황 | 확인 방법 |
-| --- | --- |
-| `__DEV__` (Metro 개발) | Analytics 탭 (기록만, 전송 안 됨 배지) |
+| 상황                     | 확인 방법                            |
+| ------------------------ | ------------------------------------ |
+| `__DEV__` (Metro 개발)   | Analytics 탭 (전송하지 않음)         |
 | dev 릴리즈 빌드 (테스터) | Analytics 탭 + dev Firebase GA4 집계 |
 
 ## 설치·주의
 
 - `yarn add @react-native-firebase/analytics` 후 iOS는 `bundle exec pod install`까지가 한 세트 (네이티브 변경 → 재빌드 필요)
 - Analytics는 앱 시작 시 자동 초기화되므로 별도 init 코드는 없다
-- 테스트: `utils/analytics.ts`의 순수 로직(카테고리 매핑 완전성, `__DEV__` 게이트)은 jest로 검증하고, `@react-native-firebase/analytics`는 모킹한다
+- 테스트: `utils/analytics.ts`의 순수 로직(이벤트 타입 매핑 완전성, `__DEV__` 게이트)은 jest로 검증하고, `@react-native-firebase/analytics`는 모킹한다
 
 ## 범위 밖 (명시)
 

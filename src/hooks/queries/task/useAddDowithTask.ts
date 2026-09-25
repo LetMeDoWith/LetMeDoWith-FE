@@ -5,11 +5,10 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 
 import { TASK_QUERY_KEY } from 'constants/queries';
 import { addDowithTask } from 'services/rest/task';
-import type { addTaskRequestSchemeType } from 'types/task/scheme/api';
+import type { addTaskRequestSchemeType, fetchTaskCategoryListResponseSchemeType } from 'types/task/scheme/api';
 import type { RootStackParamList } from 'types/shared';
 import { useStore } from 'stores/index';
-import { logEvent } from 'utils/analytics';
-import { isNil } from 'utils/index';
+import { buildTaskCreateParams, logEvent } from 'utils/analytics';
 
 interface Options {
   /*
@@ -27,10 +26,10 @@ const useAddDowithTask = ({ onSuccess }: Options = {}) => {
     mutationKey: TASK_QUERY_KEY.ADD_DOWITH,
     mutationFn: payload => addDowithTask(payload),
     onSuccess: (_, payload) => {
-      logEvent('dori_create_complete', {
-        has_routine: isNil(payload.routineCondition?.cycle) ? 0 : 1,
-        has_category: isNil(payload.taskCategoryId) ? 0 : 1,
-      });
+      const categories = queryClient.getQueryData<fetchTaskCategoryListResponseSchemeType>(
+        TASK_QUERY_KEY.CATEGORY_LIST,
+      )?.data;
+      logEvent('dori_create_complete', buildTaskCreateParams(payload, categories));
 
       if (onSuccess) {
         onSuccess();

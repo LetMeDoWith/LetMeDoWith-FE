@@ -1,4 +1,4 @@
-import type { AnalyticsCategory } from 'utils/analytics';
+import type { AnalyticsEventType } from 'utils/analytics';
 
 export type LogLevel = 'log' | 'info' | 'warn' | 'error';
 
@@ -32,7 +32,5 @@ export interface AnalyticsEntry {
   timestamp: number;
   name: string;
   params?: Record<string, unknown>;
-  category: AnalyticsCategory;
-  /* __DEV__에서는 전송되지 않으므로 기록만인지 실제 전송인지 구분한다 */
-  sent: boolean;
+  type: AnalyticsEventType;
 }

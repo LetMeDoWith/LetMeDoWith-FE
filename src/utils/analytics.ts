@@ -1,5 +1,7 @@
 import analytics from '@react-native-firebase/analytics';
 
+import type { addTaskRequestSchemeType, taskCategorySchemeType } from 'types/task/scheme/api';
+
 /*
  * 이벤트 태깅 코어. 이벤트 정의·전송·개발자도구 연결을 이 파일에 모은다
  * (알림을 utils/notification.ts에 모은 것과 같은 관례).
@@ -15,12 +17,83 @@ import analytics from '@react-native-firebase/analytics';
  * 만 하면 된다. 이 파일의 이벤트 코드는 무변경이다.
  */
 
-/* GA4 파라미터는 string/number만 안전 — boolean은 Android에서 유실될 수 있어 0|1로 보낸다 */
+/*
+ * 여부 플래그. GA4 파라미터는 string/number만 안전하다(boolean은 Android에서 유실될 수 있다).
+ * 숫자 0/1은 맞춤 측정기준으로 등록하면 "0"/"1"로 보여 뜻이 불분명해, 리포트에서 바로 읽히는 문자열로 보낸다.
+ */
+type AnalyticsFlag = 'true' | 'false';
+
+const toAnalyticsFlag = (value: boolean): AnalyticsFlag => (value ? 'true' : 'false');
+
+type RoutineCycle = NonNullable<addTaskRequestSchemeType['routineCondition']>['cycle'];
+
+/*
+ * 도리·투두 생성 공통 파라미터. GA4 파라미터는 객체·배열을 받지 못해 루틴·카테고리를 필드 단위로 펼친다.
+ * 루틴·카테고리가 없으면 cycle/type만 'NONE'으로 보내고 나머지 필드는 생략한다(리포트에서 "(not set)").
+ */
+type TaskCreateParams = {
+  routine_cycle: RoutineCycle | 'NONE';
+  /* 요일·날짜 번호 배열을 '1,3,5'처럼 쉼표로 이은 값 */
+  routine_pattern?: string;
+  routine_exclude_holidays?: AnalyticsFlag;
+  routine_start_date?: string;
+  routine_end_date?: string;
+  category_id?: number;
+  category_name?: string;
+  /* 카테고리 목록 캐시에 없어 조회하지 못하면 'UNKNOWN' */
+  category_type: taskCategorySchemeType['creationType'] | 'NONE' | 'UNKNOWN';
+  /* 'HH:mm', 없으면 'NONE' */
+  start_time: string;
+};
+
+/*
+ * 요청 페이로드에는 카테고리 id만 있어 이름·타입은 카테고리 목록 캐시에서 찾는다.
+ * 호출부(mutation onSuccess)가 queryClient 캐시를 넘긴다.
+ */
+const buildTaskCreateParams = (
+  payload: addTaskRequestSchemeType,
+  categories: taskCategorySchemeType[] = [],
+): TaskCreateParams => {
+  const routine = payload.routineCondition;
+  const category = categories.find(item => item.id === payload.taskCategoryId);
+
+  const routineParams: Partial<TaskCreateParams> = routine?.cycle
+    ? {
+        routine_pattern: routine.pattern.join(','),
+        routine_exclude_holidays: toAnalyticsFlag(routine.isExcludeHolidays),
+        routine_start_date: routine.startDate,
+        routine_end_date: routine.endDate,
+      }
+    : {};
+
+  /* 캐시에서 못 찾으면 name 키 자체를 넣지 않는다 — undefined 값을 네이티브로 넘기지 않기 위해 */
+  const categoryParams: Partial<TaskCreateParams> =
+    payload.taskCategoryId === null
+      ? {}
+      : { category_id: payload.taskCategoryId, ...(category && { category_name: category.title }) };
+
+  const getCategoryType = (): TaskCreateParams['category_type'] => {
+    if (payload.taskCategoryId === null) {
+      return 'NONE';
+    }
+    return category?.creationType ?? 'UNKNOWN';
+  };
+
+  return {
+    routine_cycle: routine?.cycle ?? 'NONE',
+    ...routineParams,
+    ...categoryParams,
+    category_type: getCategoryType(),
+    /* 서버 형식은 'HH:mm:ss' — 분 단위면 충분하다 */
+    start_time: payload.startTime ? payload.startTime.slice(0, 5) : 'NONE',
+  };
+};
+
 type AnalyticsEventMap = {
   sign_up_complete: { provider: string };
   home_view: undefined;
-  dori_create_complete: { has_routine: 0 | 1; has_category: 0 | 1 };
-  todo_create_complete: { has_routine: 0 | 1; has_category: 0 | 1; has_start_time: 0 | 1 };
+  dori_create_complete: TaskCreateParams;
+  todo_create_complete: TaskCreateParams;
   browse_view: undefined;
   dori_impression: { dori_id: number };
   feedback_complete: { template_id: number };
@@ -28,10 +101,11 @@ type AnalyticsEventMap = {
   push_open: { deep_link: string };
 };
 
-type AnalyticsCategory = '유입' | '조회' | '생성' | '상호작용';
+/* 이벤트 성격 분류(개발자도구 표시용) */
+type AnalyticsEventType = '유입' | '조회' | '생성' | '상호작용';
 
 /* 개발자도구 Analytics 탭의 색 구분용. 이벤트를 추가하면 여기 누락 시 컴파일 오류가 난다. */
-const EVENT_CATEGORY: Record<keyof AnalyticsEventMap, AnalyticsCategory> = {
+const EVENT_TYPE: Record<keyof AnalyticsEventMap, AnalyticsEventType> = {
   sign_up_complete: '유입',
   push_open: '유입',
   home_view: '조회',
@@ -43,12 +117,7 @@ const EVENT_CATEGORY: Record<keyof AnalyticsEventMap, AnalyticsCategory> = {
   certification_complete: '상호작용',
 };
 
-type AnalyticsListener = (entry: {
-  name: string;
-  params?: Record<string, unknown>;
-  category: AnalyticsCategory;
-  sent: boolean;
-}) => void;
+type AnalyticsListener = (entry: { name: string; params?: Record<string, unknown>; type: AnalyticsEventType }) => void;
 
 /* 개발자도구가 등록하는 리스너. 프로덕션 코드에 dev 분기를 두지 않기 위한 연결 지점이다. */
 let devToolsListener: AnalyticsListener | null = null;
@@ -63,15 +132,15 @@ const logEvent = <E extends keyof AnalyticsEventMap>(
   ...args: AnalyticsEventMap[E] extends undefined ? [] : [params: AnalyticsEventMap[E]]
 ) => {
   const params = args[0];
-  const sent = !__DEV__;
 
   try {
-    devToolsListener?.({ name, params, category: EVENT_CATEGORY[name], sent });
+    devToolsListener?.({ name, params, type: EVENT_TYPE[name] });
   } catch {
     /* 개발자도구 문제가 앱 흐름을 깨지 않게 */
   }
 
-  if (!sent) {
+  /* Metro 개발 빌드는 개발자도구에만 기록하고 전송하지 않는다 */
+  if (__DEV__) {
     return;
   }
 
@@ -105,5 +174,13 @@ const resetDoriImpressions = () => {
   seenDoriIds.clear();
 };
 
-export { logEvent, logDoriImpression, resetDoriImpressions, setAnalyticsListener, EVENT_CATEGORY };
-export type { AnalyticsCategory, AnalyticsListener };
+export {
+  logEvent,
+  logDoriImpression,
+  resetDoriImpressions,
+  setAnalyticsListener,
+  toAnalyticsFlag,
+  buildTaskCreateParams,
+  EVENT_TYPE,
+};
+export type { AnalyticsEventType, AnalyticsFlag, AnalyticsListener, TaskCreateParams };
