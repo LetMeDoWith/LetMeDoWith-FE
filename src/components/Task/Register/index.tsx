@@ -504,12 +504,12 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
          */
         keyboardBlurBehavior="restore"
         /*
-         * adjustResize를 주면 gorhom이 "창이 알아서 줄어든다"고 보고 시트를 직접 올리지 않는다.
-         * AndroidManifest가 adjustResize라 실제로 창이 줄어드므로 이 값이 맞다 — adjustPan을 주면
-         * 창이 줄어든 위에 시트까지 올라가 이중으로 뜬다.
-         * (KeyboardProvider가 edge-to-edge를 켜던 시절에는 창이 줄지 않아 adjustPan이 필요했다)
+         * KeyboardProvider가 edge-to-edge를 켜서 창이 리사이즈되지 않으므로, 시트를 gorhom이 직접 올리는
+         * adjustPan이어야 안드로이드에서 키보드에 덮이지 않는다.
+         * adjustResize로 두면 창이 줄어드는 순간 gorhom v4가 시트 위치를 새 컨테이너 기준 "닫힘"으로
+         * 판정해(시트 높이 < 키보드 높이일 때) 시트가 스스로 닫힌다.
          */
-        androidKeyboardInputMode="adjustResize"
+        androidKeyboardInputMode="adjustPan"
         buttonConfig={
           config.hasConfirm ? { title: '확인', isDisabled: isConfirmDisabled, variant: 'OUTLINED' } : undefined
         }
