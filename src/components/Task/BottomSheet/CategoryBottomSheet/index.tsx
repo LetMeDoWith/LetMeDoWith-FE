@@ -1,7 +1,7 @@
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFormContext } from 'react-hook-form';
-import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
+import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 
 import { theme } from 'styles/theme';
 import { BottomSheet } from 'components/common/BottomSheet';

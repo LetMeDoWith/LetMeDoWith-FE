@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
-import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
+import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import dayjs from 'dayjs';
 
 import { theme } from 'styles/theme';

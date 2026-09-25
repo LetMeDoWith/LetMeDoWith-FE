@@ -1,6 +1,6 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
+import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 
 import { BottomSheet } from 'components/common/BottomSheet';
 import { RoutineSheetContent, type RoutineSheetContentRef } from 'components/Task/Form/Routine/SheetContent';

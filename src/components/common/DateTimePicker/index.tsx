@@ -2,7 +2,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } f
 import { StyleSheet, View } from 'react-native';
 import dayjs from 'dayjs';
 import DatePicker, { DatePickerProps } from 'react-native-date-picker';
-import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
+import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 
 import { BottomSheet } from 'components/common/BottomSheet';
 import { getNextMinuteBoundary } from 'utils/date';

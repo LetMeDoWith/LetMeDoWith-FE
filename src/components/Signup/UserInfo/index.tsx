@@ -4,7 +4,7 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { useFocusEffect } from '@react-navigation/native';
 import { HelperText } from 'react-native-paper';
 import { DateTimePicker } from 'components/common/DateTimePicker';
-import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
+import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { getBottomSpace } from 'react-native-iphone-screen-helper';
 import dayjs from 'dayjs';
 

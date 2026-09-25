@@ -16,7 +16,7 @@ import type { BottomSheetModalProps } from '@gorhom/bottom-sheet';
 import { theme } from 'styles/theme';
 import { CancelIcon } from 'components/common/icons/CancelIcon';
 import { BottomSheetBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop';
-import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
+import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { isAos } from 'utils/device';
 
 interface Props {

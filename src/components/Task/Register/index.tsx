@@ -2,7 +2,7 @@ import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo
 import { Dimensions, Keyboard, Pressable, StyleSheet, Text, type TextInput, View } from 'react-native';
 import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { FormProvider, useForm } from 'react-hook-form';
-import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/src/types';
+import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import dayjs from 'dayjs';
 
 import { BottomSheet } from 'components/common/BottomSheet';
