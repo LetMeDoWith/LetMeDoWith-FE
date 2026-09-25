@@ -77,9 +77,8 @@ const Item = memo(function Item({
 
   const [showUploadImageBottomSheet, setShowUploadImageBottomSheet] = useState(false);
 
-  // 도리고, 시작 시간으로부터 1시간을 초과했을 경우 (list의 selectedDate=task 날짜, startTime은 prop이라 상세 조회 불필요)
-  const isInvalidUpdateDowithTask =
-    !isTodoMode && dayjs(`${selectedDate} ${startTime}`).add(1, 'hour').isBefore(dayjs());
+  // 도리고, 지정한 시작 시간을 초과했을 경우 (list의 selectedDate=task 날짜, startTime은 prop이라 상세 조회 불필요)
+  const isInvalidUpdateDowithTask = !isTodoMode && dayjs(`${selectedDate} ${startTime}`).isBefore(dayjs());
   const isFailed = localStatus === TASK_STATUS_ENUM.enum.FAIL;
 
   // 인증 완료(성공)한 도리는 수정/삭제(관리 메뉴) 불가
