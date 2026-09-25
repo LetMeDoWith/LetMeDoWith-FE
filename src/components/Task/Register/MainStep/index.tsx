@@ -242,6 +242,13 @@ const styles = StyleSheet.create({
   titleInput: {
     ...theme.TYPOGRAPHY.BODY_1,
     flex: 1,
+    /*
+     * 한 줄 TextInput은 lineHeight를 따르지 않고 들어 있는 글자의 폰트에 맞춰 높이가 1~2px씩 바뀐다
+     * (플레이스홀더 ↔ 한글 대체 폰트). 그러면 실측 높이 → 시트 snapPoints가 입력 중에 바뀌고,
+     * gorhom v4는 키보드가 떠 있을 때 snapPoints가 바뀌면 키보드 오프셋을 잃어 시트가 키보드 밑으로 내려간다.
+     * 높이를 고정해 입력 내용과 무관하게 한다.
+     */
+    height: theme.TYPOGRAPHY.BODY_1.lineHeight,
     padding: 0,
   },
   counter: {
