@@ -3,7 +3,6 @@ import { ScrollView, FlatList, StyleSheet, Text, TextInput, View } from 'react-n
 import { NavigationContainer, DefaultTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
 import BootSplash from 'react-native-bootsplash';
 import {
   MutationCacheNotifyEvent,
@@ -265,13 +264,11 @@ function AppContent() {
     <View style={styles.container}>
       {isLoggedIn ? (
         <SafeAreaProvider>
-          <KeyboardProvider>
-            <BottomSheetModalProvider>
-              <NavigationContainer ref={navigationRef} linking={linking} theme={DefaultTheme}>
-                {isNeedSignUp ? <Signup /> : <HomeStackNavigator />}
-              </NavigationContainer>
-            </BottomSheetModalProvider>
-          </KeyboardProvider>
+          <BottomSheetModalProvider>
+            <NavigationContainer ref={navigationRef} linking={linking} theme={DefaultTheme}>
+              {isNeedSignUp ? <Signup /> : <HomeStackNavigator />}
+            </NavigationContainer>
+          </BottomSheetModalProvider>
         </SafeAreaProvider>
       ) : (
         <Login />

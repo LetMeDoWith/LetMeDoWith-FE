@@ -67,7 +67,7 @@ const Chip = ({ icon, label, isFilled, isRequired, onPress }: ChipProps) => (
 interface Props {
   /* 시트 높이를 콘텐츠에 맞추기 위해 실제 렌더된 높이를 올려보낸다 */
   onMeasure: (height: number) => void;
-  /* 안드로이드에서 autoFocus가 무시될 때 밖에서 다시 포커스를 잡기 위한 참조 */
+  /* 시트가 다 열린 뒤 밖에서 포커스를 잡기 위한 참조(autoFocus를 쓰지 않는 이유는 입력부 주석 참고) */
   inputRef?: React.RefObject<TextInput>;
   taskMode: TaskModeType;
   /*
@@ -134,7 +134,12 @@ const MainStep = ({
                 value={value}
                 onChangeText={onChange}
                 maxLength={TITLE_MAX_LENGTH}
-                autoFocus
+                /*
+                 * autoFocus는 쓰지 않는다. 시트가 열리는 애니메이션 중에 포커스 요청이 나가면
+                 * 실기기에서 키보드가 뜨지 않은 채 RN 쪽만 "포커스됨"으로 남고, 그 뒤 focus()가
+                 * 같은 입력이라는 이유로 무시돼 키보드가 영영 올라오지 않는다.
+                 * 포커스는 시트가 다 열린 뒤 밖에서 inputRef로 잡는다.
+                 */
               />
             )}
           />

@@ -169,6 +169,15 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
       // 이전 스텝의 높이가 남아 있으면 새 스텝이 잠깐 엉뚱한 높이로 열린다
       setStepContentHeight(0);
       setStep(next);
+
+      /*
+       * 메인 밖 스텝에는 입력이 없다. 키보드가 남아 있으면 콘텐츠를 가린다.
+       * 스텝을 바꾼 "뒤에" 내려야 keyboardBlurBehavior(restore)가 새 스텝의 높이로 한 번에 복귀한다
+       * — 먼저 내리면 메인 높이로 줄었다가 다시 커지는 움직임이 보인다.
+       */
+      if (next !== 'MAIN') {
+        Keyboard.dismiss();
+      }
       slideX.value = isForward ? STEP_SLIDE_DISTANCE : -STEP_SLIDE_DISTANCE;
       slideX.value = withTiming(0, { duration: STEP_ENTER_DURATION, easing: Easing.out(Easing.cubic) });
       fade.value = withTiming(1, { duration: STEP_ENTER_DURATION }, finished => {
@@ -207,9 +216,6 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
 
   const openStep = useCallback(
     (next: Step) => () => {
-      /* 메인 밖 스텝에는 입력이 없다. 키보드가 남아 있으면 콘텐츠를 가린다. */
-      Keyboard.dismiss();
-
       if (next === 'DATE') {
         setDraftDate(formDate);
       }
@@ -392,11 +398,7 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
 
   /*
    * 스텝이 바뀌면 새 높이로 다시 스냅시킨다.
-   *
-   * 메인에서는 입력 때문에 키보드가 떠 있고, gorhom은 그만큼 시트를 밀어 올린 "임시 위치"에 둔다.
-   * 다른 스텝으로 갈 때 키보드를 내리는데, keyboardBlurBehavior 기본값(none)은 키보드가 내려가도
-   * 위치를 되돌리지 않는다. 그래서 snapPoints만 바뀌고 시트는 임시 위치에 갇혀 절반만 열렸다.
-   * (restore로 바꾸면 닫기 동작을 덮어써 시트가 다시 열리는 문제가 생겨 쓰지 않는다)
+   * 키보드를 한 번도 띄우지 않고 스텝을 여는 경우(= restore가 관여하지 않는 경로)를 위한 보정이다.
    */
   useEffect(() => {
     if (!isSheetOpen || step === 'MAIN') {
@@ -497,11 +499,17 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
         enableContentPanningGesture={step !== 'DATE' && step !== 'ROUTINE'}
         keyboardBehavior="interactive"
         /*
-         * adjustResize를 주면 gorhom이 "창이 알아서 줄어든다"고 보고 시트를 직접 올리지 않는다.
-         * 이 앱은 KeyboardProvider가 edge-to-edge를 켜서 창이 리사이즈되지 않으므로,
-         * 시트를 직접 올려주는 adjustPan이어야 안드로이드에서 키보드에 덮이지 않는다.
+         * 키보드가 내려가면 원래 스냅 위치로 되돌린다. 기본값(none)이면 키보드에 밀려 올라간
+         * 임시 위치가 남아, 다음 스텝의 snapPoints를 무시하고 그 높이에 갇힌다.
          */
-        androidKeyboardInputMode="adjustPan"
+        keyboardBlurBehavior="restore"
+        /*
+         * adjustResize를 주면 gorhom이 "창이 알아서 줄어든다"고 보고 시트를 직접 올리지 않는다.
+         * AndroidManifest가 adjustResize라 실제로 창이 줄어드므로 이 값이 맞다 — adjustPan을 주면
+         * 창이 줄어든 위에 시트까지 올라가 이중으로 뜬다.
+         * (KeyboardProvider가 edge-to-edge를 켜던 시절에는 창이 줄지 않아 adjustPan이 필요했다)
+         */
+        androidKeyboardInputMode="adjustResize"
         buttonConfig={
           config.hasConfirm ? { title: '확인', isDisabled: isConfirmDisabled, variant: 'OUTLINED' } : undefined
         }

@@ -9,6 +9,7 @@ import React, {
   useState,
 } from 'react';
 import { BackHandler, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
+import { runOnJS, useAnimatedReaction, useSharedValue } from 'react-native-reanimated';
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 import type { BottomSheetModalProps } from '@gorhom/bottom-sheet';
 
@@ -32,6 +33,11 @@ interface Props {
   contentBottomInset?: number;
   /* 시트 안에 입력이 있어 키보드를 피해야 할 때만 넘긴다(기본값은 라이브러리 동작 유지) */
   keyboardBehavior?: BottomSheetModalProps['keyboardBehavior'];
+  /*
+   * 키보드가 내려갔을 때 시트를 원래 스냅 위치로 되돌릴지. 기본값(none)은 되돌리지 않아
+   * 키보드에 밀려 올라간 "임시 위치"가 그대로 남는다 — 입력이 있는 시트는 restore를 넘긴다.
+   */
+  keyboardBlurBehavior?: BottomSheetModalProps['keyboardBlurBehavior'];
   androidKeyboardInputMode?: BottomSheetModalProps['android_keyboardInputMode'];
   /*
    * 사용자가 닫기 버튼 외의 방법으로 시트를 닫을 수 있는지. 아래로 내리는 제스처와
@@ -103,6 +109,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     headerComponent,
     contentBottomInset,
     keyboardBehavior,
+    keyboardBlurBehavior,
     androidKeyboardInputMode,
     enablePanDownToClose = true,
     enableContentPanningGesture = true,
@@ -118,6 +125,39 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
 
   const innerRef = useRef<BottomSheetModalMethods>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  /*
+   * 닫힘 애니메이션이 시작될 때 키보드도 함께 내린다.
+   * 입력이 언마운트될 때까지 두면 시트가 다 닫힌 뒤에야 키보드가 내려가 한 박자 늦다.
+   *
+   * 이때 keyboardBlurBehavior(restore)는 꺼야 한다. 닫는 중에 키보드가 내려가면 gorhom이
+   * "원래 스냅 위치로 복귀"로 해석해 시트를 도로 열어버린다 — 닫히는 중인지 판단하는
+   * animatedCurrentIndex가 애니메이션이 끝나야 갱신돼 아직 0으로 남아 있기 때문이다.
+   */
+  const startClosing = useCallback(() => {
+    setIsClosing(true);
+    Keyboard.dismiss();
+  }, []);
+
+  /*
+   * 닫히기 시작하는 순간을 위치 보간값으로 잡는다. 어떤 경로로 닫든(닫기 버튼·딤드 탭·
+   * 뒤로가기·아래로 쓸어내리기·밖에서 ref 호출) 한 곳에서 처리된다.
+   *
+   * onAnimate의 toIndex를 쓰지 않는 이유: gorhom은 목표 위치를 snapPoints.indexOf로 인덱싱해서
+   * 키보드에 밀려 올라간 임시 위치도 -1이 나온다. 그래서 "닫는 중"과 구분되지 않는다.
+   * animatedIndex는 임시 위치가 0으로 clamp되므로 음수면 닫히는 중인 것이 확실하다.
+   */
+  const animatedIndex = useSharedValue(-1);
+
+  useAnimatedReaction(
+    () => animatedIndex.value,
+    (current, previous) => {
+      if (previous !== null && previous >= 0 && current < 0) {
+        runOnJS(startClosing)();
+      }
+    },
+  );
 
   const handleClose = useCallback(() => {
     if (handleCloseButton) {
@@ -125,6 +165,11 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     }
     innerRef.current?.dismiss();
   }, [handleCloseButton]);
+
+  const handleDismiss = useCallback(() => {
+    setIsClosing(false);
+    onDismiss?.();
+  }, [onDismiss]);
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -138,21 +183,14 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     [enablePanDownToClose],
   );
 
-  /*
-   * 닫힘 애니메이션이 시작될 때 키보드도 함께 내린다.
-   * 입력이 언마운트될 때까지 두면 시트가 다 닫힌 뒤에야 키보드가 내려가 한 박자 늦다.
-   * onChange는 애니메이션이 끝난 뒤라 늦고, onAnimate라야 닫기 버튼·딤드 탭·스와이프를 모두 잡는다.
-   */
-  const handleAnimate = useCallback((_fromIndex: number, toIndex: number) => {
-    if (toIndex === -1) {
-      Keyboard.dismiss();
-    }
-  }, []);
-
   const handleSheetChanges = useCallback(
     (index: number) => {
       const open = index >= 0;
       setIsOpen(open);
+      /* 쓸어내리다 놓아 다시 스냅된 경우 — 닫기가 아니었으므로 restore를 되살린다 */
+      if (open) {
+        setIsClosing(false);
+      }
       onChangeCallback?.(open);
     },
     [onChangeCallback],
@@ -182,6 +220,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
           return () => {
             // 바텀 시트 노출 시 가상 키보드 숨김 처리
             Keyboard.dismiss();
+            setIsClosing(false);
             innerRef.current?.present();
           };
         }
@@ -196,9 +235,11 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     <BottomSheetModal
       ref={innerRef}
       snapPoints={snapPoints}
+      animatedIndex={animatedIndex}
       enablePanDownToClose={enablePanDownToClose}
       enableContentPanningGesture={enableContentPanningGesture}
       keyboardBehavior={keyboardBehavior}
+      keyboardBlurBehavior={isClosing ? 'none' : keyboardBlurBehavior}
       android_keyboardInputMode={androidKeyboardInputMode}
       backdropComponent={renderBackdrop}
       /*
@@ -206,9 +247,8 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
        * 어포던스 없이 제스처만 열어두면 사용자가 닫을 수 있다는 걸 알 수 없다.
        */
       handleComponent={enablePanDownToClose ? Handle : null}
-      onAnimate={handleAnimate}
       onChange={handleSheetChanges}
-      onDismiss={onDismiss}
+      onDismiss={handleDismiss}
     >
       <View
         style={[
