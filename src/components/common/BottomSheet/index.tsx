@@ -36,6 +36,7 @@ interface Props {
   /*
    * 키보드가 내려갔을 때 시트를 원래 스냅 위치로 되돌릴지. 기본값(none)은 되돌리지 않아
    * 키보드에 밀려 올라간 "임시 위치"가 그대로 남는다 — 입력이 있는 시트는 restore를 넘긴다.
+   * restore는 gorhom에 넘기지 않고 이 컴포넌트가 직접 처리한다(닫는 중에는 되돌리지 않는다).
    */
   keyboardBlurBehavior?: BottomSheetModalProps['keyboardBlurBehavior'];
   androidKeyboardInputMode?: BottomSheetModalProps['android_keyboardInputMode'];
@@ -125,19 +126,25 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
 
   const innerRef = useRef<BottomSheetModalMethods>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
+  /* 마지막으로 멈춰 있던 스냅 인덱스. 키보드가 내려간 뒤 되돌아갈 위치다(-1 = 닫힘). */
+  const currentIndexRef = useRef(-1);
+  /*
+   * 닫히는 중인지. state가 아니라 ref인 이유: 닫힘이 시작되면 곧바로 키보드를 내리는데,
+   * state는 다음 렌더에야 반영돼 그 사이 도착한 키보드 내림 이벤트가 시트를 도로 열어버린다.
+   */
+  const isClosingRef = useRef(false);
 
   /*
    * 닫힘 애니메이션이 시작될 때 키보드도 함께 내린다.
    * 입력이 언마운트될 때까지 두면 시트가 다 닫힌 뒤에야 키보드가 내려가 한 박자 늦다.
-   *
-   * 이때 keyboardBlurBehavior(restore)는 꺼야 한다. 닫는 중에 키보드가 내려가면 gorhom이
-   * "원래 스냅 위치로 복귀"로 해석해 시트를 도로 열어버린다 — 닫히는 중인지 판단하는
-   * animatedCurrentIndex가 애니메이션이 끝나야 갱신돼 아직 0으로 남아 있기 때문이다.
    */
   const startClosing = useCallback(() => {
-    setIsClosing(true);
+    isClosingRef.current = true;
     Keyboard.dismiss();
+  }, []);
+
+  const cancelClosing = useCallback(() => {
+    isClosingRef.current = false;
   }, []);
 
   /*
@@ -146,18 +153,48 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
    *
    * onAnimate의 toIndex를 쓰지 않는 이유: gorhom은 목표 위치를 snapPoints.indexOf로 인덱싱해서
    * 키보드에 밀려 올라간 임시 위치도 -1이 나온다. 그래서 "닫는 중"과 구분되지 않는다.
-   * animatedIndex는 임시 위치가 0으로 clamp되므로 음수면 닫히는 중인 것이 확실하다.
+   * animatedIndex는 임시 위치가 0으로 clamp되므로 음수면 닫히는 방향이다.
+   *
+   * 단, 인덱스만 보면 스냅 포인트가 바뀌는 순간(스텝 전환 등)도 음수로 튄다 — 시트는 그대로인데
+   * 목표 높이만 위로 바뀌어서다. 그래서 시트가 실제로 아래로 움직일 때만 닫힘으로 본다.
+   * 쓸어내리다 놓아 다시 열린 위치로 돌아오면 인덱스가 0 이상으로 복귀하므로 닫힘을 취소한다.
    */
   const animatedIndex = useSharedValue(-1);
+  const animatedPosition = useSharedValue(0);
 
   useAnimatedReaction(
-    () => animatedIndex.value,
+    () => ({ index: animatedIndex.value, position: animatedPosition.value }),
     (current, previous) => {
-      if (previous !== null && previous >= 0 && current < 0) {
+      if (!previous) {
+        return;
+      }
+      const isMovingDown = current.position > previous.position;
+      if (previous.index >= 0 && current.index < 0 && isMovingDown) {
         runOnJS(startClosing)();
+      } else if (previous.index < 0 && current.index >= 0) {
+        runOnJS(cancelClosing)();
       }
     },
   );
+
+  /*
+   * keyboardBlurBehavior="restore"를 gorhom에 그대로 넘기지 않고 직접 처리한다.
+   * gorhom의 restore는 닫는 중에도 키보드가 내려가면 시트를 원래 위치로 되돌려(= 도로 열어) 버리고,
+   * 이를 막으려 prop을 바꾸면 반영이 한 박자 늦는다. 여기서는 동기적인 ref로 닫는 중인지 확인한다.
+   * 이벤트는 gorhom과 같은 것을 쓴다(iOS는 will, 안드로이드는 did만 신뢰할 수 있다).
+   */
+  useEffect(() => {
+    if (keyboardBlurBehavior !== 'restore') {
+      return;
+    }
+    const subscription = Keyboard.addListener(isAos ? 'keyboardDidHide' : 'keyboardWillHide', () => {
+      if (isClosingRef.current || currentIndexRef.current < 0) {
+        return;
+      }
+      innerRef.current?.snapToIndex(currentIndexRef.current);
+    });
+    return () => subscription.remove();
+  }, [keyboardBlurBehavior]);
 
   const handleClose = useCallback(() => {
     if (handleCloseButton) {
@@ -167,7 +204,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
   }, [handleCloseButton]);
 
   const handleDismiss = useCallback(() => {
-    setIsClosing(false);
+    isClosingRef.current = false;
     onDismiss?.();
   }, [onDismiss]);
 
@@ -186,10 +223,10 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
   const handleSheetChanges = useCallback(
     (index: number) => {
       const open = index >= 0;
+      currentIndexRef.current = index;
       setIsOpen(open);
-      /* 쓸어내리다 놓아 다시 스냅된 경우 — 닫기가 아니었으므로 restore를 되살린다 */
       if (open) {
-        setIsClosing(false);
+        isClosingRef.current = false;
       }
       onChangeCallback?.(open);
     },
@@ -220,7 +257,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
           return () => {
             // 바텀 시트 노출 시 가상 키보드 숨김 처리
             Keyboard.dismiss();
-            setIsClosing(false);
+            isClosingRef.current = false;
             innerRef.current?.present();
           };
         }
@@ -236,10 +273,12 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
       ref={innerRef}
       snapPoints={snapPoints}
       animatedIndex={animatedIndex}
+      animatedPosition={animatedPosition}
       enablePanDownToClose={enablePanDownToClose}
       enableContentPanningGesture={enableContentPanningGesture}
       keyboardBehavior={keyboardBehavior}
-      keyboardBlurBehavior={isClosing ? 'none' : keyboardBlurBehavior}
+      /* restore는 위 키보드 리스너가 직접 처리한다 — gorhom 쪽 restore는 끈다 */
+      keyboardBlurBehavior="none"
       android_keyboardInputMode={androidKeyboardInputMode}
       backdropComponent={renderBackdrop}
       /*
