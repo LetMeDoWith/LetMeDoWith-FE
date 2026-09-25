@@ -1042,10 +1042,6 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - react-native-keyboard-controller (1.16.0):
-    - glog
-    - RCT-Folly (= 2022.05.16.00)
-    - React-Core
   - react-native-pager-view (6.7.0):
     - glog
     - RCT-Folly (= 2022.05.16.00)
@@ -1329,7 +1325,6 @@ DEPENDENCIES:
   - react-native-date-picker (from `../node_modules/react-native-date-picker`)
   - react-native-encrypted-storage (from `../node_modules/react-native-encrypted-storage`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
-  - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-user-agent (from `../node_modules/react-native-user-agent`)
@@ -1465,8 +1460,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-encrypted-storage"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
-  react-native-keyboard-controller:
-    :path: "../node_modules/react-native-keyboard-controller"
   react-native-pager-view:
     :path: "../node_modules/react-native-pager-view"
   react-native-safe-area-context:
@@ -1599,7 +1592,6 @@ SPEC CHECKSUMS:
   react-native-date-picker: 90687f1dbd374ff0265dca99d949998364c22fa9
   react-native-encrypted-storage: db300a3f2f0aba1e818417c1c0a6be549038deb7
   react-native-image-picker: 8f0b7e141ff71cc8149dc246c9bf7bda46aa9b72
-  react-native-keyboard-controller: 5c5edd24039f0880db9c93fd6e0c5967e469cd8d
   react-native-pager-view: 5c6078ecd8b940874f179d25037c07bcda1526b0
   react-native-safe-area-context: b97eb6f9e3b7f437806c2ce5983f479f8eb5de4b
   react-native-user-agent: a90a1e839b99801baad67a73dd6f361a52aa3cf1
@@ -1641,6 +1633,6 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: 08cd7601462818c4985bda7b205b9e6a92a7e66a
 
-PODFILE CHECKSUM: 4baee0ee91d044b4feb4a2f55e6d9309cea7d507
+PODFILE CHECKSUM: d61f5c04e9d06671d83b50d09034bd89beab9764
 
 COCOAPODS: 1.14.3
