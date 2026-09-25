@@ -28,17 +28,29 @@ const toAnalyticsFlag = (value: boolean): AnalyticsFlag => (value ? 'true' : 'fa
 type RoutineCycle = NonNullable<addTaskRequestSchemeType['routineCondition']>['cycle'];
 
 /*
+ * 매일 루틴은 서버 요청의 pattern이 빈 배열이다. 분석에서는 "모든 요일"로 펼쳐 보내 주간 루틴과 같은 기준으로 비교한다.
+ * 요일 번호는 루틴 폼(WEEKLY_DAY_INFO)과 같은 월=1 … 일=7.
+ */
+const EVERY_DAY_PATTERN = '1,2,3,4,5,6,7';
+
+/*
+ * id처럼 정수인 값은 문자열로 보낸다. 안드로이드 SDK는 JS 숫자를 항상 double로 넘겨
+ * 맞춤 측정기준에서 632.0처럼 소수점이 붙는다.
+ */
+const toAnalyticsId = (id: number) => String(id);
+
+/*
  * 도리·투두 생성 공통 파라미터. GA4 파라미터는 객체·배열을 받지 못해 루틴·카테고리를 필드 단위로 펼친다.
  * 루틴·카테고리가 없으면 cycle/type만 'NONE'으로 보내고 나머지 필드는 생략한다(리포트에서 "(not set)").
  */
 type TaskCreateParams = {
   routine_cycle: RoutineCycle | 'NONE';
-  /* 요일·날짜 번호 배열을 '1,3,5'처럼 쉼표로 이은 값 */
+  /* 요일·날짜 번호 배열을 '1,3,5'처럼 쉼표로 이은 값. 매일 루틴은 '1,2,3,4,5,6,7' */
   routine_pattern?: string;
   routine_exclude_holidays?: AnalyticsFlag;
   routine_start_date?: string;
   routine_end_date?: string;
-  category_id?: number;
+  category_id?: string;
   category_name?: string;
   /* 카테고리 목록 캐시에 없어 조회하지 못하면 'UNKNOWN' */
   category_type: taskCategorySchemeType['creationType'] | 'NONE' | 'UNKNOWN';
@@ -59,7 +71,7 @@ const buildTaskCreateParams = (
 
   const routineParams: Partial<TaskCreateParams> = routine?.cycle
     ? {
-        routine_pattern: routine.pattern.join(','),
+        routine_pattern: routine.cycle === 'DAILY' ? EVERY_DAY_PATTERN : routine.pattern.join(','),
         routine_exclude_holidays: toAnalyticsFlag(routine.isExcludeHolidays),
         routine_start_date: routine.startDate,
         routine_end_date: routine.endDate,
@@ -70,7 +82,10 @@ const buildTaskCreateParams = (
   const categoryParams: Partial<TaskCreateParams> =
     payload.taskCategoryId === null
       ? {}
-      : { category_id: payload.taskCategoryId, ...(category && { category_name: category.title }) };
+      : {
+          category_id: toAnalyticsId(payload.taskCategoryId),
+          ...(category && { category_name: category.title }),
+        };
 
   const getCategoryType = (): TaskCreateParams['category_type'] => {
     if (payload.taskCategoryId === null) {
@@ -95,9 +110,9 @@ type AnalyticsEventMap = {
   dori_create_complete: TaskCreateParams;
   todo_create_complete: TaskCreateParams;
   browse_view: undefined;
-  dori_impression: { dori_id: number };
-  feedback_complete: { template_id: number };
-  certification_complete: { dori_id: number };
+  dori_impression: { dori_id: string };
+  feedback_complete: { template_id: string };
+  certification_complete: { dori_id: string };
   push_open: { deep_link: string };
 };
 
@@ -167,7 +182,7 @@ const logDoriImpression = (doriId: number) => {
     return;
   }
   seenDoriIds.add(doriId);
-  logEvent('dori_impression', { dori_id: doriId });
+  logEvent('dori_impression', { dori_id: toAnalyticsId(doriId) });
 };
 
 const resetDoriImpressions = () => {
@@ -180,6 +195,7 @@ export {
   resetDoriImpressions,
   setAnalyticsListener,
   toAnalyticsFlag,
+  toAnalyticsId,
   buildTaskCreateParams,
   EVENT_TYPE,
 };

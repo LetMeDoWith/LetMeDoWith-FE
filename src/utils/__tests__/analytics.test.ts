@@ -16,6 +16,7 @@ import {
   resetDoriImpressions,
   setAnalyticsListener,
   toAnalyticsFlag,
+  toAnalyticsId,
   buildTaskCreateParams,
   EVENT_TYPE,
 } from 'utils/analytics';
@@ -141,7 +142,7 @@ describe('buildTaskCreateParams', () => {
       routine_exclude_holidays: 'true',
       routine_start_date: '2026-09-25',
       routine_end_date: '2026-10-25',
-      category_id: 12,
+      category_id: '12',
       category_name: '운동',
       category_type: 'COMMON',
       start_time: '09:30',
@@ -150,8 +151,28 @@ describe('buildTaskCreateParams', () => {
 
   it('카테고리 캐시에 없으면 id만 보내고 타입은 UNKNOWN이다', () => {
     const params = buildTaskCreateParams({ ...basePayload, taskCategoryId: 99 });
-    expect(params.category_id).toBe(99);
+    expect(params.category_id).toBe('99');
     expect(params.category_type).toBe('UNKNOWN');
     expect(params).not.toHaveProperty('category_name');
+  });
+
+  it('매일 루틴은 패턴을 모든 요일로 펼친다', () => {
+    const params = buildTaskCreateParams({
+      ...basePayload,
+      routineCondition: {
+        startDate: '2026-09-25',
+        endDate: '2026-09-26',
+        cycle: 'DAILY',
+        pattern: [],
+        isExcludeHolidays: false,
+      },
+    });
+    expect(params.routine_pattern).toBe('1,2,3,4,5,6,7');
+  });
+});
+
+describe('toAnalyticsId', () => {
+  it('정수 id를 소수점 없는 문자열로 바꾼다', () => {
+    expect(toAnalyticsId(632)).toBe('632');
   });
 });

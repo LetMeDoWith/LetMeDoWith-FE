@@ -6,7 +6,7 @@ import { TASK_QUERY_KEY } from 'constants/queries';
 import { fetchUploadTaskSuccessImageUrlList, updateDowithTaskStatusSuccess } from 'services/rest/task';
 import { useUploadImage } from 'hooks/shared/useUploadImage';
 import type { uploadTaskSuccessImageUrlListRequestSchemeType } from 'types/task/scheme/api';
-import { logEvent } from 'utils/analytics';
+import { logEvent, toAnalyticsId } from 'utils/analytics';
 
 const useUploadDowithTaskSuccessImageList = (id: number) => {
   const queryClient = useQueryClient();
@@ -38,7 +38,7 @@ const useUploadDowithTaskSuccessImageList = (id: number) => {
 
       /* uri 없어 업로드를 건너뛴 경우(didUpload: false)는 실제 인증이 일어나지 않았으므로 이벤트를 보내지 않는다 */
       if (didUpload) {
-        logEvent('certification_complete', { dori_id: id });
+        logEvent('certification_complete', { dori_id: toAnalyticsId(id) });
       }
 
       queryClient.invalidateQueries({ queryKey: TASK_QUERY_KEY.LIST });
