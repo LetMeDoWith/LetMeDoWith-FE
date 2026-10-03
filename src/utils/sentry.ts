@@ -4,6 +4,7 @@ import Config from 'react-native-config';
 
 import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
 import { IS_DEV_MODE } from 'utils/env';
+import { SESSION_EXPIRED_STATUS_CODES } from 'constants/shared';
 import type { BaseResponseSchemeType } from 'types/shared/scheme/api';
 
 /*
@@ -99,13 +100,6 @@ type ApiErrorType =
   | 'ApiNotFoundError'
   | 'ApiClientError';
 
-/* 재발급 토큰이 무효해 세션 만료 다이얼로그로 강제 로그아웃되는 코드(useRefreshTokenQuery) */
-const KICKOUT_STATUS_CODES: string[] = [
-  ErrorStatusCodeEnum.enum.E306,
-  ErrorStatusCodeEnum.enum.E307,
-  ErrorStatusCodeEnum.enum.E308,
-];
-
 const SERVER_CODE_GROUP_TYPES: Record<string, ApiErrorType> = {
   E1: 'ApiBadRequestError',
   E2: 'ApiBadRequestError',
@@ -118,7 +112,8 @@ const classifyApiError = (status?: number, statusCode?: string): ApiErrorType =>
   if (status === undefined) {
     return 'ApiNetworkError';
   }
-  if (statusCode && KICKOUT_STATUS_CODES.includes(statusCode)) {
+  /* 세션 만료 다이얼로그로 강제 로그아웃되는 코드(constants/shared, useRefreshTokenQuery와 공유) */
+  if (statusCode && SESSION_EXPIRED_STATUS_CODES.includes(statusCode)) {
     return 'ApiKickoutError';
   }
   const groupType = statusCode ? SERVER_CODE_GROUP_TYPES[statusCode.slice(0, 2)] : undefined;

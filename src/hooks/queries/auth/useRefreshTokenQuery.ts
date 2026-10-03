@@ -5,7 +5,7 @@ import type { refreshTokenRequestSchemeType, refreshTokenResponseSchemeType } fr
 import { refreshToken } from 'services/rest/auth';
 import { AUTH_QUERY_KEY } from 'constants/queries';
 import { useStore } from 'stores/index';
-import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
+import { SESSION_EXPIRED_STATUS_CODES } from 'constants/shared';
 import { useDialog } from 'components/common/Dialog/Provider';
 
 /**
@@ -43,12 +43,11 @@ const useRefreshTokenQuery = () => {
     },
     onError: e => {
       const errorCode = e.response?.data.statusCode;
-      // 재발급 토큰이 유효하지 않은 에러 발생시, 상태 초기화
-      if (
-        errorCode === ErrorStatusCodeEnum.enum.E306 ||
-        errorCode === ErrorStatusCodeEnum.enum.E307 ||
-        errorCode === ErrorStatusCodeEnum.enum.E308
-      ) {
+      /*
+       * 재발급이 불가능한 에러(RTK 미존재 E303, 소유자 불일치 E306~E308)면 상태를 초기화하고 로그인으로 보낸다.
+       * E303은 재시도해도 복구되지 않는다 — 처리하지 않으면 재로그인 안내 없이 남는다.
+       */
+      if (errorCode && SESSION_EXPIRED_STATUS_CODES.includes(errorCode)) {
         // 앱 foreground 복귀 시 만료 처리(App.tsx)와 동일한 Dialog로 통일
         showDialog({
           type: 'ALERT',

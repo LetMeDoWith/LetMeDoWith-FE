@@ -171,6 +171,8 @@ describe('captureApiError 이슈 제목 규격화', () => {
     [{ status: 400, statusCode: 'E210' }, 'ApiBadRequestError', 'POST v1/task/:id → 400 (E210)'],
     [{ status: 400, statusCode: 'E100' }, 'ApiBadRequestError', 'POST v1/task/:id → 400 (E100)'],
     [{ status: 401, statusCode: 'E307' }, 'ApiKickoutError', 'POST v1/task/:id → 401 (E307)'],
+    /* E303은 재발급 때 서버에 RTK가 없을 때 나며 재시도로 복구되지 않아 세션 만료와 같게 본다 */
+    [{ status: 401, statusCode: 'E303' }, 'ApiKickoutError', 'POST v1/task/:id → 401 (E303)'],
     [{ status: 401, statusCode: 'E301' }, 'ApiAuthError', 'POST v1/task/:id → 401 (E301)'],
     [{ status: 500, statusCode: 'E400' }, 'ApiServerError', 'POST v1/task/:id → 500 (E400)'],
     [{}, 'ApiNetworkError', 'POST v1/task/:id → no-response'],
