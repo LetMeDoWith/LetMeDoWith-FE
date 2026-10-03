@@ -3,6 +3,7 @@ import { StateCreator } from 'zustand';
 import type { ProviderEnumType } from 'types/auth/scheme/enum';
 
 import { secureStorage, STORAGE_KEY } from 'stores/secure';
+import { clearSentryUser, setSentryUser } from 'utils/sentry';
 import { INITIAL_NOTIFICATION_STORAGE_VALUE } from 'stores/notification/slice';
 
 type Token = {
@@ -56,7 +57,15 @@ const initialAuthState = {
 export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set, get) => ({
   ...initialAuthState,
   authActions: {
-    setMemberId: id => set({ memberId: id }),
+    setMemberId: id => {
+      set({ memberId: id });
+      /* Sentry 이벤트의 영향 사용자 집계용. id 외의 개인정보는 보내지 않는다 */
+      if (id !== null) {
+        setSentryUser(id);
+      } else {
+        clearSentryUser();
+      }
+    },
     setIsLoggedIn: isLoggedIn => set({ isLoggedIn }),
     setIsNeedSignUp: isNeedSignUp => set({ isNeedSignUp }),
     setIsNeedRefreshToken: isNeedRefreshToken => set({ isNeedRefreshToken }),
@@ -75,6 +84,7 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set,
           }),
         );
         set({ ...initialAuthState, isHydrated: true });
+        clearSentryUser();
       } catch (error) {
         console.error('인증 정보 초기화에 실패했습니다.', error);
       }

@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import dayjs from 'dayjs';
 
 import { secureStorage, STORAGE_KEY } from 'stores/secure';
+import { setSentryUser } from 'utils/sentry';
 import { AuthSlice, createAuthSlice } from 'stores/auth/slice';
 import { createNotificationSlice, NotificationSlice } from 'stores/notification/slice';
 import { createOnboardingSlice, OnboardingSlice } from 'stores/onboarding/slice';
@@ -51,6 +52,10 @@ const useStore = create<MergedStoreState>()(
           ) {
             setIsHydrated(true);
             return;
+          }
+          /* 앱 재시작 복원 시에는 setMemberId가 불리지 않으므로 여기서 직접 설정한다 */
+          if (memberId) {
+            setSentryUser(memberId);
           }
           setIsLoggedIn(true);
 

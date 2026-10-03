@@ -39,7 +39,9 @@ import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotifi
 import { linking } from 'utils/deepLink';
 import { NOTIFICATION_QUERY_KEY } from 'constants/queries';
 import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
-import { captureApiError } from 'utils/sentry';
+import * as Sentry from '@sentry/react-native';
+
+import { captureApiError, navigationIntegration } from 'utils/sentry';
 import { AppStateProvider, AppStateContext, useAppState } from 'hooks/shared/useAppState';
 
 export const navigationRef = createNavigationContainerRef();
@@ -271,7 +273,13 @@ function AppContent() {
         <SafeAreaProvider>
           <KeyboardProvider>
             <BottomSheetModalProvider>
-              <NavigationContainer ref={navigationRef} linking={linking} theme={DefaultTheme}>
+              <NavigationContainer
+                ref={navigationRef}
+                linking={linking}
+                theme={DefaultTheme}
+                /* 화면 전환 성능 측정(reactNavigationIntegration) 활성화 */
+                onReady={() => navigationIntegration.registerNavigationContainer(navigationRef)}
+              >
                 {isNeedSignUp ? <Signup /> : <HomeStackNavigator />}
               </NavigationContainer>
             </BottomSheetModalProvider>
@@ -318,4 +326,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default Sentry.wrap(App);

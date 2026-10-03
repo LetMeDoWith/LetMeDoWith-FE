@@ -18,6 +18,7 @@ import { AppRegistry } from 'react-native';
 import App from './App';
 import { name as appName } from './app.json';
 import messaging from '@react-native-firebase/messaging';
+import { initSentry } from 'utils/sentry';
 import { handleBackgroundMessage } from 'utils/notification';
 
 // 백그라운드 메세지 핸들러 재등록 방지
@@ -29,4 +30,10 @@ if (!__DEV__ || !global.__hasSetBGMessageHandler) {
     global.__hasSetBGMessageHandler = true;
   }
 }
+/*
+ * 가능한 가장 이른 시점에 초기화한다. ES import는 호이스팅되어 import "이전" 실행은
+ * 불가능하므로, 모듈 평가가 끝난 직후 첫 실행문이면 충분하다.
+ */
+initSentry();
+
 AppRegistry.registerComponent(appName, () => App);
