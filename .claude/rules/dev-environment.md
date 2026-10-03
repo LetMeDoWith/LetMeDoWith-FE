@@ -13,6 +13,21 @@
 - 개발 모드 여부는 `utils/env.ts`의 **`IS_DEV_MODE`만** 사용한다(`__DEV__ || ENABLE_DEVTOOLS === 'true'`). `__DEV__`를 직접 쓰면 dev 릴리즈 빌드(`build:dev:*`)에서 동작하지 않는다.
 - dev 빌드 스크립트(`build:dev:android/ios`)는 `.env`의 `ENABLE_DEVTOOLS`를 일시 변경 후 원복한다 — 빌드 스크립트를 수정할 때 이 sed 토글 로직을 깨뜨리지 않는다.
 
+## Sentry
+
+- 에러·성능 로직은 **전부 `utils/sentry.ts`에 모여 있다.** 화면·훅에 Sentry 호출을 흩뿌리지 않는다. API 에러는 App.tsx의 전역 에러 구독 한 곳에서만 수집한다.
+- 전송 게이트는 `__DEV__`만이다(Analytics와 동일). Metro 빌드는 기록되지 않고, dev 배포 빌드는 `environment=development`로 전송된다. 동작 확인은 개발자도구 Elements 탭의 Sentry 테스트 버튼 + dev 릴리즈 빌드로 한다.
+- **소스맵·dSYM 업로드**는 릴리즈 빌드 중 자동 실행된다. 로컬에서 업로드하려면 `~/.sentryclirc`에 토큰을 둔다:
+
+  ```ini
+  [auth]
+  token=<sentry.io → Settings → Auth Tokens에서 발급>
+  ```
+
+  토큰이 없거나 업로드를 생략하려면 `SENTRY_DISABLE_AUTO_UPLOAD=true`를 붙여 빌드한다(빌드는 깨지지 않는다). CI는 distribute-dev에서만 업로드하며 실패 시 빌드가 실패한다.
+
+- `SENTRY_DSN`은 `.env` 키다(클라이언트 공개값). 키 추가 시 `react-native-config.d.ts`도 함께 갱신하는 규칙은 그대로 적용된다.
+
 ## patch-package
 
 - node_modules 라이브러리 수정이 불가피할 때만 `patches/`에 patch-package로 관리한다(`postinstall`에서 자동 적용). 현재 `react-native-calendars` 패치가 있다.
