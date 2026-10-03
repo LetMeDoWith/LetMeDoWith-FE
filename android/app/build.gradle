@@ -82,8 +82,8 @@ android {
         applicationId "com.teamdowith.letmedowith2"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 34
-        versionName "0.10.2"
+        versionCode 35
+        versionName "0.11.0"
 //         multiDexEnabled true
     }
     signingConfigs {
