@@ -1,9 +1,10 @@
 import * as Sentry from '@sentry/react-native';
+import axios from 'axios';
 import Config from 'react-native-config';
 
 import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
 import { IS_DEV_MODE } from 'utils/env';
-import type { ApiError } from 'services/apiClient';
+import type { BaseResponseSchemeType } from 'types/shared/scheme/api';
 
 /*
  * 에러·성능 모니터링 코어. init·user·API 에러 캡처·내비게이션 연동을 이 파일에 모은다
@@ -86,7 +87,17 @@ const normalizeEndpoint = (url?: string) => {
  *   여기서도 막아야 재발급 실패로 조기 return을 지나친 경우까지 걸러진다.
  * - 요청 헤더(Authorization)·본문은 보내지 않는다 — 태그·fingerprint만 구성한다.
  */
-const captureApiError = (error: ApiError, kind: 'query' | 'mutation') => {
+const captureApiError = (error: unknown, kind: 'query' | 'mutation') => {
+  /*
+   * queryFn·mutationFn이 던진 에러가 늘 axios 에러인 것은 아니다(응답 가공 중 TypeError 등).
+   * 그런 에러에 API용 fingerprint를 붙이면 서로 다른 JS 버그가 이슈 하나로 뭉쳐 가려지므로,
+   * 기본(스택) 그룹핑에 맡기고 호출 경로 태그만 남긴다.
+   */
+  if (!axios.isAxiosError<BaseResponseSchemeType>(error)) {
+    Sentry.captureException(error, { tags: { 'api.kind': kind } });
+    return;
+  }
+
   if (error.response?.data?.statusCode === ErrorStatusCodeEnum.enum.E302) {
     return;
   }

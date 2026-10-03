@@ -59,6 +59,7 @@ describe('Sentry user', () => {
 /* ApiError 형태의 최소 목(axios 전체 타입을 채우지 않기 위해 never 캐스팅) */
 const makeApiError = (over: { status?: number; statusCode?: string; url?: string; method?: string }) =>
   ({
+    isAxiosError: true,
     response:
       over.status === undefined
         ? undefined
@@ -92,6 +93,12 @@ describe('captureApiError', () => {
     expect(mockScope.setLevel).toHaveBeenLastCalledWith('error');
     captureApiError(makeApiError({ status: 404 }), 'query');
     expect(mockScope.setLevel).toHaveBeenLastCalledWith('warning');
+  });
+
+  it('axios 에러가 아니면 fingerprint 없이 기본(스택) 그룹핑으로 수집한다', () => {
+    captureApiError(new Error('응답 가공 중 터짐'), 'query');
+    expect(mockCaptureException).toHaveBeenCalledTimes(1);
+    expect(mockScope.setFingerprint).not.toHaveBeenCalled();
   });
 
   it('E302(토큰 만료)는 수집하지 않는다', () => {
