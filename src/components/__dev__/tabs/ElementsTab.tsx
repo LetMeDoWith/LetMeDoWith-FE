@@ -1,6 +1,10 @@
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
 import { Clipboard, Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
+import * as Sentry from '@sentry/react-native';
+
+import { queryClient } from 'services/queryClient';
+import { apiClient } from 'services/apiClient';
 
 import { DevToolsButton } from 'components/__dev__/DevToolsButton';
 import { navigationRef } from '../../../../App';
@@ -98,6 +102,39 @@ const ElementsTab = () => {
         </View>
       </View>
 
+      {/* Sentry 전송 테스트 — Metro(__DEV__) 빌드는 전송이 꺼져 있어 dev 릴리즈 빌드에서만 실제 전송된다 */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Sentry</Text>
+        <View style={[styles.card, styles.sentryButtons]}>
+          <DevToolsButton
+            label="JS Error"
+            doneLabel="Thrown"
+            onPress={() => {
+              /* 핸들러 안에서 throw하면 React가 삼킨다 — 전역 핸들러로 보내기 위해 틱을 넘긴다 */
+              setTimeout(() => {
+                throw new Error('[DevTools] Sentry JS 에러 테스트');
+              }, 0);
+            }}
+          />
+          <DevToolsButton
+            label="API Error"
+            doneLabel="Sent"
+            color="#E5C07B"
+            onPress={async () => {
+              /* 존재하지 않는 엔드포인트 → 404 → 전역 에러 구독 → captureApiError(warning) 경로 검증 */
+              await queryClient
+                .fetchQuery({
+                  queryKey: ['__dev__', 'sentry-test', Date.now()],
+                  queryFn: () => apiClient.get('v1/__dev__/sentry-test'),
+                  retry: false,
+                })
+                .catch(() => {});
+            }}
+          />
+          <DevToolsButton label="Native Crash" doneLabel="…" color="#C678DD" onPress={() => Sentry.nativeCrash()} />
+        </View>
+      </View>
+
       {/* 네비게이션 트리 */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Navigation Tree</Text>
@@ -167,6 +204,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   fcmButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  sentryButtons: {
     flexDirection: 'row',
     gap: 8,
   },
