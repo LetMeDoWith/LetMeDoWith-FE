@@ -125,6 +125,14 @@ const captureApiError = (error: unknown, kind: 'query' | 'mutation') => {
   });
 };
 
+/*
+ * 잡아서 복구한 에러를 보고한다. catch로 흐름을 이어가면 SDK의 자동 수집(미처리 예외·rejection)에
+ * 잡히지 않으므로, 신호가 사라지지 않게 발생 위치(context) 태그를 붙여 직접 보낸다.
+ */
+const captureHandledError = (error: unknown, context: string) => {
+  Sentry.captureException(error, { tags: { 'handled.context': context } });
+};
+
 /* 로그인·복원 시 호출. 영향받은 사용자 수 집계용 — id 외의 개인정보는 넣지 않는다 */
 const setSentryUser = (memberId: string) => {
   Sentry.setUser({ id: memberId });
@@ -140,6 +148,7 @@ export {
   setSentryUser,
   clearSentryUser,
   captureApiError,
+  captureHandledError,
   normalizeEndpoint,
   navigationIntegration,
   TRACES_SAMPLE_RATE,

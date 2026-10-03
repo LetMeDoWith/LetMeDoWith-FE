@@ -8,6 +8,7 @@ import { useStore } from 'stores/index';
 import { updateNotificationSettings as mutateNotificationSettings } from 'services/rest/member';
 import { navigateByDeepLink } from 'utils/deepLink';
 import { logEvent } from 'utils/analytics';
+import { captureHandledError } from 'utils/sentry';
 
 let initialized = false;
 let initializing = false;
@@ -178,11 +179,13 @@ const handleBackgroundMessage = async (remoteMessage: FirebaseMessagingTypes.Rem
  *  - onTokenChanged: FCM 토큰이 최초 발급되거나 갱신될 때 실행되는 콜백 (서버 동기화)
  *  - subscribeAppState: AppStateProvider의 subscribe 함수 (AppState 구독용)
  */
-const initNotificationLayer = async (options?: {
+type InitNotificationOptions = {
   onForegroundMessage?: (m: FirebaseMessagingTypes.RemoteMessage) => Promise<void> | void;
   onTokenChanged?: (token: string) => Promise<void> | void;
   subscribeAppState?: (callback: (state: AppStateStatus) => void) => () => void;
-}) => {
+};
+
+const initNotificationLayer = async (options?: InitNotificationOptions) => {
   console.log('🚀 [initNotificationLayer] 시작');
 
   // 이미 초기화되어 있거나 진행 중이면 스킵
@@ -193,6 +196,26 @@ const initNotificationLayer = async (options?: {
 
   initializing = true;
 
+  /*
+   * 어느 단계에서 실패하든 진행 중 플래그를 풀고 권한 watcher를 남긴다.
+   * 그러지 않으면 initializing=true에 갇혀 이후 호출이 전부 "진행 중"으로 스킵되고,
+   * watcher도 없어 앱을 재시작하기 전까지 푸시·딥링크가 복구되지 않는다.
+   * 호출부(App.tsx)가 결과를 기다리지 않으므로 여기서 던지면 미처리 rejection이 된다 — 삼키고 보고한다.
+   */
+  try {
+    await runInitialization(options);
+  } catch (e) {
+    console.error('❌ [initNotificationLayer] 초기화 실패:', e);
+    captureHandledError(e, 'notification.init');
+    if (!unsubAppState) {
+      ensurePermissionWatcher(options);
+    }
+  } finally {
+    initializing = false;
+  }
+};
+
+const runInitialization = async (options?: InitNotificationOptions) => {
   const onMessage = options?.onForegroundMessage ?? (async () => {});
   const onTokenChanged = options?.onTokenChanged ?? (async () => {});
 
@@ -242,7 +265,17 @@ const initNotificationLayer = async (options?: {
   // iOS: 원격 알림 등록
   if (!isAos) {
     console.log('📱 [initNotificationLayer] iOS 원격 알림 등록 중...');
-    await messaging().registerDeviceForRemoteMessages();
+    /*
+     * 등록 실패(APNs 오류·aps-environment 누락 등)로 나머지 초기화를 멈추지 않는다.
+     * 원격 푸시는 못 받아도 로컬 알림 표시·딥링크 처리는 동작해야 한다.
+     * 이어지는 FCM 토큰 확보는 APNs 토큰이 없으면 자체 try/catch에서 실패로 끝난다.
+     */
+    try {
+      await messaging().registerDeviceForRemoteMessages();
+    } catch (e) {
+      console.error('❌ [initNotificationLayer] iOS 원격 알림 등록 실패:', e);
+      captureHandledError(e, 'notification.registerRemote');
+    }
   }
 
   // AOS: 채널 생성
@@ -316,7 +349,7 @@ const initNotificationLayer = async (options?: {
  *
  * @param options initNotificationLayer와 동일한 콜백 옵션
  */
-const ensurePermissionWatcher = (options?: Parameters<typeof initNotificationLayer>[0]) => {
+const ensurePermissionWatcher = (options?: InitNotificationOptions) => {
   console.log('👀 [ensurePermissionWatcher] 호출됨');
 
   const subscribeAppState = options?.subscribeAppState;

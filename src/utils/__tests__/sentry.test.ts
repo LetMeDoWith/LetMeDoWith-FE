@@ -35,7 +35,14 @@ jest.mock('react-native-config', () => ({
   ENABLE_DEVTOOLS: 'false',
 }));
 
-import { initSentry, setSentryUser, clearSentryUser, captureApiError, normalizeEndpoint } from 'utils/sentry';
+import {
+  initSentry,
+  setSentryUser,
+  clearSentryUser,
+  captureApiError,
+  captureHandledError,
+  normalizeEndpoint,
+} from 'utils/sentry';
 
 describe('initSentry', () => {
   beforeEach(() => {
@@ -126,5 +133,19 @@ describe('captureApiError', () => {
   it('E302(토큰 만료)는 수집하지 않는다', () => {
     captureApiError(makeApiError({ status: 401, statusCode: 'E302' }), 'query');
     expect(mockCaptureException).not.toHaveBeenCalled();
+  });
+});
+
+describe('captureHandledError', () => {
+  beforeEach(() => {
+    mockCaptureException.mockClear();
+  });
+
+  it('잡아서 처리한 에러도 발생 위치 태그를 붙여 보고한다', () => {
+    const error = new Error('aps-environment 없음');
+    captureHandledError(error, 'notification.registerRemote');
+    expect(mockCaptureException).toHaveBeenCalledWith(error, {
+      tags: { 'handled.context': 'notification.registerRemote' },
+    });
   });
 });
