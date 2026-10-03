@@ -5,4 +5,5 @@ declare module 'react-native-config' {
   const REVERSED_CLIENT_ID: string;
   const DEV_API_URL: string;
   const ENABLE_DEVTOOLS: string;
+  const SENTRY_DSN: string;
 }
