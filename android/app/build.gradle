@@ -1,6 +1,8 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+/* 릴리즈 번들 생성 시 소스맵을 Sentry로 업로드한다. SENTRY_DISABLE_AUTO_UPLOAD=true면 건너뛴다 */
+apply from: new File(["node", "--print", "require.resolve('@sentry/react-native/package.json')"].execute(null, rootDir).text.trim(), "../sentry.gradle")
 apply plugin: 'com.google.gms.google-services'
 
 /**
