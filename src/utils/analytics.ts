@@ -1,5 +1,6 @@
 import analytics from '@react-native-firebase/analytics';
 
+import { WEEKLY_DAY_INFO } from 'components/Task/Form/Routine/constants';
 import type { addTaskRequestSchemeType, taskCategorySchemeType } from 'types/task/scheme/api';
 
 /*
@@ -28,10 +29,24 @@ const toAnalyticsFlag = (value: boolean): AnalyticsFlag => (value ? 'true' : 'fa
 type RoutineCycle = NonNullable<addTaskRequestSchemeType['routineCondition']>['cycle'];
 
 /*
- * 매일 루틴은 서버 요청의 pattern이 빈 배열이다. 분석에서는 "모든 요일"로 펼쳐 보내 주간 루틴과 같은 기준으로 비교한다.
- * 요일 번호는 루틴 폼(WEEKLY_DAY_INFO)과 같은 월=1 … 일=7.
+ * 루틴 패턴은 리포트에서 바로 읽히게 한글로 보낸다.
+ * - 주간: 요일 번호(월=1 … 일=7, 루틴 폼 WEEKLY_DAY_INFO 기준) → '월,수,금'
+ * - 월간: 날짜 → '1일,15일', 마지막 날(32) → '마지막 날'
+ * - 매일: 서버 요청의 pattern은 빈 배열이지만, 주간 루틴과 같은 기준으로 비교하도록 모든 요일 '월,화,수,목,금,토,일'
  */
-const EVERY_DAY_PATTERN = '1,2,3,4,5,6,7';
+const MONTHLY_LAST_DAY = 32;
+
+const toWeekdayName = (value: number) => WEEKLY_DAY_INFO.find(day => day.value === value)?.name ?? String(value);
+
+const toMonthDayName = (day: number) => (day === MONTHLY_LAST_DAY ? '마지막 날' : `${day}일`);
+
+const toRoutinePattern = (cycle: RoutineCycle, pattern: number[]) => {
+  if (cycle === 'DAILY') {
+    return WEEKLY_DAY_INFO.map(day => day.name).join(',');
+  }
+  const toName = cycle === 'WEEKLY' ? toWeekdayName : toMonthDayName;
+  return pattern.map(toName).join(',');
+};
 
 /*
  * id처럼 정수인 값은 문자열로 보낸다. 안드로이드 SDK는 JS 숫자를 항상 double로 넘겨
@@ -45,7 +60,7 @@ const toAnalyticsId = (id: number) => String(id);
  */
 type TaskCreateParams = {
   routine_cycle: RoutineCycle | 'NONE';
-  /* 요일·날짜 번호 배열을 '1,3,5'처럼 쉼표로 이은 값. 매일 루틴은 '1,2,3,4,5,6,7' */
+  /* 한글 요일·날짜를 쉼표로 이은 값: '월,수,금' / '1일,마지막 날'. 매일 루틴은 '월,화,수,목,금,토,일' */
   routine_pattern?: string;
   routine_exclude_holidays?: AnalyticsFlag;
   routine_start_date?: string;
@@ -71,7 +86,7 @@ const buildTaskCreateParams = (
 
   const routineParams: Partial<TaskCreateParams> = routine?.cycle
     ? {
-        routine_pattern: routine.cycle === 'DAILY' ? EVERY_DAY_PATTERN : routine.pattern.join(','),
+        routine_pattern: toRoutinePattern(routine.cycle, routine.pattern),
         routine_exclude_holidays: toAnalyticsFlag(routine.isExcludeHolidays),
         routine_start_date: routine.startDate,
         routine_end_date: routine.endDate,

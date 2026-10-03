@@ -138,7 +138,7 @@ describe('buildTaskCreateParams', () => {
     );
     expect(params).toEqual({
       routine_cycle: 'WEEKLY',
-      routine_pattern: '1,3,5',
+      routine_pattern: '월,수,금',
       routine_exclude_holidays: 'true',
       routine_start_date: '2026-09-25',
       routine_end_date: '2026-10-25',
@@ -167,7 +167,26 @@ describe('buildTaskCreateParams', () => {
         isExcludeHolidays: false,
       },
     });
-    expect(params.routine_pattern).toBe('1,2,3,4,5,6,7');
+    expect(params.routine_pattern).toBe('월,화,수,목,금,토,일');
+  });
+});
+
+describe('routine_pattern (월간)', () => {
+  it('날짜는 N일로, 마지막 날(32)은 "마지막 날"로 보낸다', () => {
+    const params = buildTaskCreateParams({
+      title: '운동',
+      date: '2026-09-25',
+      taskCategoryId: null,
+      startTime: null,
+      routineCondition: {
+        startDate: '2026-09-25',
+        endDate: '2026-12-31',
+        cycle: 'MONTHLY',
+        pattern: [1, 15, 32],
+        isExcludeHolidays: false,
+      },
+    });
+    expect(params.routine_pattern).toBe('1일,15일,마지막 날');
   });
 });
 

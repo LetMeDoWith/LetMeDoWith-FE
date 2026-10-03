@@ -86,16 +86,16 @@ mutation 계열은 서버 성공이 확정된 `onSuccess`에서만 보낸다.
 
 `dori_create_complete`·`todo_create_complete`는 요청 페이로드의 루틴·카테고리·시작 시간을 통째로 싣는다(`buildTaskCreateParams`). GA4 파라미터는 객체·배열을 받지 못하므로 필드 단위로 펼친다.
 
-| 파라미터                                  | 값                                                                                        | 없을 때                             |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------- |
-| `routine_cycle`                           | `DAILY` / `WEEKLY` / `MONTHLY`                                                            | `'NONE'`                            |
-| `routine_pattern`                         | 패턴 배열을 쉼표로 이은 문자열 (`'1,3,5'`, 요일 월=1…일=7). 매일 루틴은 `'1,2,3,4,5,6,7'` | 생략                                |
-| `routine_exclude_holidays`                | `'true'` / `'false'`                                                                      | 생략                                |
-| `routine_start_date` / `routine_end_date` | `'YYYY-MM-DD'`                                                                            | 생략                                |
-| `category_id`                             | 카테고리 id (문자열)                                                                      | 생략                                |
-| `category_name`                           | 카테고리 이름 (카테고리 목록 캐시에서 조회)                                               | 생략                                |
-| `category_type`                           | `COMMON` / `USER_CUSTOM`                                                                  | `'NONE'`, 캐시에 없으면 `'UNKNOWN'` |
-| `start_time`                              | `'HH:mm'`                                                                                 | `'NONE'`                            |
+| 파라미터                                  | 값                                                                                                                 | 없을 때                             |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| `routine_cycle`                           | `DAILY` / `WEEKLY` / `MONTHLY`                                                                                     | `'NONE'`                            |
+| `routine_pattern`                         | 한글 요일·날짜를 쉼표로 이은 문자열. 주간 `'월,수,금'`, 월간 `'1일,15일,마지막 날'`, 매일 `'월,화,수,목,금,토,일'` | 생략                                |
+| `routine_exclude_holidays`                | `'true'` / `'false'`                                                                                               | 생략                                |
+| `routine_start_date` / `routine_end_date` | `'YYYY-MM-DD'`                                                                                                     | 생략                                |
+| `category_id`                             | 카테고리 id (문자열)                                                                                               | 생략                                |
+| `category_name`                           | 카테고리 이름 (카테고리 목록 캐시에서 조회)                                                                        | 생략                                |
+| `category_type`                           | `COMMON` / `USER_CUSTOM`                                                                                           | `'NONE'`, 캐시에 없으면 `'UNKNOWN'` |
+| `start_time`                              | `'HH:mm'`                                                                                                          | `'NONE'`                            |
 
 - 여부 값은 boolean 대신 문자열 `'true'` / `'false'`로 보낸다(`toAnalyticsFlag`). GA4 파라미터는 string/number만 안전하고(boolean은 Android에서 유실될 수 있다), 숫자 0/1은 맞춤 측정기준에서 `"0"`/`"1"`로 보여 뜻이 불분명하다.
 - id 파라미터(`dori_id`·`template_id`·`category_id`)는 문자열로 보낸다(`toAnalyticsId`). 안드로이드 SDK는 JS 숫자를 항상 double로 넘겨 맞춤 측정기준에서 `632.0`처럼 소수점이 붙는다.
