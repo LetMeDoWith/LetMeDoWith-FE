@@ -10,6 +10,7 @@ const mockGetToken = jest.fn<() => Promise<string>>();
 const mockOnMessage = jest.fn(() => () => {});
 const mockRequestPermission = jest.fn<() => Promise<{ authorizationStatus: number }>>();
 const mockCaptureHandledError = jest.fn();
+const mockGetInitialNotification = jest.fn<() => Promise<unknown>>();
 
 /* 팩토리는 import 시점에 실행되므로 화살표로 감싸 호출 시점에 모킹 함수를 읽게 한다(analytics.test 패턴) */
 jest.mock('@react-native-firebase/messaging', () => ({
@@ -20,7 +21,7 @@ jest.mock('@react-native-firebase/messaging', () => ({
     onMessage: () => mockOnMessage(),
     onTokenRefresh: () => () => {},
     onNotificationOpenedApp: () => () => {},
-    getInitialNotification: () => Promise.resolve(null),
+    getInitialNotification: () => mockGetInitialNotification(),
   }),
 }));
 
@@ -73,6 +74,7 @@ describe('initNotificationLayer 실패 경로', () => {
     mockRequestPermission.mockResolvedValue({ authorizationStatus: 1 });
     mockRegisterDevice.mockResolvedValue(undefined);
     mockGetToken.mockResolvedValue('token');
+    mockGetInitialNotification.mockResolvedValue(null);
   });
 
   it('iOS 원격 알림 등록이 실패해도 나머지 초기화(리스너 등록)를 진행하고 실패를 보고한다', async () => {
@@ -94,5 +96,16 @@ describe('initNotificationLayer 실패 경로', () => {
 
     expect(mockRequestPermission).toHaveBeenCalledTimes(2);
     expect(mockOnMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('앱 종료 상태 알림 조회가 실패해도 미처리 rejection 없이 보고한다', async () => {
+    mockGetInitialNotification.mockRejectedValue(new Error('getInitialNotification 실패'));
+    const initNotificationLayer = loadInit();
+
+    await initNotificationLayer();
+    /* getInitialNotification은 기다리지 않는 체인이라 마이크로태스크를 한 번 비운다 */
+    await new Promise(resolve => setImmediate(resolve));
+
+    expect(mockCaptureHandledError).toHaveBeenCalledWith(expect.any(Error), 'notification.initialNotification');
   });
 });

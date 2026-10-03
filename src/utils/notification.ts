@@ -325,7 +325,9 @@ const runInitialization = async (options?: InitNotificationOptions) => {
       if (message) {
         handleDeepLinkFromData(message.data);
       }
-    });
+    })
+    /* 기다리지 않는 체인이라 실패하면 미처리 rejection이 된다 — 딥링크 이동만 건너뛰고 보고한다 */
+    .catch(e => captureHandledError(e, 'notification.initialNotification'));
 
   initialized = true;
   initializing = false;
