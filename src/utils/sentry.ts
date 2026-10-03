@@ -85,6 +85,50 @@ const normalizeEndpoint = (url?: string) => {
 };
 
 /*
+ * API 에러 종류. Sentry 이슈 제목은 "타입: 메시지"라 axios 에러를 그대로 보내면 전부
+ * "AxiosError: Request failed with status code …"로 보인다 — 종류별 이름으로 규격화한다.
+ * 기준은 서버 코드 그룹(백엔드 FailResponseStatus: E1XX·E2XX=400, E3XX=401·인증, E4XX=500, E5XX=404)이고,
+ * 서버 코드가 없으면 HTTP 상태로 판단한다.
+ */
+type ApiErrorType =
+  | 'ApiNetworkError'
+  | 'ApiServerError'
+  | 'ApiKickoutError'
+  | 'ApiAuthError'
+  | 'ApiBadRequestError'
+  | 'ApiNotFoundError'
+  | 'ApiClientError';
+
+/* 재발급 토큰이 무효해 세션 만료 다이얼로그로 강제 로그아웃되는 코드(useRefreshTokenQuery) */
+const KICKOUT_STATUS_CODES: string[] = [
+  ErrorStatusCodeEnum.enum.E306,
+  ErrorStatusCodeEnum.enum.E307,
+  ErrorStatusCodeEnum.enum.E308,
+];
+
+const SERVER_CODE_GROUP_TYPES: Record<string, ApiErrorType> = {
+  E1: 'ApiBadRequestError',
+  E2: 'ApiBadRequestError',
+  E3: 'ApiAuthError',
+  E4: 'ApiServerError',
+  E5: 'ApiNotFoundError',
+};
+
+const classifyApiError = (status?: number, statusCode?: string): ApiErrorType => {
+  if (status === undefined) {
+    return 'ApiNetworkError';
+  }
+  if (statusCode && KICKOUT_STATUS_CODES.includes(statusCode)) {
+    return 'ApiKickoutError';
+  }
+  const groupType = statusCode ? SERVER_CODE_GROUP_TYPES[statusCode.slice(0, 2)] : undefined;
+  if (groupType) {
+    return groupType;
+  }
+  return status >= 500 ? 'ApiServerError' : 'ApiClientError';
+};
+
+/*
  * React Query 전역 에러 구독(App.tsx subscribeListener)에서 호출한다.
  * - 응답 없음(네트워크·타임아웃)·5xx: error / 4xx: warning
  * - E302(토큰 만료→재발급 경로)는 수집하지 않는다. App.tsx의 조기 return과 별개로
@@ -121,7 +165,19 @@ const captureApiError = (error: unknown, kind: 'query' | 'mutation') => {
       scope.setTag('api.status_code', error.response.data.statusCode);
     }
     scope.setFingerprint([method, endpoint, String(status ?? 'no-response')]);
-    Sentry.captureException(error);
+
+    /*
+     * 제목을 "ApiNotFoundError: GET v1/tasks/:id → 404 (E501)"처럼 만든다.
+     * 묶음 기준은 위 fingerprint라 이름·메시지를 바꿔도 이슈가 쪼개지지 않는다.
+     * 원래 axios 에러는 cause로 연결해 이슈 상세의 연결된 에러로 함께 보이게 한다.
+     */
+    const statusCodeLabel = error.response?.data?.statusCode;
+    const apiError = new Error(
+      `${method} ${endpoint} → ${status ?? 'no-response'}${statusCodeLabel ? ` (${statusCodeLabel})` : ''}`,
+    );
+    apiError.name = classifyApiError(status, statusCodeLabel);
+    Object.assign(apiError, { cause: error });
+    Sentry.captureException(apiError);
   });
 };
 
@@ -131,6 +187,41 @@ const captureApiError = (error: unknown, kind: 'query' | 'mutation') => {
  */
 const captureHandledError = (error: unknown, context: string) => {
   Sentry.captureException(error, { tags: { 'handled.context': context } });
+};
+
+/* react-navigation 상태 중 경로 계산에 필요한 부분만 — 중첩 내비게이터는 route.state로 이어진다 */
+type NavigationStateLike = {
+  index?: number;
+  routes: { name: string; state?: NavigationStateLike }[];
+};
+
+/*
+ * 포커스된 화면을 "상위/하위" 경로로 만든다(SETTING/DEFAULT, HOME/FEED).
+ * 라우트 이름만 쓰면 DEFAULT·MYINFO처럼 여러 스택에 같은 이름이 있어 어느 화면인지 구분되지 않는다.
+ */
+const getScreenPath = (state?: NavigationStateLike) => {
+  const names: string[] = [];
+  let current = state;
+  while (current) {
+    const route: NavigationStateLike['routes'][number] | undefined = current.routes[current.index ?? 0];
+    if (!route) {
+      break;
+    }
+    names.push(route.name);
+    current = route.state;
+  }
+  return names.length > 0 ? names.join('/') : undefined;
+};
+
+/*
+ * 현재 화면 이름을 모든 이벤트의 screen 태그로 남긴다(App.tsx NavigationContainer onStateChange).
+ * 화면을 에러 메시지 prefix로 붙이지 않는 이유: 같은 에러가 여러 화면에서 나면 이슈 제목엔
+ * 첫 화면만 남아 오해를 부른다. 태그로 두면 이슈 상세에서 화면별 분포를 보고 필터할 수 있다.
+ */
+const setSentryScreen = (screenName?: string) => {
+  if (screenName) {
+    Sentry.setTag('screen', screenName);
+  }
 };
 
 /* 로그인·복원 시 호출. 영향받은 사용자 수 집계용 — id 외의 개인정보는 넣지 않는다 */
@@ -150,6 +241,8 @@ export {
   captureApiError,
   captureHandledError,
   normalizeEndpoint,
+  setSentryScreen,
+  getScreenPath,
   navigationIntegration,
   TRACES_SAMPLE_RATE,
 };

@@ -41,7 +41,7 @@ import { NOTIFICATION_QUERY_KEY } from 'constants/queries';
 import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
 import * as Sentry from '@sentry/react-native';
 
-import { captureApiError, navigationIntegration } from 'utils/sentry';
+import { captureApiError, getScreenPath, navigationIntegration, setSentryScreen } from 'utils/sentry';
 import { AppStateProvider, AppStateContext, useAppState } from 'hooks/shared/useAppState';
 
 export const navigationRef = createNavigationContainerRef();
@@ -277,8 +277,13 @@ function AppContent() {
                 ref={navigationRef}
                 linking={linking}
                 theme={DefaultTheme}
-                /* 화면 전환 성능 측정(reactNavigationIntegration) 활성화 */
-                onReady={() => navigationIntegration.registerNavigationContainer(navigationRef)}
+                /* 화면 전환 성능 측정(reactNavigationIntegration) 활성화 + 첫 화면 태그 */
+                onReady={() => {
+                  navigationIntegration.registerNavigationContainer(navigationRef);
+                  setSentryScreen(getScreenPath(navigationRef.getRootState()));
+                }}
+                /* 이후 에러 이벤트에 발생 화면(screen 태그)이 붙도록 화면이 바뀔 때마다 갱신 */
+                onStateChange={state => setSentryScreen(getScreenPath(state))}
               >
                 {isNeedSignUp ? <Signup /> : <HomeStackNavigator />}
               </NavigationContainer>

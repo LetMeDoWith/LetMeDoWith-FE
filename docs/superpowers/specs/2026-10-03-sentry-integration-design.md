@@ -55,6 +55,8 @@ React Query가 에러를 삼키므로 자동 수집되지 않는다. App.tsx의 
 | E302 토큰 만료 → 재발급 경로           | 수집 안 함(기존 조용한 처리 유지) |
 
 - **fingerprint**: `메서드 + 엔드포인트 + 상태`. 엔드포인트의 숫자 ID는 `:id`로 치환해 같은 API가 이슈 하나로 묶이게 한다.
+- **이슈 제목 규격화(2026-10-03 추가)**: 타입은 서버 코드 그룹 기준 — E306~E308 `ApiKickoutError`, E1XX·E2XX `ApiBadRequestError`, E3XX `ApiAuthError`, E4XX `ApiServerError`, E5XX `ApiNotFoundError`, 응답 없음 `ApiNetworkError`, 코드 없으면 HTTP 상태로 `ApiServerError`/`ApiClientError`. 메시지는 `METHOD endpoint → status (code)`. 원래 axios 에러는 `cause`로 연결.
+- **screen 태그**: 화면을 메시지 prefix로 붙이지 않고 NavigationContainer `onStateChange`에서 `screen` 태그로 남긴다. 값은 중첩 경로(`SETTING/DEFAULT`, `HOME/FEED`) — 여러 스택에 같은 라우트 이름(DEFAULT·MYINFO)이 있어서(같은 에러가 여러 화면에서 나도 제목이 오해를 부르지 않게).
 - **태그**: method, endpoint, http 상태, 서버 `statusCode`, query/mutation 구분.
 - **보내지 않는 것**: 요청 헤더(Authorization)·요청 본문.
 - 4xx 수집은 한도를 빨리 소모할 수 있다 — 한도 근접 시 4xx만 샘플링하는 후속 옵션을 열어둔다.

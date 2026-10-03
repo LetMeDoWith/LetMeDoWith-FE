@@ -11,6 +11,7 @@ let mockCapturedInitOptions: {
   tracePropagationTargets: string[];
 };
 const mockSetUser = jest.fn();
+const mockSetTag = jest.fn();
 const mockCaptureException = jest.fn();
 const mockScope = { setLevel: jest.fn(), setTag: jest.fn(), setFingerprint: jest.fn() };
 
@@ -24,6 +25,7 @@ jest.mock('@sentry/react-native', () => ({
     return mockInit(...args);
   },
   setUser: (...args: unknown[]) => mockSetUser(...args),
+  setTag: (...args: unknown[]) => mockSetTag(...args),
   withScope: (cb: (scope: typeof mockScope) => void) => cb(mockScope),
   captureException: (...args: unknown[]) => mockCaptureException(...args),
   reactNavigationIntegration: () => ({ registerNavigationContainer: jest.fn() }),
@@ -42,6 +44,8 @@ import {
   captureApiError,
   captureHandledError,
   normalizeEndpoint,
+  setSentryScreen,
+  getScreenPath,
 } from 'utils/sentry';
 
 describe('initSentry', () => {
@@ -147,5 +151,65 @@ describe('captureHandledError', () => {
     expect(mockCaptureException).toHaveBeenCalledWith(error, {
       tags: { 'handled.context': 'notification.registerRemote' },
     });
+  });
+});
+
+describe('captureApiError 이슈 제목 규격화', () => {
+  /* 이슈 제목은 "타입: 메시지"로 만들어진다 — 보낸 에러의 name·message를 검사한다 */
+  const capturedError = () => mockCaptureException.mock.calls[0]?.[0] as Error & { cause?: unknown };
+
+  beforeEach(() => {
+    mockCaptureException.mockClear();
+  });
+
+  it.each([
+    [
+      { status: 404, statusCode: 'E501', method: 'get', url: 'v1/tasks/123' },
+      'ApiNotFoundError',
+      'GET v1/tasks/:id → 404 (E501)',
+    ],
+    [{ status: 400, statusCode: 'E210' }, 'ApiBadRequestError', 'POST v1/task/:id → 400 (E210)'],
+    [{ status: 400, statusCode: 'E100' }, 'ApiBadRequestError', 'POST v1/task/:id → 400 (E100)'],
+    [{ status: 401, statusCode: 'E307' }, 'ApiKickoutError', 'POST v1/task/:id → 401 (E307)'],
+    [{ status: 401, statusCode: 'E301' }, 'ApiAuthError', 'POST v1/task/:id → 401 (E301)'],
+    [{ status: 500, statusCode: 'E400' }, 'ApiServerError', 'POST v1/task/:id → 500 (E400)'],
+    [{}, 'ApiNetworkError', 'POST v1/task/:id → no-response'],
+    [{ status: 403 }, 'ApiClientError', 'POST v1/task/:id → 403'],
+    [{ status: 502 }, 'ApiServerError', 'POST v1/task/:id → 502'],
+  ])('%j → %s', (input, expectedName, expectedMessage) => {
+    const original = makeApiError(input);
+    captureApiError(original, 'query');
+    expect(capturedError().name).toBe(expectedName);
+    expect(capturedError().message).toBe(expectedMessage);
+    /* 원래 AxiosError는 cause로 연결해 이슈 상세에서 함께 보이게 한다 */
+    expect(capturedError().cause).toBe(original);
+  });
+});
+
+describe('setSentryScreen', () => {
+  it('현재 화면 이름을 screen 태그로 남긴다', () => {
+    setSentryScreen('MYTODO');
+    expect(mockSetTag).toHaveBeenCalledWith('screen', 'MYTODO');
+  });
+});
+
+describe('getScreenPath', () => {
+  it('중첩 내비게이터는 상위/하위 경로로 이어 같은 이름의 화면을 구분한다', () => {
+    const settingState = {
+      index: 1,
+      routes: [{ name: 'HOME' }, { name: 'SETTING', state: { index: 0, routes: [{ name: 'DEFAULT' }] } }],
+    };
+    expect(getScreenPath(settingState)).toBe('SETTING/DEFAULT');
+
+    const tabState = {
+      index: 0,
+      routes: [{ name: 'HOME', state: { index: 1, routes: [{ name: 'MYTODO' }, { name: 'FEED' }] } }],
+    };
+    expect(getScreenPath(tabState)).toBe('HOME/FEED');
+  });
+
+  it('중첩이 없으면 화면 이름만, 상태가 없으면 undefined', () => {
+    expect(getScreenPath({ index: 0, routes: [{ name: 'REALTIME_NAG' }] })).toBe('REALTIME_NAG');
+    expect(getScreenPath(undefined)).toBeUndefined();
   });
 });
