@@ -59,7 +59,7 @@ Expected: Podfile.lock에 `RNSentry` 항목 추가, `COCOAPODS: 1.14.3` 유지.
 
 ```properties
 defaults.org=teamdowith
-defaults.project=joddori-fe
+defaults.project=jobdori-fe
 defaults.url=https://sentry.io/
 ```
 
