@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import Config from 'react-native-config';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 import { GoogleSymbol } from 'components/common/icons/GoogleSymbol';
 import { useAuthToken } from 'hooks/auth/useAuthToken';
 import { ProviderEnum } from 'schemes/auth/enum';
+import { reportLoginFailure } from 'utils/login';
 
 import { theme } from 'styles/theme';
 
@@ -33,11 +34,17 @@ const GoogleLoginButton = () => {
       const result = await GoogleSignin.signIn();
       if (!result.idToken) {
         console.error('GOOGLE identify token이 존재하지 않습니다.');
+        reportLoginFailure(ProviderEnum.enum.GOOGLE, new Error('GOOGLE idToken이 없습니다.'));
         return;
       }
       setIdToken(result.idToken);
     } catch (error) {
+      /* 사용자가 계정 선택 창을 닫은 경우는 실패로 보지 않는다 */
+      if ((error as { code?: string })?.code === statusCodes.SIGN_IN_CANCELLED) {
+        return;
+      }
       console.error('구글 로그인에서 에러가 발생했습니다.: ', error);
+      reportLoginFailure(ProviderEnum.enum.GOOGLE, error);
     } finally {
       isSigningInRef.current = false;
       setIsSigningIn(false);

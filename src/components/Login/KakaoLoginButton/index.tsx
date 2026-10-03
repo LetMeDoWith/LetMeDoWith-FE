@@ -5,6 +5,7 @@ import { login } from '@react-native-seoul/kakao-login';
 import { KakaoSymbol } from 'components/common/icons/KakaoSymbol';
 import { useAuthToken } from 'hooks/auth/useAuthToken';
 import { ProviderEnum } from 'schemes/auth/enum';
+import { isKakaoLoginCancelled, reportLoginFailure } from 'utils/login';
 
 import { theme } from 'styles/theme';
 
@@ -16,12 +17,18 @@ const KakaoLoginButton = () => {
       .then(result => {
         if (!result.idToken) {
           console.error('KAKAO identify token이 존재하지 않습니다.');
+          reportLoginFailure(ProviderEnum.enum.KAKAO, new Error('KAKAO idToken이 없습니다.'));
           return;
         }
         setIdToken(result.idToken);
       })
       .catch(error => {
+        /* 사용자가 취소한 경우는 실패로 보지 않는다 */
+        if (isKakaoLoginCancelled(error)) {
+          return;
+        }
         console.error('카카오 로그인에서 에러가 발생했습니다.: ', error);
+        reportLoginFailure(ProviderEnum.enum.KAKAO, error);
       });
   };
 

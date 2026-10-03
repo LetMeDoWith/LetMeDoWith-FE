@@ -5,6 +5,7 @@ import appleAuth from '@invertase/react-native-apple-authentication';
 import { AppleSymbol } from 'components/common/icons/AppleSymbol';
 import { useAuthToken } from 'hooks/auth/useAuthToken';
 import { ProviderEnum } from 'schemes/auth/enum';
+import { reportLoginFailure } from 'utils/login';
 
 import { theme } from 'styles/theme';
 
@@ -20,6 +21,7 @@ const AppleLoginButton = () => {
 
       if (!appleAuthRequestResponse.identityToken) {
         console.error('APPLE identify token이 존재하지 않습니다.');
+        reportLoginFailure(ProviderEnum.enum.APPLE, new Error('APPLE identityToken이 없습니다.'));
         return;
       }
       setIdToken(appleAuthRequestResponse.identityToken);
@@ -28,6 +30,7 @@ const AppleLoginButton = () => {
         console.warn('사용자가 로그인을 취소하였습니다.');
       } else {
         console.error('애플 로그인에서 에러가 발생했습니다.: ', error);
+        reportLoginFailure(ProviderEnum.enum.APPLE, error);
       }
     }
   };
