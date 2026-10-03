@@ -1,4 +1,3 @@
-import { Alert } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import type { ApiError } from 'services/apiClient';
 
@@ -46,7 +45,6 @@ const useFetchTokenQuery = () => {
     },
     onError: e => {
       console.error('토큰 발급 실패 ', e.response?.data);
-      Alert.alert('토큰 발급에 실패했습니다.');
     },
   });
 };

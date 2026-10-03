@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
 import {
-  Alert,
   Image,
   Keyboard,
   Pressable,
@@ -248,7 +247,6 @@ const Myinfo = ({ navigation: { goBack } }: SettingStackScreenProps<'MYINFO'>) =
                                 clearErrors('nickname');
                               },
                               onError: e => {
-                                Alert.alert('닉네임 중복 여부 검증에 실패했습니다.');
                                 console.error(e.response?.data);
                               },
                             },

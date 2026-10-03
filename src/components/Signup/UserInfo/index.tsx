@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Alert, BackHandler, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { BackHandler, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Controller, useFormContext } from 'react-hook-form';
 import { useFocusEffect } from '@react-navigation/native';
 import { HelperText } from 'react-native-paper';
@@ -143,7 +143,6 @@ const UserInfo = ({ navigation: { navigate } }: SignUpStackScreenProps<'SIGN_UP_
                             clearErrors('nickname');
                           },
                           onError: e => {
-                            Alert.alert('닉네임 중복 여부 검증에 실패했습니다.');
                             console.error(e.response?.data);
                           },
                         },

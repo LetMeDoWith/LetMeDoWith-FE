@@ -1,4 +1,3 @@
-import { Alert } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import type { ApiError } from 'services/apiClient';
 
@@ -21,7 +20,6 @@ const useDeleteAccount = () => {
     },
     onError: e => {
       console.error('회원탈퇴 실패 ', e.response?.data);
-      Alert.alert('회원탈퇴에 실패했습니다.');
     },
   });
 };
