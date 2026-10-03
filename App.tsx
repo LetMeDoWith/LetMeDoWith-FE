@@ -38,6 +38,7 @@ import { initNotificationLayer } from 'utils/notification';
 import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotificationToken';
 import { linking } from 'utils/deepLink';
 import { NOTIFICATION_QUERY_KEY } from 'constants/queries';
+import { DIALOG_HANDLED_STATUS_CODES } from 'constants/shared';
 import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
 import * as Sentry from '@sentry/react-native';
 
@@ -110,6 +111,14 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
       console.error('[MutationCacheNotifyEvent Error]:', errorData);
     } else {
       console.error('[Unknown Event Error]:', errorData);
+    }
+
+    /*
+     * 화면에서 다이얼로그로 따로 안내하는 에러(세션 만료, 잡도리 쿨타임 등)는 공통 스낵바를 건너뛴다.
+     * 같은 에러에 다이얼로그와 스낵바가 겹쳐 뜨지 않게 — Sentry 수집은 위에서 이미 끝났다.
+     */
+    if (errorData?.statusCode && DIALOG_HANDLED_STATUS_CODES.includes(errorData.statusCode)) {
+      return;
     }
 
     // API 에러 공통 스낵바 노출(토큰 재발급 케이스는 위에서 return되어 제외됨)

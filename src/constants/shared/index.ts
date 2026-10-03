@@ -39,6 +39,14 @@ const SESSION_EXPIRED_STATUS_CODES: string[] = [
   ErrorStatusCodeEnum.enum.E308,
 ];
 
+/*
+ * 화면에서 다이얼로그로 따로 안내하는 서버 코드. 전역 에러 처리(App.tsx)는 이 코드면 공통 에러 스낵바를 띄우지 않는다
+ * — 같은 에러에 다이얼로그와 스낵바가 겹쳐 뜨지 않게. 새 에러를 다이얼로그로 처리하면 여기에 코드를 추가한다.
+ * - 세션 만료: useRefreshTokenQuery "세션 만료" 다이얼로그
+ * - E250(잡도리 쿨타임): FeedNagItem "잡도리 쿨타임" 다이얼로그
+ */
+const DIALOG_HANDLED_STATUS_CODES: string[] = [...SESSION_EXPIRED_STATUS_CODES, ErrorStatusCodeEnum.enum.E250];
+
 export {
   SCREEN_NAME,
   APP_VERSION,
@@ -46,5 +54,6 @@ export {
   LANGUAGE_CODE_VALUES,
   DEFAULT_PAGE_SIZE,
   SESSION_EXPIRED_STATUS_CODES,
+  DIALOG_HANDLED_STATUS_CODES,
 };
 export type { LanguageCodeType };
