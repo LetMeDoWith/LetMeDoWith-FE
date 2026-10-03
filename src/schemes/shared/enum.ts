@@ -1,9 +1,10 @@
 import { z } from 'zod';
 
-const SuccessStatusCodeEnum = z.enum(['S100', 'S101', 'S102', 'S103']);
+const SuccessStatusCodeEnum = z.enum(['S100', 'S101']);
 
 const ErrorStatusCodeEnum = z.enum([
   'E100',
+  'E200',
   'E201',
   'E210',
   'E211',
