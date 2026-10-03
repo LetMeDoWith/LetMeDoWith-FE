@@ -23,7 +23,7 @@ import { IS_DEV_MODE } from 'utils/env';
 // import { useLoadingOverlayStore } from 'stores/loadingOverlayStore';
 import { GlobalSnackbar } from 'components/common/GlobalSnackbar';
 import { queryClient } from 'services/queryClient';
-import { showSnackbar, SNACKBAR_TYPE } from 'stores/snackbarStore';
+import { isErrorSnackbarSuppressed, showSnackbar, SNACKBAR_TYPE } from 'stores/snackbarStore';
 
 import { Login } from 'screens/Login';
 import { HomeStackNavigator } from 'components/navigators/Stack/Home';
@@ -118,6 +118,11 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
      * 같은 에러에 다이얼로그와 스낵바가 겹쳐 뜨지 않게 — Sentry 수집은 위에서 이미 끝났다.
      */
     if (errorData?.statusCode && DIALOG_HANDLED_STATUS_CODES.includes(errorData.statusCode)) {
+      return;
+    }
+
+    /* 자동 갱신(useScheduledRefetch)처럼 사용자가 하지 않은 요청의 실패는 안내하지 않는다 */
+    if (isErrorSnackbarSuppressed()) {
       return;
     }
 

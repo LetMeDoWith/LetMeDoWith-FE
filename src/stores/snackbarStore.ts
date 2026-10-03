@@ -53,5 +53,31 @@ const useSnackbarStore = create<SnackbarState>(set => ({
 const showSnackbar = (message: string, options?: ShowSnackbarOptions) =>
   useSnackbarStore.getState().show(message, options);
 
-export { useSnackbarStore, showSnackbar, SNACKBAR_TYPE, DEFAULT_SNACKBAR_DURATION_MS, DEFAULT_SNACKBAR_BOTTOM_OFFSET };
+/*
+ * 공통 에러 스낵바(App.tsx 전역 에러 처리) 억제. 자동 갱신처럼 사용자가 하지 않은 요청이 실패할 때
+ * 에러 안내가 뜨지 않게 한다(runWithSuppressedOverlay와 같은 패턴). 렌더와 무관한 플래그라 스토어 상태가 아닌
+ * 모듈 카운터로 둔다 — 겹쳐 실행돼도 마지막 작업이 끝날 때까지 억제를 유지한다.
+ */
+let errorSnackbarSuppressCount = 0;
+
+const isErrorSnackbarSuppressed = () => errorSnackbarSuppressCount > 0;
+
+const runWithSuppressedErrorSnackbar = async <T>(task: () => Promise<T>): Promise<T> => {
+  errorSnackbarSuppressCount += 1;
+  try {
+    return await task();
+  } finally {
+    errorSnackbarSuppressCount -= 1;
+  }
+};
+
+export {
+  useSnackbarStore,
+  showSnackbar,
+  isErrorSnackbarSuppressed,
+  runWithSuppressedErrorSnackbar,
+  SNACKBAR_TYPE,
+  DEFAULT_SNACKBAR_DURATION_MS,
+  DEFAULT_SNACKBAR_BOTTOM_OFFSET,
+};
 export type { SnackbarType, ShowSnackbarOptions };

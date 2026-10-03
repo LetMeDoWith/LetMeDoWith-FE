@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 
 import { useAppState } from 'hooks/shared/useAppState';
 import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
-import { showSnackbar } from 'stores/snackbarStore';
+import { runWithSuppressedErrorSnackbar, showSnackbar } from 'stores/snackbarStore';
 import { IS_DEV_MODE } from 'utils/env';
 
 /**
@@ -60,9 +60,15 @@ const useScheduledRefetch = (queryKeys: readonly (readonly string[])[]) => {
         showSnackbar('[DEV] 자동 새로고침 완료', { duration: 2000 });
       }
 
-      // 자동 refetch 동안에는 전역 로딩 오버레이를 띄우지 않는다.
-      await runWithSuppressedOverlay(() =>
-        Promise.all(queryKeys.map(queryKey => queryClient.invalidateQueries({ queryKey: [...queryKey] }))),
+      /*
+       * 자동 refetch 동안에는 전역 로딩 오버레이와 공통 에러 스낵바를 띄우지 않는다.
+       * 사용자가 하지 않은 요청이라 실패해도 기존 화면 데이터는 그대로이고, 다음 주기에 다시 시도한다
+       * (실패는 Sentry에는 그대로 수집된다).
+       */
+      await runWithSuppressedErrorSnackbar(() =>
+        runWithSuppressedOverlay(() =>
+          Promise.all(queryKeys.map(queryKey => queryClient.invalidateQueries({ queryKey: [...queryKey] }))),
+        ),
       );
 
       scheduleNext();
