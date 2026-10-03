@@ -12,6 +12,7 @@
 - 개발용 UI·도구는 전부 `src/components/__dev__/`에 격리한다. 프로덕션 코드(화면·훅)에 dev 전용 분기를 흩뿌리지 않는다.
 - 개발 모드 여부는 `utils/env.ts`의 **`IS_DEV_MODE`만** 사용한다(`__DEV__ || ENABLE_DEVTOOLS === 'true'`). `__DEV__`를 직접 쓰면 dev 릴리즈 빌드(`build:dev:*`)에서 동작하지 않는다.
 - dev 빌드 스크립트(`build:dev:android/ios`)는 `.env`의 `ENABLE_DEVTOOLS`를 일시 변경 후 원복한다 — 빌드 스크립트를 수정할 때 이 sed 토글 로직을 깨뜨리지 않는다.
+- **운영 빌드(릴리즈 + `ENABLE_DEVTOOLS`가 true 아님)에서는 `console.error`를 제외한 console 호출이 babel(`transform-remove-console`)로 제거된다.** dev 배포 빌드는 개발자도구 Console 탭 때문에 유지된다. 판단은 `scripts/isDevtoolsBuild.js`가 번들 시점에 `.env`를 읽어서 하고, Metro 캐시는 `metro.config.js`의 `cacheVersion`으로 두 빌드가 분리된다. 운영에서 남겨야 할 로그는 `console.error`로 쓴다.
 
 ## Sentry
 
