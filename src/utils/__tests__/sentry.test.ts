@@ -6,6 +6,8 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 
 const mockInit = jest.fn();
 const mockSetUser = jest.fn();
+const mockCaptureException = jest.fn();
+const mockScope = { setLevel: jest.fn(), setTag: jest.fn(), setFingerprint: jest.fn() };
 
 /*
  * 팩토리는 utils/sentry가 import되는 시점(모킹 변수 할당 전)에 실행되므로,
@@ -14,8 +16,8 @@ const mockSetUser = jest.fn();
 jest.mock('@sentry/react-native', () => ({
   init: (...args: unknown[]) => mockInit(...args),
   setUser: (...args: unknown[]) => mockSetUser(...args),
-  withScope: jest.fn(),
-  captureException: jest.fn(),
+  withScope: (cb: (scope: typeof mockScope) => void) => cb(mockScope),
+  captureException: (...args: unknown[]) => mockCaptureException(...args),
   reactNavigationIntegration: () => ({ registerNavigationContainer: jest.fn() }),
 }));
 
@@ -25,7 +27,7 @@ jest.mock('react-native-config', () => ({
   ENABLE_DEVTOOLS: 'false',
 }));
 
-import { initSentry, setSentryUser, clearSentryUser } from 'utils/sentry';
+import { initSentry, setSentryUser, clearSentryUser, captureApiError, normalizeEndpoint } from 'utils/sentry';
 
 describe('initSentry', () => {
   beforeEach(() => {
@@ -51,5 +53,49 @@ describe('Sentry user', () => {
   it('clear 시 null을 넘겨 해제한다', () => {
     clearSentryUser();
     expect(mockSetUser).toHaveBeenCalledWith(null);
+  });
+});
+
+/* ApiError 형태의 최소 목(axios 전체 타입을 채우지 않기 위해 never 캐스팅) */
+const makeApiError = (over: { status?: number; statusCode?: string; url?: string; method?: string }) =>
+  ({
+    response:
+      over.status === undefined
+        ? undefined
+        : { status: over.status, data: over.statusCode ? { statusCode: over.statusCode } : {} },
+    config: { url: over.url ?? 'v1/task/123', method: over.method ?? 'post' },
+  } as never);
+
+describe('normalizeEndpoint', () => {
+  it('숫자 세그먼트만 :id로 치환하고 쿼리스트링을 제거한다', () => {
+    expect(normalizeEndpoint('v1/task/123/feedback/45?page=2')).toBe('v1/task/:id/feedback/:id');
+    expect(normalizeEndpoint(undefined)).toBe('unknown');
+  });
+});
+
+describe('captureApiError', () => {
+  beforeEach(() => {
+    mockCaptureException.mockClear();
+    mockScope.setLevel.mockClear();
+    mockScope.setFingerprint.mockClear();
+  });
+
+  it('응답이 없으면(네트워크) error 레벨, no-response fingerprint로 수집한다', () => {
+    captureApiError(makeApiError({}), 'query');
+    expect(mockScope.setLevel).toHaveBeenCalledWith('error');
+    expect(mockScope.setFingerprint).toHaveBeenCalledWith(['POST', 'v1/task/:id', 'no-response']);
+    expect(mockCaptureException).toHaveBeenCalledTimes(1);
+  });
+
+  it('5xx는 error, 4xx는 warning 레벨이다', () => {
+    captureApiError(makeApiError({ status: 500 }), 'mutation');
+    expect(mockScope.setLevel).toHaveBeenLastCalledWith('error');
+    captureApiError(makeApiError({ status: 404 }), 'query');
+    expect(mockScope.setLevel).toHaveBeenLastCalledWith('warning');
+  });
+
+  it('E302(토큰 만료)는 수집하지 않는다', () => {
+    captureApiError(makeApiError({ status: 401, statusCode: 'E302' }), 'query');
+    expect(mockCaptureException).not.toHaveBeenCalled();
   });
 });

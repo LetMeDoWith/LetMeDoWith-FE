@@ -1,7 +1,9 @@
 import * as Sentry from '@sentry/react-native';
 import Config from 'react-native-config';
 
+import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
 import { IS_DEV_MODE } from 'utils/env';
+import type { ApiError } from 'services/apiClient';
 
 /*
  * 에러·성능 모니터링 코어. init·user·API 에러 캡처·내비게이션 연동을 이 파일에 모은다
@@ -65,6 +67,49 @@ const initSentry = () => {
   });
 };
 
+/* 경로의 숫자 세그먼트를 :id로 바꿔 같은 API가 이슈 하나로 묶이게 한다('v1'의 1은 치환 안 됨) */
+const normalizeEndpoint = (url?: string) => {
+  if (!url) {
+    return 'unknown';
+  }
+  return url
+    .split('?')[0]
+    .split('/')
+    .map(segment => (/^\d+$/.test(segment) ? ':id' : segment))
+    .join('/');
+};
+
+/*
+ * React Query 전역 에러 구독(App.tsx subscribeListener)에서 호출한다.
+ * - 응답 없음(네트워크·타임아웃)·5xx: error / 4xx: warning
+ * - E302(토큰 만료→재발급 경로)는 수집하지 않는다. App.tsx의 조기 return과 별개로
+ *   여기서도 막아야 재발급 실패로 조기 return을 지나친 경우까지 걸러진다.
+ * - 요청 헤더(Authorization)·본문은 보내지 않는다 — 태그·fingerprint만 구성한다.
+ */
+const captureApiError = (error: ApiError, kind: 'query' | 'mutation') => {
+  if (error.response?.data?.statusCode === ErrorStatusCodeEnum.enum.E302) {
+    return;
+  }
+
+  const status = error.response?.status;
+  const method = (error.config?.method ?? 'unknown').toUpperCase();
+  const endpoint = normalizeEndpoint(error.config?.url);
+  const isClientError = status !== undefined && status >= 400 && status < 500;
+
+  Sentry.withScope(scope => {
+    scope.setLevel(isClientError ? 'warning' : 'error');
+    scope.setTag('api.kind', kind);
+    scope.setTag('api.method', method);
+    scope.setTag('api.endpoint', endpoint);
+    scope.setTag('api.http_status', String(status ?? 'no-response'));
+    if (error.response?.data?.statusCode) {
+      scope.setTag('api.status_code', error.response.data.statusCode);
+    }
+    scope.setFingerprint([method, endpoint, String(status ?? 'no-response')]);
+    Sentry.captureException(error);
+  });
+};
+
 /* 로그인·복원 시 호출. 영향받은 사용자 수 집계용 — id 외의 개인정보는 넣지 않는다 */
 const setSentryUser = (memberId: string) => {
   Sentry.setUser({ id: memberId });
@@ -75,4 +120,12 @@ const clearSentryUser = () => {
   Sentry.setUser(null);
 };
 
-export { initSentry, setSentryUser, clearSentryUser, navigationIntegration, TRACES_SAMPLE_RATE };
+export {
+  initSentry,
+  setSentryUser,
+  clearSentryUser,
+  captureApiError,
+  normalizeEndpoint,
+  navigationIntegration,
+  TRACES_SAMPLE_RATE,
+};

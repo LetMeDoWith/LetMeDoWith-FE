@@ -39,6 +39,7 @@ import { useAddNotificationToken } from 'hooks/queries/notification/useAddNotifi
 import { linking } from 'utils/deepLink';
 import { NOTIFICATION_QUERY_KEY } from 'constants/queries';
 import { ErrorStatusCodeEnum } from 'schemes/shared/enum';
+import { captureApiError } from 'utils/sentry';
 import { AppStateProvider, AppStateContext, useAppState } from 'hooks/shared/useAppState';
 
 export const navigationRef = createNavigationContainerRef();
@@ -96,6 +97,9 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
       setIsNeedRefreshToken(true);
       return;
     }
+
+    /* API 에러를 Sentry로 수집(E302는 내부에서 제외). 콘솔 로그·스낵바는 기존 동작 유지 */
+    captureApiError(event.action.error, 'query' in event ? 'query' : 'mutation');
 
     // 에러 타입에 따라 로깅
     if ('query' in event) {
