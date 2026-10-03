@@ -3,7 +3,7 @@
 ## 환경 변수 (.env / react-native-config)
 
 - 환경 변수는 `.env`에서 `react-native-config`로 읽는다. 키 추가 시 `react-native-config.d.ts`의 타입 선언도 함께 갱신한다.
-- 현재 키: `KAKAO_APP_KEY(_WITH_KAKAO)`, `GOOGLE_WEB_CLIENT_ID`, `REVERSED_CLIENT_ID`, `DEV_API_URL`, `PACKAGE_VERSION`, `ENABLE_DEVTOOLS`.
+- 현재 키: `KAKAO_APP_KEY(_WITH_KAKAO)`, `GOOGLE_WEB_CLIENT_ID`, `REVERSED_CLIENT_ID`, `DEV_API_URL`, `PACKAGE_VERSION`, `ENABLE_DEVTOOLS`, `SENTRY_DSN`.
 - **`.env` 값 변경은 Metro reload로 반영되지 않는다 — 네이티브 재빌드가 필요하다.** 관련 이슈 디버깅 시 이것부터 의심한다.
 - `.env`에는 실제 키 값이 들어 있다. 값을 코드·로그·보고에 노출하지 않는다.
 

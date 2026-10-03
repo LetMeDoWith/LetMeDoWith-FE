@@ -110,7 +110,10 @@ const ElementsTab = () => {
             label="JS Error"
             doneLabel="Thrown"
             onPress={() => {
-              /* 핸들러 안에서 throw하면 React가 삼킨다 — 전역 핸들러로 보내기 위해 틱을 넘긴다 */
+              /*
+               * 핸들러 안에서 throw하면 React가 삼킨다 — 전역 핸들러로 보내기 위해 틱을 넘긴다.
+               * 릴리즈 빌드에서는 Sentry가 이벤트를 남긴 뒤 기본 핸들러가 실행되어 앱이 종료된다(정상).
+               */
               setTimeout(() => {
                 throw new Error('[DevTools] Sentry JS 에러 테스트');
               }, 0);

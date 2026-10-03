@@ -19,7 +19,7 @@ on:
         type: boolean
         default: false
       upload-sourcemaps:
-        description: 'Sentry 소스맵·심볼 업로드 여부 (실배포만 true — 실패 시 빌드도 실패한다)'
+        description: 'Sentry 소스맵·심볼 업로드 여부 (실배포만 true — 소스맵 업로드 실패 시 빌드도 실패한다. dSYM 업로드 실패는 빌드를 막지 않는다)'
         type: boolean
         default: false
       # 알림과 취소는 반드시 별도 입력으로 둔다. 한 플래그로 묶으면

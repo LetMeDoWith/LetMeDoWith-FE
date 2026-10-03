@@ -55,10 +55,14 @@ const initSentry = () => {
      */
     ignoreErrors: [
       /Non-Error promise rejection captured/,
-      /* 소셜 로그인 취소: 카카오 / 애플(1001) / 구글(12501) */
+      /*
+       * 소셜 로그인 취소: 카카오 / 애플(1001) / 구글(12501).
+       * 현재 로그인 버튼들이 에러를 catch해 여기까지 오지 않는다 — 그 catch가 사라져도
+       * 취소가 이슈로 잡히지 않게 하는 방어선이다.
+       */
       /user cancelled/i,
       /com\.apple\.AuthenticationServices\.AuthorizationError error 1001/,
-      /SIGN_IN_CANCELLED|12501/,
+      /SIGN_IN_CANCELLED|\b12501\b/,
     ],
     /*
      * 콘솔 breadcrumb는 끈다 — 기존 console.error가 서버 응답을 통째로 찍는 곳이 있어

@@ -5,6 +5,11 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 
 const mockInit = jest.fn();
+/* init 가드 때문에 뒤 테스트에서는 init이 다시 불리지 않는다 — 첫 호출의 옵션을 붙잡아 둔다 */
+let mockCapturedInitOptions: {
+  beforeBreadcrumb: (breadcrumb: { category?: string }) => unknown;
+  tracePropagationTargets: string[];
+};
 const mockSetUser = jest.fn();
 const mockCaptureException = jest.fn();
 const mockScope = { setLevel: jest.fn(), setTag: jest.fn(), setFingerprint: jest.fn() };
@@ -14,7 +19,10 @@ const mockScope = { setLevel: jest.fn(), setTag: jest.fn(), setFingerprint: jest
  * analytics.test와 같이 화살표로 감싸 호출 시점에 모킹 함수를 읽게 한다.
  */
 jest.mock('@sentry/react-native', () => ({
-  init: (...args: unknown[]) => mockInit(...args),
+  init: (...args: unknown[]) => {
+    mockCapturedInitOptions = args[0] as typeof mockCapturedInitOptions;
+    return mockInit(...args);
+  },
   setUser: (...args: unknown[]) => mockSetUser(...args),
   withScope: (cb: (scope: typeof mockScope) => void) => cb(mockScope),
   captureException: (...args: unknown[]) => mockCaptureException(...args),
@@ -41,6 +49,20 @@ describe('initSentry', () => {
     initSentry();
     expect(mockInit).toHaveBeenCalledTimes(1);
     expect(mockInit.mock.calls[0]?.[0]).toMatchObject({ enabled: false, sendDefaultPii: false });
+  });
+});
+
+describe('init 옵션(개인정보·추적 범위 회귀 방지)', () => {
+  it('console breadcrumb는 걸러지고 다른 breadcrumb는 통과한다', () => {
+    initSentry();
+    expect(mockCapturedInitOptions.beforeBreadcrumb({ category: 'console' })).toBeNull();
+    const httpBreadcrumb = { category: 'http' };
+    expect(mockCapturedInitOptions.beforeBreadcrumb(httpBreadcrumb)).toBe(httpBreadcrumb);
+  });
+
+  it('분산 추적 헤더는 우리 API 호스트에만 붙는다', () => {
+    initSentry();
+    expect(mockCapturedInitOptions.tracePropagationTargets).toEqual(['api.test.com']);
   });
 });
 
