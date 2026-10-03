@@ -18,6 +18,10 @@ on:
         description: 'APK·IPA를 아티팩트로 올릴지(배포에 쓸 때만 필요)'
         type: boolean
         default: false
+      upload-sourcemaps:
+        description: 'Sentry 소스맵·심볼 업로드 여부 (실배포만 true — 실패 시 빌드도 실패한다)'
+        type: boolean
+        default: false
       # 알림과 취소는 반드시 별도 입력으로 둔다. 한 플래그로 묶으면
       # "드라이런은 Discord로 안 보낸다"가 fail-fast까지 꺼버린다.
       notify-on-failure:
@@ -65,6 +69,9 @@ jobs:
           cache: 'gradle'
 
       - name: Android Release 빌드
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DISABLE_AUTO_UPLOAD: ${{ inputs.upload-sourcemaps && 'false' || 'true' }}
         run: cd android && ./gradlew assembleRelease --no-daemon
 
       - uses: actions/upload-artifact@v4
@@ -219,6 +226,9 @@ jobs:
           ccache --zero-stats || true
 
       - name: Archive
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DISABLE_AUTO_UPLOAD: ${{ inputs.upload-sourcemaps && 'false' || 'true' }}
         run: |
           cd ios && xcodebuild \
             -workspace LetMeDoWith.xcworkspace \
