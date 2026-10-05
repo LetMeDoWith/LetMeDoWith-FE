@@ -72,6 +72,8 @@ const STEP_ENTER_DURATION = 200;
 
 interface Props {
   date: string;
+  /* 등록에 성공하면 등록한 날짜를 알린다. 홈이 그 날짜로 이동해 방금 등록한 할 일을 보여준다. */
+  onRegistered?: (date: string) => void;
 }
 
 const EMPTY_ROUTINE = {
@@ -89,7 +91,7 @@ const EMPTY_ROUTINE = {
  * 시트가 통째로 닫혔다 열려 시안의 "이어지는" 느낌이 나지 않는다.
  * 수정은 기존 스택 화면(TASK_FORM)이 계속 담당한다.
  */
-const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, ref) => {
+const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date, onRegistered }, ref) => {
   const innerRef = useRef<BottomSheetModalMethods>(null);
   const routineFormRef = useRef<RoutineSheetContentRef>(null);
   const headerRef = useRef<View>(null);
@@ -134,8 +136,17 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
   const { data: dowithTaskSamples } = useFetchDowithTaskSamples();
 
   const closeSheet = useCallback(() => innerRef.current?.dismiss(), []);
-  const { mutate: addTodoTaskMutate, isPending: isAddTodoPending } = useAddTodoTask({ onSuccess: closeSheet });
-  const { mutate: addDowithTaskMutate, isPending: isAddDowithPending } = useAddDowithTask({ onSuccess: closeSheet });
+  const handleRegistered = useCallback(
+    (payload: addTaskRequestSchemeType) => {
+      closeSheet();
+      onRegistered?.(payload.date);
+    },
+    [closeSheet, onRegistered],
+  );
+  const { mutate: addTodoTaskMutate, isPending: isAddTodoPending } = useAddTodoTask({ onSuccess: handleRegistered });
+  const { mutate: addDowithTaskMutate, isPending: isAddDowithPending } = useAddDowithTask({
+    onSuccess: handleRegistered,
+  });
 
   /*
    * 도리 모드일 때만 서버 샘플을 제목 placeholder로 쓴다.

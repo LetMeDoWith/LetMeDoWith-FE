@@ -220,6 +220,13 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
     registerSheetRef.current?.present();
   };
 
+  /* 다른 날짜로 등록했으면 그 날짜로 옮겨, 방금 등록한 할 일이 바로 보이게 한다(달력도 해당 주/월로 이동) */
+  const handleRegistered = useCallback((date: string) => {
+    const normalizedDate = dayjs(date).format('YYYY-MM-DD');
+    setSelectedDate(normalizedDate);
+    setCurrentDate(normalizedDate);
+  }, []);
+
   const handleDayPress = useCallback((dateString?: string) => {
     if (dateString) {
       setSelectedDate(dateString);
@@ -347,7 +354,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
       <Pressable style={styles.fab} onPress={handlePressPlusIcon}>
         <PlusIcon width={FAB_ICON_SIZE} height={FAB_ICON_SIZE} fill={theme.COLORS.DEFAULT.WHITE} />
       </Pressable>
-      <TaskRegisterSheet ref={registerSheetRef} date={selectedDate} />
+      <TaskRegisterSheet ref={registerSheetRef} date={selectedDate} onRegistered={handleRegistered} />
       {isDowithOnboardingPending && onboardingTargets && (
         <DowithCoachMark
           statusTarget={onboardingTargets.status}

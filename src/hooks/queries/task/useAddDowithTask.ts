@@ -14,8 +14,9 @@ interface Options {
   /*
    * 등록 후 처리. 바텀시트에서 등록하면 이미 홈이라 시트만 닫으면 되고,
    * 넘기지 않으면 기존 수정 화면처럼 홈으로 돌아간다.
+   * 등록한 날짜로 화면을 옮길 수 있게 보낸 페이로드를 함께 넘긴다.
    */
-  onSuccess?: () => void;
+  onSuccess?: (payload: addTaskRequestSchemeType) => void;
 }
 
 const useAddDowithTask = ({ onSuccess }: Options = {}) => {
@@ -32,7 +33,7 @@ const useAddDowithTask = ({ onSuccess }: Options = {}) => {
       logEvent('dori_create_complete', buildTaskCreateParams(payload, categories));
 
       if (onSuccess) {
-        onSuccess();
+        onSuccess(payload);
       } else {
         navigate('HOME');
       }
