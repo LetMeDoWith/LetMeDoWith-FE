@@ -7,6 +7,7 @@ import { queryClient } from 'services/queryClient';
 import { apiClient } from 'services/apiClient';
 
 import { DevToolsButton } from 'components/__dev__/DevToolsButton';
+import { useDevToolsStore, type ApiFailureMode } from 'components/__dev__/devToolsStore';
 import { navigationRef } from '../../../../App';
 import { version as appVersion } from '../../../../package.json';
 
@@ -54,6 +55,14 @@ function getNavigationTree(state: any, depth = 0): ReactNode[] {
 }
 
 const ElementsTab = () => {
+  const apiFailureMode = useDevToolsStore(s => s.apiFailureMode);
+  const setApiFailureMode = useDevToolsStore(s => s.setApiFailureMode);
+
+  /* 모드를 바꾸고 모든 조회를 초기 상태(데이터 없음)로 돌려, 보고 있는 화면의 조회를 바로 다시 보낸다 */
+  const changeApiFailureMode = (mode: ApiFailureMode) => {
+    setApiFailureMode(mode);
+    queryClient.resetQueries();
+  };
   const window = Dimensions.get('window');
   const screen = Dimensions.get('screen');
   const navState = navigationRef.isReady() ? navigationRef.getRootState() : null;
@@ -138,6 +147,28 @@ const ElementsTab = () => {
         </View>
       </View>
 
+      {/*
+       * 에러 화면 확인 — 모드를 바꾸면 캐시도 함께 비운다. 그래야 보고 있는 화면의 핵심 데이터가
+       * 첫 로딩으로 다시 요청되어, 실패 모드면 에러 화면이 뜬다(react-query 재시도 3회 후, 약 7초).
+       * OFF로 바꾼 뒤 에러 화면의 "다시 시도하기"를 누르면 복구된다.
+       */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Error Screen</Text>
+        <View style={styles.card}>
+          <Row label="API 강제 실패" value={apiFailureMode} />
+          <View style={[styles.sentryButtons, styles.errorScreenButtons]}>
+            <DevToolsButton label="OFF" doneLabel="OFF" color="#98C379" onPress={() => changeApiFailureMode('OFF')} />
+            <DevToolsButton
+              label="NETWORK"
+              doneLabel="ON"
+              color="#E5C07B"
+              onPress={() => changeApiFailureMode('NETWORK')}
+            />
+            <DevToolsButton label="SERVER" doneLabel="ON" onPress={() => changeApiFailureMode('SERVER')} />
+          </View>
+        </View>
+      </View>
+
       {/* 네비게이션 트리 */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Navigation Tree</Text>
@@ -213,6 +244,10 @@ const styles = StyleSheet.create({
   sentryButtons: {
     flexDirection: 'row',
     gap: 8,
+  },
+  errorScreenButtons: {
+    marginTop: 8,
+    flexWrap: 'wrap',
   },
   fcmValue: {
     color: '#EEE',

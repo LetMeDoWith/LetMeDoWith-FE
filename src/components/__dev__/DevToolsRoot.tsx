@@ -11,6 +11,10 @@ import {
   uninstallConsoleInterceptor,
 } from 'components/__dev__/interceptors/consoleInterceptor';
 import {
+  installApiFailureInterceptor,
+  uninstallApiFailureInterceptor,
+} from 'components/__dev__/interceptors/apiFailureInterceptor';
+import {
   installNetworkInterceptor,
   uninstallNetworkInterceptor,
 } from 'components/__dev__/interceptors/networkInterceptor';
@@ -22,6 +26,8 @@ const DevToolsRoot = () => {
   useEffect(() => {
     installConsoleInterceptor();
     installNetworkInterceptor(apiClient);
+    /* 네트워크 탭 기록보다 먼저 실행되도록 나중에 등록한다(axios 요청 인터셉터는 역순 실행) */
+    installApiFailureInterceptor(apiClient);
     setAnalyticsListener(entry => {
       useDevToolsStore.getState().pushAnalyticsLog({
         id: getNextAnalyticsId(),
@@ -33,6 +39,7 @@ const DevToolsRoot = () => {
     return () => {
       uninstallConsoleInterceptor();
       uninstallNetworkInterceptor(apiClient);
+      uninstallApiFailureInterceptor(apiClient);
       setAnalyticsListener(null);
     };
   }, []);

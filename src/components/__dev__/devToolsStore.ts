@@ -20,6 +20,9 @@ interface DevToolsState {
   // 애널리틱스
   analyticsLogs: AnalyticsEntry[];
 
+  /* 에러 화면 확인용 조회 강제 실패 모드(apiFailureInterceptor) */
+  apiFailureMode: ApiFailureMode;
+
   // 액션
   setActiveTab: (tab: DevToolsTab) => void;
   setIsSheetOpen: (open: boolean) => void;
@@ -30,7 +33,10 @@ interface DevToolsState {
   clearNetworkRequests: () => void;
   pushAnalyticsLog: (entry: AnalyticsEntry) => void;
   clearAnalyticsLogs: () => void;
+  setApiFailureMode: (mode: ApiFailureMode) => void;
 }
+
+type ApiFailureMode = 'OFF' | 'NETWORK' | 'SERVER';
 
 let _nextConsoleId = 0;
 let _nextNetworkId = 0;
@@ -46,6 +52,7 @@ export const useDevToolsStore = create<DevToolsState>(set => ({
   consoleLogs: [],
   networkRequests: [],
   analyticsLogs: [],
+  apiFailureMode: 'OFF',
 
   setActiveTab: tab => set({ activeTab: tab }),
   setIsSheetOpen: open => set({ isSheetOpen: open }),
@@ -75,4 +82,8 @@ export const useDevToolsStore = create<DevToolsState>(set => ({
     })),
 
   clearAnalyticsLogs: () => set({ analyticsLogs: [] }),
+
+  setApiFailureMode: mode => set({ apiFailureMode: mode }),
 }));
+
+export type { ApiFailureMode };
