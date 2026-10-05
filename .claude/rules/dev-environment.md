@@ -17,7 +17,7 @@
 ## Sentry
 
 - 에러·성능 로직은 **전부 `utils/sentry.ts`에 모여 있다.** 화면·훅에 Sentry 호출을 흩뿌리지 않는다. API 에러는 App.tsx의 전역 에러 구독 한 곳에서만 수집한다.
-- 전송 게이트는 `__DEV__`만이다(Analytics와 동일). Metro 빌드는 기록되지 않고, dev 배포 빌드는 `environment=development`로 전송된다. 동작 확인은 개발자도구 Elements 탭의 Sentry 테스트 버튼 + dev 릴리즈 빌드로 한다.
+- 전송 게이트는 `__DEV__`만이다(Analytics와 동일). Metro 빌드는 기록되지 않고, dev 배포 빌드는 `environment=develop`으로(백엔드와 같은 값) 전송된다. 동작 확인은 개발자도구 Elements 탭의 Sentry 테스트 버튼 + dev 릴리즈 빌드로 한다.
 - **소스맵·dSYM 업로드**는 릴리즈 빌드 중 자동 실행된다. 로컬에서 업로드하려면 `~/.sentryclirc`에 토큰을 둔다:
 
   ```ini

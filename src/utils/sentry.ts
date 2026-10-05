@@ -12,7 +12,7 @@ import type { BaseResponseSchemeType } from 'types/shared/scheme/api';
  * (알림 utils/notification.ts, 애널리틱스 utils/analytics.ts와 같은 관례).
  *
  * 전송 게이트는 __DEV__만이다. Metro 개발 빌드는 보내지 않고, dev 배포 빌드(IS_DEV_MODE)는
- * environment='development'로, 추후 prod는 'production'으로 한 프로젝트 안에서 구분한다.
+ * environment='develop'으로, 추후 prod는 'production'으로 한 프로젝트 안에서 구분한다(백엔드 jobdori와 같은 값).
  */
 
 /* 성능 트레이스 샘플링 비율. 사용자가 늘어 span 한도(5M/월)에 근접하면 이 값부터 낮춘다. */
@@ -39,7 +39,7 @@ const initSentry = () => {
     dsn: Config.SENTRY_DSN,
     /* Metro 개발 빌드는 전송하지 않는다 — 릴리즈(dev 배포 포함) 빌드만 */
     enabled: !__DEV__,
-    environment: IS_DEV_MODE ? 'development' : 'production',
+    environment: IS_DEV_MODE ? 'develop' : 'production',
     /* IP 등 기본 개인정보 비전송. user는 setSentryUser가 id만 넣는다 */
     sendDefaultPii: false,
     tracesSampleRate: TRACES_SAMPLE_RATE,
