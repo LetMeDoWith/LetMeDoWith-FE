@@ -39,6 +39,12 @@ interface Props {
    * restore는 gorhom에 넘기지 않고 이 컴포넌트가 직접 처리한다(닫는 중에는 되돌리지 않는다).
    */
   keyboardBlurBehavior?: BottomSheetModalProps['keyboardBlurBehavior'];
+  /*
+   * restore를 직접 처리하지 않고 gorhom에 맡길지. gorhom은 UI 스레드에서 최신 snapPoints로 되돌리므로
+   * 키보드 내림과 snapPoints 변경이 겹쳐도 어긋나지 않는다. 대신 닫는 중에 키보드가 내려가면 시트를
+   * 도로 열기 때문에, 키보드가 떠 있는 채로 닫힐 일이 없는 화면(입력이 없는 스텝)에서만 켠다.
+   */
+  delegateKeyboardRestore?: boolean;
   androidKeyboardInputMode?: BottomSheetModalProps['android_keyboardInputMode'];
   /*
    * 사용자가 닫기 버튼 외의 방법으로 시트를 닫을 수 있는지. 아래로 내리는 제스처와
@@ -111,6 +117,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     contentBottomInset,
     keyboardBehavior,
     keyboardBlurBehavior,
+    delegateKeyboardRestore = false,
     androidKeyboardInputMode,
     enablePanDownToClose = true,
     enableContentPanningGesture = true,
@@ -184,7 +191,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
    * 이벤트는 gorhom과 같은 것을 쓴다(iOS는 will, 안드로이드는 did만 신뢰할 수 있다).
    */
   useEffect(() => {
-    if (keyboardBlurBehavior !== 'restore') {
+    if (keyboardBlurBehavior !== 'restore' || delegateKeyboardRestore) {
       return;
     }
     const subscription = Keyboard.addListener(isAos ? 'keyboardDidHide' : 'keyboardWillHide', () => {
@@ -194,7 +201,7 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
       innerRef.current?.snapToIndex(currentIndexRef.current);
     });
     return () => subscription.remove();
-  }, [keyboardBlurBehavior]);
+  }, [keyboardBlurBehavior, delegateKeyboardRestore]);
 
   const handleClose = useCallback(() => {
     if (handleCloseButton) {
@@ -277,8 +284,8 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
       enablePanDownToClose={enablePanDownToClose}
       enableContentPanningGesture={enableContentPanningGesture}
       keyboardBehavior={keyboardBehavior}
-      /* restore는 위 키보드 리스너가 직접 처리한다 — gorhom 쪽 restore는 끈다 */
-      keyboardBlurBehavior="none"
+      /* restore는 위 키보드 리스너가 직접 처리한다 — 맡기기로 한 경우에만 gorhom 쪽 restore를 켠다 */
+      keyboardBlurBehavior={keyboardBlurBehavior === 'restore' && delegateKeyboardRestore ? 'restore' : 'none'}
       android_keyboardInputMode={androidKeyboardInputMode}
       backdropComponent={renderBackdrop}
       /*

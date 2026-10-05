@@ -170,14 +170,6 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
       setStepContentHeight(0);
       setStep(next);
 
-      /*
-       * 메인 밖 스텝에는 입력이 없다. 키보드가 남아 있으면 콘텐츠를 가린다.
-       * 스텝을 바꾼 "뒤에" 내려야 keyboardBlurBehavior(restore)가 새 스텝의 높이로 한 번에 복귀한다
-       * — 먼저 내리면 메인 높이로 줄었다가 다시 커지는 움직임이 보인다.
-       */
-      if (next !== 'MAIN') {
-        Keyboard.dismiss();
-      }
       slideX.value = isForward ? STEP_SLIDE_DISTANCE : -STEP_SLIDE_DISTANCE;
       slideX.value = withTiming(0, { duration: STEP_ENTER_DURATION, easing: Easing.out(Easing.cubic) });
       fade.value = withTiming(1, { duration: STEP_ENTER_DURATION }, finished => {
@@ -397,16 +389,16 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
   }, [step, mainContentHeight, stepContentHeight, config.snapPoint]);
 
   /*
-   * 스텝이 바뀌면 새 높이로 다시 스냅시킨다.
-   * 키보드를 한 번도 띄우지 않고 스텝을 여는 경우(= restore가 관여하지 않는 경로)를 위한 보정이다.
+   * 메인 밖 스텝에는 입력이 없다. 키보드가 남아 있으면 콘텐츠를 가린다.
+   * 스텝이 바뀐 렌더가 커밋된 "뒤에" 내린다. 그래야 아래 키보드 설정(extend + gorhom restore)이
+   * 적용된 상태에서 키보드가 내려가 새 스텝 높이로 한 번에 복귀한다
+   * — 먼저 내리면 메인 높이로 줄었다가 다시 커지는 움직임이 보인다.
    */
   useEffect(() => {
-    if (!isSheetOpen || step === 'MAIN') {
-      return;
+    if (step !== 'MAIN') {
+      Keyboard.dismiss();
     }
-
-    innerRef.current?.snapToIndex(0);
-  }, [isSheetOpen, step, snapPoints]);
+  }, [step]);
 
   const isSubmitting = isAddTodoPending || isAddDowithPending;
 
@@ -497,12 +489,25 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date }, 
         enablePanDownToClose={step !== 'ROUTINE'}
         /* 달력의 가로 스와이프가 시트 팬 제스처와 충돌하지 않게 한다 */
         enableContentPanningGesture={step !== 'DATE' && step !== 'ROUTINE'}
-        keyboardBehavior="interactive"
+        /*
+         * 스텝 높이 맞춤은 전부 gorhom이 UI 스레드에서 최신 snapPoints로 처리하게 둔다.
+         * snapToIndex를 JS에서 부르면 안 된다 — 시트가 portal로 그려져 새 snapPoints가 gorhom에
+         * 한 렌더 늦게 닿기 때문에, 그 사이 부르면 이전 스텝 높이로 스냅해 콘텐츠보다 낮게 멈춘다.
+         *
+         * - 메인(입력 있음): 키보드 위로 올리는 interactive. 키보드가 내려가면 BottomSheet가 되돌린다.
+         * - 그 외 스텝: 메인에서 키보드가 떠 있는 채로 넘어오므로 시트가 "키보드 임시 위치"에 있다.
+         *   interactive는 이때 새 높이에 키보드 높이를 더해 화면 맨 위로 올려 버린다.
+         *   extend는 키보드와 무관하게 스냅 위치를 쓰므로 새 높이로 바로 간다.
+         *   키보드가 내려가면 gorhom의 restore가 임시 위치 표시를 풀어, 이후 높이 변경(실측·달력 줄 수)도 따라간다.
+         */
+        keyboardBehavior={step === 'MAIN' ? 'interactive' : 'extend'}
         /*
          * 키보드가 내려가면 원래 스냅 위치로 되돌린다. 기본값(none)이면 키보드에 밀려 올라간
          * 임시 위치가 남아, 다음 스텝의 snapPoints를 무시하고 그 높이에 갇힌다.
          */
         keyboardBlurBehavior="restore"
+        /* 메인 밖 스텝은 키보드가 떠 있는 채로 닫힐 일이 없어 gorhom의 restore를 그대로 쓴다 */
+        delegateKeyboardRestore={step !== 'MAIN'}
         /*
          * KeyboardProvider가 edge-to-edge를 켜서 창이 리사이즈되지 않으므로, 시트를 gorhom이 직접 올리는
          * adjustPan이어야 안드로이드에서 키보드에 덮이지 않는다.
