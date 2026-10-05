@@ -22,6 +22,7 @@ import { IS_DEV_MODE } from 'utils/env';
 // TODO(임시): 전역 로딩 오버레이(fetching/mutating) 비활성화로 미사용
 // import { useLoadingOverlayStore } from 'stores/loadingOverlayStore';
 import { GlobalSnackbar } from 'components/common/GlobalSnackbar';
+import { DoriSuccessMotion } from 'components/common/DoriSuccessMotion';
 import { queryClient } from 'services/queryClient';
 import { isErrorSnackbarSuppressed, showSnackbar, SNACKBAR_TYPE } from 'stores/snackbarStore';
 
@@ -310,6 +311,7 @@ function AppContent() {
       {/* TODO(임시): isLoading(fetching/mutating) 오버레이 비활성화 → 하이드레이션 로딩만 유지 */}
       {!isHydrated && <LoadingOverlay />}
       <GlobalSnackbar />
+      <DoriSuccessMotion />
     </View>
   );
 }
