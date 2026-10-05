@@ -5,8 +5,9 @@ import { TASK_QUERY_KEY } from 'constants/queries';
 import { DEFAULT_PAGE_SIZE } from 'constants/shared';
 import { fetchFeedbackAvailableDowithTasks } from 'services/rest/task';
 import type { fetchFeedbackAvailableDowithTasksResponseSchemeType } from 'types/task/scheme/api';
+import { toThrowOnError, type BoundaryQueryOptions } from 'utils/error';
 
-const useFetchFeedbackAvailableDowithTasksInfinite = () =>
+const useFetchFeedbackAvailableDowithTasksInfinite = ({ throwOnError }: BoundaryQueryOptions = {}) =>
   useInfiniteQuery<
     fetchFeedbackAvailableDowithTasksResponseSchemeType,
     ApiError,
@@ -22,6 +23,7 @@ const useFetchFeedbackAvailableDowithTasksInfinite = () =>
       return currentPage + 1 < totalPage ? currentPage + 1 : undefined;
     },
     initialPageParam: 0,
+    throwOnError: toThrowOnError(throwOnError),
   });
 
 export { useFetchFeedbackAvailableDowithTasksInfinite };

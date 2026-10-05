@@ -6,6 +6,7 @@ import type { taskFormSchemeType } from 'types/task/scheme/api';
 import type { RootStackScreenProps } from 'types/shared';
 import { useFetchTodoTask } from 'hooks/queries/task/useFetchTodoTask';
 import { useFetchDowithTask } from 'hooks/queries/task/useFetchDowithTask';
+import { throwOnInitialError } from 'utils/error';
 
 const EMPTY_ROUTINE_CONDITION = {
   startDate: null,
@@ -20,10 +21,13 @@ const TaskForm = ({
     params: { date, id = -1, mode, screen, isRoutineTask },
   },
 }: RootStackScreenProps<'TASK_FORM'>) => {
-  const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: mode === 'TODO' && id !== -1 });
+  const { data: todoTaskData } = useFetchTodoTask(
+    { todoTaskId: id },
+    { enabled: mode === 'TODO' && id !== -1, throwOnError: throwOnInitialError },
+  );
   const { data: dowithTaskData } = useFetchDowithTask(
     { dowithTaskId: id },
-    { enabled: mode === 'DOWITH' && id !== -1 },
+    { enabled: mode === 'DOWITH' && id !== -1, throwOnError: throwOnInitialError },
   );
 
   const data = id && mode ? todoTaskData ?? dowithTaskData : null;

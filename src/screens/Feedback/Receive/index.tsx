@@ -10,7 +10,9 @@ import type { receivedFeedbackSchemeType } from 'types/feedback/scheme/api';
 import { navigateByDeepLink } from 'utils/deepLink';
 
 const ReceiveFeedback = () => {
-  const { data, isLoading, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchReceivedFeedbacks();
+  const { data, isLoading, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchReceivedFeedbacks({
+    throwOnError: true,
+  });
   const { mutate: checkFeedback } = useCheckFeedback();
 
   if (isLoading) {

@@ -13,6 +13,7 @@ import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
 import type { TaskFormStackParamList } from 'types/shared';
 import type { taskFormSchemeType } from 'types/task/scheme/api';
+import { throwOnInitialError } from 'utils/error';
 
 /*
  * 저장 버튼은 ScrollView 위에 absolute로 떠 있다.
@@ -39,8 +40,14 @@ const RoutineForm = ({ route }: StackScreenProps<TaskFormStackParamList, 'ROUTIN
   const routine = useRoutineForm({ mirrorToForm: true, setValue, watch });
   const { getIsValidRoutineCondition, initRoutineCondition } = routine;
 
-  const { data: todoTaskData } = useFetchTodoTask({ todoTaskId: id }, { enabled: isTodoMode && id !== -1 });
-  const { data: dowithTaskData } = useFetchDowithTask({ dowithTaskId: id }, { enabled: !isTodoMode && id !== -1 });
+  const { data: todoTaskData } = useFetchTodoTask(
+    { todoTaskId: id },
+    { enabled: isTodoMode && id !== -1, throwOnError: throwOnInitialError },
+  );
+  const { data: dowithTaskData } = useFetchDowithTask(
+    { dowithTaskId: id },
+    { enabled: !isTodoMode && id !== -1, throwOnError: throwOnInitialError },
+  );
   const { mutate: updateTaskRoutine, isPending: isUpdateTaskRoutineLoading } = useUpdateTaskRoutine({ mode, id });
 
   const data = id !== -1 ? todoTaskData ?? dowithTaskData : null;

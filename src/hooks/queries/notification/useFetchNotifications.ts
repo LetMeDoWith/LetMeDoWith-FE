@@ -5,10 +5,11 @@ import { NOTIFICATION_QUERY_KEY } from 'constants/queries';
 import { DEFAULT_PAGE_SIZE } from 'constants/shared';
 import { fetchNotifications } from 'services/rest/notification';
 import type { fetchNotificationsResponseSchemeType } from 'types/notification/scheme/api';
+import { toThrowOnError, type BoundaryQueryOptions } from 'utils/error';
 
 type NotificationType = 'NORMAL' | 'EVENT';
 
-const useFetchNotifications = (type: NotificationType) =>
+const useFetchNotifications = (type: NotificationType, { throwOnError }: BoundaryQueryOptions = {}) =>
   useInfiniteQuery<
     fetchNotificationsResponseSchemeType,
     ApiError,
@@ -27,6 +28,7 @@ const useFetchNotifications = (type: NotificationType) =>
     // 5분간 캐시 유지 (헤더 → 알림 스크린 진입 시 중복 요청 방지)
     // 알림 확인(confirm) 시 invalidateQueries로 즉시 갱신
     staleTime: 5 * 60 * 1000,
+    throwOnError: toThrowOnError(throwOnError),
   });
 
 export { useFetchNotifications };

@@ -11,6 +11,7 @@ import { useDowithCertification } from 'hooks/shared/useDowithCertification';
 import { TASK_STATUS_ENUM } from 'schemes/task/enum';
 import { theme } from 'styles/theme';
 import type { RootStackScreenProps } from 'types/shared';
+import { throwOnInitialError } from 'utils/error';
 
 const CERTIFY_BUTTON_HEIGHT = 52;
 const CERTIFY_BAR_TOP_SPACE = 12;
@@ -24,9 +25,9 @@ const ReceivedFeedback = ({ navigation, route }: RootStackScreenProps<'RECEIVED_
   const { bottom } = useSafeAreaInsets();
 
   // 상태칩/제목은 상세 조회로 채운다 (Item 진입 시에는 캐시된 값이 즉시 사용됨)
-  const { data: dowithTask } = useFetchDowithTask({ dowithTaskId });
+  const { data: dowithTask } = useFetchDowithTask({ dowithTaskId }, { throwOnError: throwOnInitialError });
   /* 목록 쪽과 같은 쿼리라 추가 요청 없이 캐시를 읽는다 */
-  const { data: aggregates } = useFetchDowithTaskFeedbackAggregates(dowithTaskId);
+  const { data: aggregates } = useFetchDowithTaskFeedbackAggregates(dowithTaskId, true, { throwOnError: true });
   const { certify } = useDowithCertification(dowithTaskId);
 
   // 인증 완료(성공) 태스크로 딥링크 진입한 경우 응원 모아보기 화면으로 대체 이동

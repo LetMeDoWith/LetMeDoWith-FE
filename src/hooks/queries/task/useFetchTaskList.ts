@@ -8,12 +8,17 @@ import type {
   fetchTaskListResponseSchemeDataType,
   fetchTaskListResponseSchemeType,
 } from 'types/task/scheme/api';
+import { toThrowOnError, type BoundaryQueryOptions } from 'utils/error';
 
-const useFetchTaskList = ({ year, month }: fetchTaskListRequestSchemeType) =>
+const useFetchTaskList = (
+  { year, month }: fetchTaskListRequestSchemeType,
+  { throwOnError }: BoundaryQueryOptions = {},
+) =>
   useQuery<fetchTaskListResponseSchemeType, ApiError, fetchTaskListResponseSchemeDataType>({
     queryKey: [...TASK_QUERY_KEY.LIST, year, month],
     queryFn: () => fetchTaskList({ year, month }),
     select: data => data.data,
+    throwOnError: toThrowOnError(throwOnError),
   });
 
 export { useFetchTaskList };

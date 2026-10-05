@@ -8,7 +8,9 @@ import { useFetchSendFeedbacks } from 'hooks/queries/feedback/useFetchSendFeedba
 import type { sentFeedbackSchemeType } from 'types/feedback/scheme/api';
 
 const SendFeedback = () => {
-  const { data, isLoading, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchSendFeedbacks();
+  const { data, isLoading, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchSendFeedbacks({
+    throwOnError: true,
+  });
 
   if (isLoading) {
     return (

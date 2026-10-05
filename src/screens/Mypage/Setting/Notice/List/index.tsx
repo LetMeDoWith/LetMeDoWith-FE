@@ -8,7 +8,7 @@ import { theme } from 'styles/theme';
 import type { SettingStackScreenProps } from 'types/shared';
 
 const NoticeList = ({ navigation }: SettingStackScreenProps<'NOTICE'>) => {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchNotices();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchNotices(undefined, { throwOnError: true });
 
   const notices = useMemo(() => data?.pages.flatMap(page => page.data.notices) ?? [], [data]);
 

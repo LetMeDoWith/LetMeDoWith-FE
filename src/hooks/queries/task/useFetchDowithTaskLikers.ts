@@ -5,8 +5,9 @@ import { TASK_QUERY_KEY } from 'constants/queries';
 import { DEFAULT_PAGE_SIZE } from 'constants/shared';
 import { fetchDowithTaskLikers } from 'services/rest/task';
 import type { fetchDowithTaskLikersResponseSchemeType } from 'types/task/scheme/api';
+import { toThrowOnError, type BoundaryQueryOptions } from 'utils/error';
 
-const useFetchDowithTaskLikers = (dowithTaskId: number, enabled = true) =>
+const useFetchDowithTaskLikers = (dowithTaskId: number, enabled = true, { throwOnError }: BoundaryQueryOptions = {}) =>
   useInfiniteQuery<
     fetchDowithTaskLikersResponseSchemeType,
     ApiError,
@@ -23,6 +24,7 @@ const useFetchDowithTaskLikers = (dowithTaskId: number, enabled = true) =>
     },
     initialPageParam: 0,
     enabled,
+    throwOnError: toThrowOnError(throwOnError),
   });
 
 export { useFetchDowithTaskLikers };

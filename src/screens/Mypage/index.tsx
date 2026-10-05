@@ -6,7 +6,7 @@ import { Dashboard } from 'components/Mypage/Dashboard';
 import { useFetchMyDowithInfo } from 'hooks/queries/member/useFetchMyDowithInfo';
 
 const Mypage = () => {
-  const { data } = useFetchMyDowithInfo();
+  const { data } = useFetchMyDowithInfo({ throwOnError: true });
 
   if (!data) {
     return null;

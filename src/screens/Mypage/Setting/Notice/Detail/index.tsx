@@ -7,7 +7,7 @@ import { theme } from 'styles/theme';
 import type { SettingStackScreenProps } from 'types/shared';
 
 const NoticeDetail = ({ route: { params } }: SettingStackScreenProps<'NOTICE_DETAIL'>) => {
-  const { data } = useFetchNoticeDetail(params.id);
+  const { data } = useFetchNoticeDetail(params.id, { throwOnError: true });
 
   if (!data) {
     return null;

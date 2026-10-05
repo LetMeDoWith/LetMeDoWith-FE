@@ -7,13 +7,19 @@ import type {
   fetchFeedbackAggregatesResponseSchemeType,
   feedbackAggregateItemSchemeType,
 } from 'types/feedback/scheme/api';
+import { toThrowOnError, type BoundaryQueryOptions } from 'utils/error';
 
-const useFetchDowithTaskFeedbackAggregates = (dowithTaskId: number, enabled = true) =>
+const useFetchDowithTaskFeedbackAggregates = (
+  dowithTaskId: number,
+  enabled = true,
+  { throwOnError }: BoundaryQueryOptions = {},
+) =>
   useQuery<fetchFeedbackAggregatesResponseSchemeType, ApiError, feedbackAggregateItemSchemeType[]>({
     queryKey: [...FEEDBACK_QUERY_KEY.DOWITH_TASK_AGGREGATE, dowithTaskId],
     queryFn: () => fetchDowithTaskFeedbackAggregates(dowithTaskId),
     select: data => [...data.data.aggregates].sort((a, b) => b.count - a.count),
     enabled,
+    throwOnError: toThrowOnError(throwOnError),
   });
 
 export { useFetchDowithTaskFeedbackAggregates };

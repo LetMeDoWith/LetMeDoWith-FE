@@ -39,7 +39,7 @@ const Feed = () => {
   );
 
   const queryClient = useQueryClient();
-  const { data, isLoading } = useFetchFeedbackAvailableDowithTasksInfinite();
+  const { data, isLoading } = useFetchFeedbackAvailableDowithTasksInfinite({ throwOnError: true });
   /*
    * 인증 사진 목록은 화면에서 먼저 요청을 시작해 둔다. 이 목록을 그리는 컴포넌트(SuccessTaskImageList·FeedNagEmpty)는
    * 잡도리 목록이 온 뒤에야 마운트되므로, 거기서 처음 요청하면 왕복을 두 번 차례로 기다린다.

@@ -181,9 +181,9 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
    */
   const [prevMonth, currentMonth, nextMonth] = useMemo(() => getSurroundingMonths(currentDate), [currentDate]);
 
-  const { data: prevMonthTaskList } = useFetchTaskList(prevMonth);
-  const { data: currentMonthTaskList } = useFetchTaskList(currentMonth);
-  const { data: nextMonthTaskList } = useFetchTaskList(nextMonth);
+  const { data: prevMonthTaskList } = useFetchTaskList(prevMonth, { throwOnError: true });
+  const { data: currentMonthTaskList } = useFetchTaskList(currentMonth, { throwOnError: true });
+  const { data: nextMonthTaskList } = useFetchTaskList(nextMonth, { throwOnError: true });
   const { data: myDowithInfo } = useFetchMyDowithInfo();
   const { data: receivedFeedbacks } = useFetchReceivedFeedbacks();
 

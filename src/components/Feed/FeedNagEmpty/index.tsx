@@ -74,7 +74,7 @@ interface Props {
 }
 
 const FeedNagEmpty = ({ onRefresh }: Props) => {
-  const { data: successTasks = [] } = useFetchSuccessDowithTasks();
+  const { data: successTasks = [] } = useFetchSuccessDowithTasks(undefined, { throwOnError: true });
   const { openDetail, detailModal } = useSuccessTaskImageDetail(successTasks);
 
   const renderCard = useCallback(

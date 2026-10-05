@@ -5,8 +5,9 @@ import { TASK_QUERY_KEY } from 'constants/queries';
 import { fetchSuccessDowithTasks } from 'services/rest/task';
 import type { PageRequestSchemeType } from 'types/shared/scheme/api';
 import type { fetchSuccessDowithTasksResponseSchemeType, successDowithTaskSchemeType } from 'types/task/scheme/api';
+import { toThrowOnError, type BoundaryQueryOptions } from 'utils/error';
 
-const useFetchSuccessDowithTasks = (params?: PageRequestSchemeType) =>
+const useFetchSuccessDowithTasks = (params?: PageRequestSchemeType, { throwOnError }: BoundaryQueryOptions = {}) =>
   useQuery<fetchSuccessDowithTasksResponseSchemeType, ApiError, successDowithTaskSchemeType[]>({
     queryKey: [...TASK_QUERY_KEY.SUCCESS_DOWITH_TASKS, params?.page, params?.size],
     queryFn: () => fetchSuccessDowithTasks(params),
@@ -17,6 +18,7 @@ const useFetchSuccessDowithTasks = (params?: PageRequestSchemeType) =>
      * 새로고침·5분 자동 갱신·좋아요는 invalidate라 이 값과 무관하게 바로 다시 받는다.
      */
     staleTime: 60 * 1000,
+    throwOnError: toThrowOnError(throwOnError),
   });
 
 export { useFetchSuccessDowithTasks };

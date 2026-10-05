@@ -5,8 +5,9 @@ import { FEEDBACK_QUERY_KEY } from 'constants/queries';
 import { DEFAULT_PAGE_SIZE } from 'constants/shared';
 import { fetchReceivedFeedbacks } from 'services/rest/feedback';
 import type { fetchReceivedFeedbacksResponseSchemeType } from 'types/feedback/scheme/api';
+import { toThrowOnError, type BoundaryQueryOptions } from 'utils/error';
 
-const useFetchReceivedFeedbacks = () =>
+const useFetchReceivedFeedbacks = ({ throwOnError }: BoundaryQueryOptions = {}) =>
   useInfiniteQuery<
     fetchReceivedFeedbacksResponseSchemeType,
     ApiError,
@@ -22,6 +23,7 @@ const useFetchReceivedFeedbacks = () =>
       return currentPage + 1 < totalPage ? currentPage + 1 : undefined;
     },
     initialPageParam: 0,
+    throwOnError: toThrowOnError(throwOnError),
   });
 
 export { useFetchReceivedFeedbacks };

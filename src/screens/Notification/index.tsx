@@ -21,6 +21,7 @@ import { formatNotificationDate } from 'utils/date';
 import { navigateByDeepLink } from 'utils/deepLink';
 import { theme } from 'styles/theme';
 import type { notificationSchemeType } from 'types/notification/scheme/api';
+import { withScreenErrorBoundary } from 'components/common/ScreenErrorBoundary';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -57,7 +58,9 @@ const NotificationItem = ({
 );
 
 const NotificationList = ({ type }: { type: 'NORMAL' | 'EVENT' }) => {
-  const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchNotifications(type);
+  const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchNotifications(type, {
+    throwOnError: true,
+  });
   const { mutate: confirmNotification } = useConfirmNotification();
 
   useFocusEffect(
@@ -199,6 +202,10 @@ const EventTab = () => {
   return <NotificationList type="EVENT" />;
 };
 
+/* 화면 렌더 에러·핵심 데이터 첫 로딩 실패 시 내용 자리를 에러 화면으로 바꾼다(헤더·탭바는 유지) */
+const NotificationTabScreen = withScreenErrorBoundary(NotificationTab);
+const EventTabScreen = withScreenErrorBoundary(EventTab);
+
 const TabLabel = ({ label, hasUnread, color }: { label: string; hasUnread: boolean; color: string }) => (
   <View style={styles.tabLabelContainer}>
     <Text style={[styles.tabLabelText, { color }]}>{label}</Text>
@@ -234,8 +241,12 @@ const NotificationScreen = () => {
           tabBarIndicatorStyle: { backgroundColor: theme.COLORS.DEFAULT.BLACK },
         }}
       >
-        <Tab.Screen name="NOTIFICATION" component={NotificationTab} options={{ tabBarLabel: renderNormalLabel }} />
-        <Tab.Screen name="EVENT" component={EventTab} options={{ tabBarLabel: renderEventLabel }} />
+        <Tab.Screen
+          name="NOTIFICATION"
+          component={NotificationTabScreen}
+          options={{ tabBarLabel: renderNormalLabel }}
+        />
+        <Tab.Screen name="EVENT" component={EventTabScreen} options={{ tabBarLabel: renderEventLabel }} />
       </Tab.Navigator>
       <Text style={[styles.footerText, { paddingBottom: insets.bottom + 20 }]}>
         최근 30일 동안의 알림만 확인할 수 있어요.

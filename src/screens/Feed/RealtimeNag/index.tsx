@@ -21,7 +21,7 @@ import type { feedbackAvailableDowithTaskSchemeType } from 'types/task/scheme/ap
 
 const RealtimeNag = () => {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useFetchFeedbackAvailableDowithTasksInfinite();
+    useFetchFeedbackAvailableDowithTasksInfinite({ throwOnError: true });
 
   const dowithTasks = data?.pages.flatMap(page => page.data.dowithTasks) ?? [];
 

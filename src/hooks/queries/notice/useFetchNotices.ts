@@ -5,10 +5,11 @@ import { NOTICE_QUERY_KEY } from 'constants/queries';
 import { DEFAULT_PAGE_SIZE } from 'constants/shared';
 import { fetchNotices } from 'services/rest/notice';
 import type { fetchNoticesResponseSchemeType } from 'types/notice/scheme/api';
+import { toThrowOnError, type BoundaryQueryOptions } from 'utils/error';
 
 type NoticeType = 'NOTICE' | 'EVENT';
 
-const useFetchNotices = (type?: NoticeType) =>
+const useFetchNotices = (type?: NoticeType, { throwOnError }: BoundaryQueryOptions = {}) =>
   useInfiniteQuery<
     fetchNoticesResponseSchemeType,
     ApiError,
@@ -24,6 +25,7 @@ const useFetchNotices = (type?: NoticeType) =>
       return currentPage + 1 < totalPage ? currentPage + 1 : undefined;
     },
     initialPageParam: 0,
+    throwOnError: toThrowOnError(throwOnError),
   });
 
 export { useFetchNotices };

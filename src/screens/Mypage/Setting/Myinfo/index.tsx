@@ -38,7 +38,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const Myinfo = ({ navigation: { goBack } }: SettingStackScreenProps<'MYINFO'>) => {
   const uploadImageBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { showDialog, hideDialog } = useDialog();
-  const { data: myDowithInfo } = useFetchMyDowithInfo();
+  const { data: myDowithInfo } = useFetchMyDowithInfo({ throwOnError: true });
   const {
     mutate: mutateValidNickname,
     isSuccess: isSuccessMutateValidNickname,
