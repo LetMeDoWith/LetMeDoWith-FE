@@ -83,6 +83,12 @@ const fetchMyDowithInfo = async (): Promise<myDowithInfoResponseSchemeType> => {
   }
 };
 
+/* 온보딩 완료 처리. 멱등이라 여러 번 불러도 결과가 같다(바디 없음). */
+const updateOnboard = async (): Promise<EmptyDataResponseSchemeType> => {
+  const result = await apiClient.put<EmptyDataResponseSchemeType>(MEMBER_API.ON_BOARD);
+  return result.data;
+};
+
 export {
   validNickname,
   signUp,
@@ -91,4 +97,5 @@ export {
   updateNotificationSettings,
   fetchProfileImageUploadPresignedUrl,
   fetchMyDowithInfo,
+  updateOnboard,
 };

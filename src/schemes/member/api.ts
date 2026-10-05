@@ -56,6 +56,7 @@ const myDowithInfoResponseScheme = BaseResponseScheme.extend({
     selfDescription: z.string().nullable().describe('자기소개'),
     profileImageUrl: z.string().nullable().describe('프로필 이미지 URL'),
     successDowithCount: z.number().describe('성공한 도리 수'),
+    isOnBoarded: z.boolean().describe('첫 도리 등록 후 온보딩을 이미 봤는지'),
   }),
 });
 
