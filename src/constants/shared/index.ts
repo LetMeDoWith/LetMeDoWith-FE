@@ -47,6 +47,15 @@ const SESSION_EXPIRED_STATUS_CODES: string[] = [
  */
 const DIALOG_HANDLED_STATUS_CODES: string[] = [...SESSION_EXPIRED_STATUS_CODES, ErrorStatusCodeEnum.enum.E250];
 
+/*
+ * 약관 원문은 노션 공개 페이지로 관리한다. 앱 내 뷰어가 없어 외부 브라우저로 연다.
+ * 회원가입 약관 동의 화면과 설정 > 이용약관 화면이 같은 주소를 쓴다.
+ */
+const POLICY_URL = {
+  TERMS_OF_SERVICE: 'https://far-coconut-eec.notion.site/5f4ae42e50364b10a67799c2675ea3f6',
+  PRIVACY: 'https://far-coconut-eec.notion.site/afd1661a34734eae9696511f2f511d3d',
+} as const;
+
 export {
   SCREEN_NAME,
   APP_VERSION,
@@ -55,5 +64,6 @@ export {
   DEFAULT_PAGE_SIZE,
   SESSION_EXPIRED_STATUS_CODES,
   DIALOG_HANDLED_STATUS_CODES,
+  POLICY_URL,
 };
 export type { LanguageCodeType };

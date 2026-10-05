@@ -11,14 +11,20 @@ import { useSignUp } from 'hooks/queries/member/useSignUp';
 import { isAos } from 'utils/device';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { useStore } from 'stores/index';
+import { POLICY_URL } from 'constants/shared';
+import { openExternalUrl } from 'utils/linking';
 
 type AgreementKeys = keyof signUpRequestSchemeType['agreements'];
 type AgreementLabels = `agreements.${AgreementKeys}`;
 
-const CHECKBOX_MAP_LIST: { label: AgreementLabels; text: string; isLinkable: boolean }[] = [
-  { label: 'agreements.termsOfAgree', text: '(필수) 서비스 이용약관 관련 동의', isLinkable: true },
-  { label: 'agreements.privacy', text: '(필수) 개인정보 처리 방침', isLinkable: true },
-  { label: 'agreements.advertisement', text: '(선택) 광고성 정보 수신동의', isLinkable: true },
+/*
+ * url이 있는 항목만 행을 눌러 원문을 연다.
+ * 광고성 정보 수신동의는 아직 원문 페이지가 없어 링크를 달지 않는다.
+ */
+const CHECKBOX_MAP_LIST: { label: AgreementLabels; text: string; url?: string }[] = [
+  { label: 'agreements.termsOfAgree', text: '(필수) 서비스 이용약관 관련 동의', url: POLICY_URL.TERMS_OF_SERVICE },
+  { label: 'agreements.privacy', text: '(필수) 개인정보 처리 방침', url: POLICY_URL.PRIVACY },
+  { label: 'agreements.advertisement', text: '(선택) 광고성 정보 수신동의' },
 ];
 
 const ServiceAgree = () => {
@@ -158,20 +164,14 @@ const ServiceAgree = () => {
             />
             <Text style={theme.TYPOGRAPHY.BODY_2}>(필수) 만 14세 이상입니다.</Text>
           </View>
-          {CHECKBOX_MAP_LIST.map(({ label, text, isLinkable }) => (
+          {CHECKBOX_MAP_LIST.map(({ label, text, url }) => (
             <View key={label}>
               <Divider style={styles.menuDivider} />
               <Controller
                 name={label}
                 control={control}
                 render={() => (
-                  <Pressable
-                    style={styles.menu}
-                    onPress={() => {
-                      // TODO: 링크 및 랜딩 페이지 확정되면 onPress 핸들러 등록
-                      console.log('click');
-                    }}
-                  >
+                  <Pressable style={styles.menu} disabled={!url} onPress={() => url && openExternalUrl(url)}>
                     <View style={styles.formRow}>
                       <Checkbox.Android
                         color={theme.COLORS.PRIMARY.RED_60}
@@ -180,9 +180,7 @@ const ServiceAgree = () => {
                       />
                       <Text style={theme.TYPOGRAPHY.BODY_2}>{text}</Text>
                     </View>
-                    {isLinkable && (
-                      <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_40} size={16} />
-                    )}
+                    {url && <IconButton icon="chevron-right" iconColor={theme.COLORS.GRAY_SCALE.GRAY_40} size={16} />}
                   </Pressable>
                 )}
               />
