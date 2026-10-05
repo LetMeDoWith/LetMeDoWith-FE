@@ -8,6 +8,8 @@ import { CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
 import { Positions } from 'react-native-calendars/src/expandableCalendar';
 import type { DateData } from 'react-native-calendars/src/types';
 import type { DayProps } from 'react-native-calendars/src/calendar/day';
+import { HEADER_HEIGHT as CALENDAR_HEADER_HEIGHT } from 'react-native-calendars/src/expandableCalendar/style';
+import type { Theme as CalendarTheme } from 'react-native-calendars/src/types';
 
 import { theme } from 'styles/theme';
 import { ProfileImage } from 'components/common/ProfileImage';
@@ -31,6 +33,7 @@ import type { Rect } from 'utils/onboarding';
 import { TASK_QUERY_KEY } from 'constants/queries';
 import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
 import { logEvent } from 'utils/analytics';
+import { isAos } from 'utils/device';
 
 // 요일 시작: 0=일, 1=월
 const FIRST_DAY = 0;
@@ -46,6 +49,29 @@ const PROFILE_SIZE = 32;
 const FAB_SIZE = 56;
 const FAB_ICON_SIZE = 28;
 const WEEK_VIEW_BOTTOM_MARGIN = 8;
+
+/*
+ * 주 뷰에서 주 달력 아래를 흰 배경으로 덮는다.
+ * 주 뷰는 월 달력 위에 주 달력을 겹쳐 그리는 구조라, 주 달력 아래로 월 달력의 둘째 줄 윗부분이 비친다.
+ * 선택한 날짜가 그 달의 둘째 주면 선택 배경이 날짜 아래에 조각으로 보였다.
+ * 라이브러리 weekContainer 스타일을 통째로 대체하므로 원래 값(top)을 그대로 옮기고 bottom·배경만 더한다.
+ */
+const CALENDAR_THEME: CalendarTheme = {
+  stylesheet: {
+    expandable: {
+      main: {
+        weekContainer: {
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: CALENDAR_HEADER_HEIGHT + (isAos ? 8 : 9),
+          bottom: 0,
+          backgroundColor: theme.COLORS.DEFAULT.WHITE,
+        },
+      },
+    },
+  },
+};
 
 const isSameRect = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 
@@ -332,6 +358,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
               hideArrows
               hideKnob
               disablePan
+              theme={CALENDAR_THEME}
             />
             <View style={{ marginBottom: isWeekView ? WEEK_VIEW_BOTTOM_MARGIN : monthViewBottomMargin }} />
             <View style={{ marginHorizontal: 20 }}>
