@@ -27,9 +27,8 @@ import type { DateMarkingStatus, ModeMarkingStatus } from 'utils/task';
 import { useFetchMyDowithInfo } from 'hooks/queries/member/useFetchMyDowithInfo';
 import { useFetchReceivedFeedbacks } from 'hooks/queries/feedback/useFetchReceivedFeedbacks';
 import { useScheduledRefetch } from 'hooks/shared/useScheduledRefetch';
-import { useStore } from 'stores/index';
-import { DowithCoachMark } from 'components/Onboarding/DowithCoachMark';
-import type { Rect } from 'utils/onboarding';
+import { DowithOnboarding } from 'components/Onboarding/DowithOnboarding';
+import { useDowithOnboarding } from 'hooks/shared/useDowithOnboarding';
 import { TASK_QUERY_KEY } from 'constants/queries';
 import type { fetchTaskListResponseSchemeDataType } from 'types/task/scheme/api';
 import { logEvent } from 'utils/analytics';
@@ -72,11 +71,6 @@ const CALENDAR_THEME: CalendarTheme = {
     },
   },
 };
-
-const isSameRect = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
-
-const isSameTargets = (a: { status: Rect; thunder: Rect }, b: { status: Rect; thunder: Rect }) =>
-  isSameRect(a.status, b.status) && isSameRect(a.thunder, b.thunder);
 
 // 태스크가 없는 날짜 조회 시 매번 새 객체를 만들지 않도록 공유하는 빈 목록
 const EMPTY_TASK_LIST: fetchTaskListResponseSchemeDataType = { dowithTasks: [], todoTasks: [] };
@@ -193,21 +187,14 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
   const { data: myDowithInfo } = useFetchMyDowithInfo();
   const { data: receivedFeedbacks } = useFetchReceivedFeedbacks();
 
-  /*
-   * 첫 도리 등록 후 한 번만 뜨는 코치마크.
-   * 등록 성공이 예약해 준 경우에만 띄운다 — 플래그만 보면 기존 사용자에게도 뜬다.
-   */
-  const isDowithOnboardingPending = useStore(state => state.isDowithOnboardingPending);
-  const { completeDowithOnboarding } = useStore(state => state.onboardingActions);
-  const [onboardingTargets, setOnboardingTargets] = useState<{ status: Rect; thunder: Rect } | null>(null);
-
-  /*
-   * 좌표가 실제로 달라졌을 때만 상태를 바꾼다.
-   * 매 렌더마다 재측정하므로, 같은 값으로도 갱신하면 리렌더가 끝없이 이어진다.
-   */
-  const handleMeasureOnboardingTargets = useCallback((next: { status: Rect; thunder: Rect }) => {
-    setOnboardingTargets(prev => (prev && isSameTargets(prev, next) ? prev : next));
-  }, []);
+  /* 첫 도리 등록 후 한 번만 뜨는 온보딩 */
+  const {
+    isOnboardingRequested,
+    visibleOnboardingTargets,
+    requestOnboarding,
+    handleMeasureOnboardingTargets,
+    handleCloseOnboarding,
+  } = useDowithOnboarding();
 
   /*
    * '내 잡도리'는 받은 잡도리 화면으로 가므로, 점은 안 읽은 잡도리를 뜻한다.
@@ -247,11 +234,18 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
   };
 
   /* 다른 날짜로 등록했으면 그 날짜로 옮겨, 방금 등록한 할 일이 바로 보이게 한다(달력도 해당 주/월로 이동) */
-  const handleRegistered = useCallback((date: string) => {
-    const normalizedDate = dayjs(date).format('YYYY-MM-DD');
-    setSelectedDate(normalizedDate);
-    setCurrentDate(normalizedDate);
-  }, []);
+  const handleRegistered = useCallback(
+    (date: string, { showOnboarding }: { showOnboarding: boolean }) => {
+      const normalizedDate = dayjs(date).format('YYYY-MM-DD');
+      setSelectedDate(normalizedDate);
+      setCurrentDate(normalizedDate);
+
+      if (showOnboarding) {
+        requestOnboarding();
+      }
+    },
+    [requestOnboarding],
+  );
 
   const handleDayPress = useCallback((dateString?: string) => {
     if (dateString) {
@@ -331,12 +325,12 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         /*
-         * 코치마크가 예약된 동안에는 잠근다.
+         * 온보딩이 예약된 동안에는 잠근다.
          * 좌표를 잰 뒤 Modal이 뜨기까지 몇 프레임이 비는데, 그 사이 스크롤하면
          * 하이라이트가 어긋난 자리에 뜬다. 스크롤은 리렌더를 일으키지 않아
          * 재측정으로도 잡히지 않는다. 어차피 곧 Modal이 화면을 덮으므로 앞당겨 막는다.
          */
-        scrollEnabled={!isDowithOnboardingPending}
+        scrollEnabled={!isOnboardingRequested}
       >
         <View style={styles.sheetBody}>
           <CalendarProvider
@@ -369,7 +363,7 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
                     month={month}
                     taskList={selectedDateTaskList}
                     selectedDate={selectedDate}
-                    onMeasureOnboardingTargets={isDowithOnboardingPending ? handleMeasureOnboardingTargets : undefined}
+                    onMeasureOnboardingTargets={isOnboardingRequested ? handleMeasureOnboardingTargets : undefined}
                   />
                 </View>
               ) : null}
@@ -382,11 +376,11 @@ const Home = ({ route, navigation: { navigate, setParams } }: HomeTabScreenProps
         <PlusIcon width={FAB_ICON_SIZE} height={FAB_ICON_SIZE} fill={theme.COLORS.DEFAULT.WHITE} />
       </Pressable>
       <TaskRegisterSheet ref={registerSheetRef} date={selectedDate} onRegistered={handleRegistered} />
-      {isDowithOnboardingPending && onboardingTargets && (
-        <DowithCoachMark
-          statusTarget={onboardingTargets.status}
-          thunderTarget={onboardingTargets.thunder}
-          onClose={completeDowithOnboarding}
+      {visibleOnboardingTargets && (
+        <DowithOnboarding
+          statusTarget={visibleOnboardingTargets.status}
+          thunderTarget={visibleOnboardingTargets.thunder}
+          onClose={handleCloseOnboarding}
         />
       )}
     </>

@@ -30,12 +30,12 @@ interface TooltipSize {
 }
 
 /*
- * 첫 도리 등록 후 한 번 보여주는 코치마크.
+ * 첫 도리 등록 후 한 번 보여주는 온보딩(딤에 대상만 뚫고 말풍선으로 안내하는 코치마크 형태).
  *
  * 딤에 구멍을 뚫는 데 SVG Mask를 쓰지 않고 조각난 View 넷으로 덮는다.
  * 이 프로젝트에서 Mask는 안드로이드에서 오프스크린 래스터화로 흐려지는 문제를 겪었다.
  */
-const DowithCoachMark = ({ thunderTarget, statusTarget, onClose }: Props) => {
+const DowithOnboarding = ({ thunderTarget, statusTarget, onClose }: Props) => {
   const [thunderSize, setThunderSize] = useState<TooltipSize>(INITIAL_TOOLTIP_SIZE);
   const [statusSize, setStatusSize] = useState<TooltipSize>(INITIAL_TOOLTIP_SIZE);
 
@@ -104,4 +104,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export { DowithCoachMark };
+export { DowithOnboarding };

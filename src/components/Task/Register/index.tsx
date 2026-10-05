@@ -12,7 +12,7 @@ import { CategoryStep } from 'components/Task/Register/CategoryStep';
 import { DateStep } from 'components/Task/Register/DateStep';
 import { MainStep, ModeHeader } from 'components/Task/Register/MainStep';
 import { TimeStep } from 'components/Task/Register/TimeStep';
-import { useAddDowithTask } from 'hooks/queries/task/useAddDowithTask';
+import { useAddDowithTask, type AddDowithTaskResult } from 'hooks/queries/task/useAddDowithTask';
 import { useAddTodoTask } from 'hooks/queries/task/useAddTodoTask';
 import { useFetchDowithTaskSamples } from 'hooks/queries/task/useFetchDowithTaskSamples';
 import { useFetchTaskCategoryList } from 'hooks/queries/task/useFetchTaskCategoryList';
@@ -72,8 +72,11 @@ const STEP_ENTER_DURATION = 200;
 
 interface Props {
   date: string;
-  /* 등록에 성공하면 등록한 날짜를 알린다. 홈이 그 날짜로 이동해 방금 등록한 할 일을 보여준다. */
-  onRegistered?: (date: string) => void;
+  /*
+   * 등록에 성공하면 등록한 날짜를 알린다. 홈이 그 날짜로 이동해 방금 등록한 할 일을 보여준다.
+   * 첫 도리 등록이면 showOnboarding이 켜져 홈이 온보딩을 띄운다.
+   */
+  onRegistered?: (date: string, options: { showOnboarding: boolean }) => void;
 }
 
 const EMPTY_ROUTINE = {
@@ -137,9 +140,9 @@ const TaskRegisterSheet = forwardRef<BottomSheetModalMethods, Props>(({ date, on
 
   const closeSheet = useCallback(() => innerRef.current?.dismiss(), []);
   const handleRegistered = useCallback(
-    (payload: addTaskRequestSchemeType) => {
+    (payload: addTaskRequestSchemeType, result?: AddDowithTaskResult) => {
       closeSheet();
-      onRegistered?.(payload.date);
+      onRegistered?.(payload.date, { showOnboarding: result?.showOnboarding ?? false });
     },
     [closeSheet, onRegistered],
   );

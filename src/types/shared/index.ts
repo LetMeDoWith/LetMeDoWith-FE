@@ -11,7 +11,13 @@ type SignUpStackParamList = {
 type SignUpStackScreenProps<T extends keyof SignUpStackParamList> = StackScreenProps<SignUpStackParamList, T>;
 
 type HomeTabParamList = {
-  MYTODO: { date?: string } | undefined;
+  MYTODO:
+    | {
+        date?: string;
+        /* 첫 도리를 등록하고 돌아왔을 때 온보딩을 띄우라는 신호. 홈이 한 번 쓰고 지운다. */
+        showOnboarding?: boolean;
+      }
+    | undefined;
   FEED: undefined;
   MYPAGE: undefined;
 };

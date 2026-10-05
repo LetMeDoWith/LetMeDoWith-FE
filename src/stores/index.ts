@@ -20,11 +20,11 @@ const useStore = create<MergedStoreState>()(
     {
       name: STORAGE_KEY.MERGED_INFO,
       storage: createJSONStorage(secureStorage),
-      partialize: ({ tokenInfo, memberId, notificationSettings, hasSeenDowithOnboarding }) => ({
+      partialize: ({ tokenInfo, memberId, notificationSettings, isOnBoarded }) => ({
         tokenInfo,
         memberId,
         notificationSettings,
-        hasSeenDowithOnboarding,
+        isOnBoarded,
       }),
       onRehydrateStorage: () => (mergedState, error) => {
         console.log('Rehydrating merged state from encrypted storage');
