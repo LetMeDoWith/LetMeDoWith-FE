@@ -21,7 +21,7 @@
 
 1. `types/shared/index.ts` — 해당 ParamList에 라우트·파라미터 추가
 2. 화면 컴포넌트 작성 — `screens/<도메인>/.../index.tsx`
-3. 네비게이터에 `<Screen name="..." component={...} options={{ headerTitle: '...' }} />` 등록
+3. 네비게이터에 `<Screen name="..." component={...} options={{ headerTitle: '...' }} />` 등록. `component`는 모듈 레벨에서 `withScreenErrorBoundary(Screen)`으로 감싼 상수를 넘긴다(`headerShown: false`면 `{ withSafeAreaTop: true }`). 렌더 중에 감싸면 매 렌더 재마운트된다
 4. **딥링크 진입이 필요한 화면이면 `utils/deepLink.ts`의 `linking.config.screens`에 경로 추가** — 이 단계를 빠뜨리면 푸시 알림 딥링크가 동작하지 않는다. 경로는 kebab-case(`realtime-nag`)
 5. 화면 이동 코드는 `navigation.navigate('이름', params)` — 문자열이 ParamList와 타입으로 검증되는지 확인
 

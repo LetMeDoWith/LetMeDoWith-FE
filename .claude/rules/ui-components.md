@@ -17,17 +17,18 @@
 
 ## 전역 UI 패턴 (반드시 기존 것 사용)
 
-| 용도                 | 사용법                                        | 비고                                                                                                      |
-| -------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 확인/알림 다이얼로그 | `const { showDialog } = useDialog()`          | `type: 'BASIC' \| 'ALERT'`. Provider는 App.tsx에 이미 있음                                                |
-| 토스트/스낵바        | `showSnackbar(message, { type })`             | 컴포넌트 밖에서도 호출 가능. `SNACKBAR_TYPE` 사용                                                         |
-| 바텀시트             | `components/common/BottomSheet` (ref 방식)    | @gorhom 기반. 새 시트는 이 래퍼로 작성. 시트 안에 가로 스크롤이 있으면 `enableContentPanningGesture` 끄기 |
-| 전역 로딩            | `LoadingOverlay` + `runWithSuppressedOverlay` | 자체 로딩 UI가 있는 refetch는 오버레이 억제                                                               |
-| 확인 모달            | `components/common/Modal/ConfirmModal`        |                                                                                                           |
-| 화면 헤더            | `components/common/Header` (+ `BackButton`)   | 네비게이터 headerTitle 옵션과 혼용하지 말 것 — 해당 스택의 기존 방식을 따른다                             |
-| 당겨서 새로고침      | `components/common/PullToRefreshControl`      |                                                                                                           |
-| 날짜/시간 선택       | `components/common/DateTimePicker`            |                                                                                                           |
-| 입력 필드            | `components/common/Input`                     |                                                                                                           |
+| 용도                 | 사용법                                                   | 비고                                                                                                                 |
+| -------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 확인/알림 다이얼로그 | `const { showDialog } = useDialog()`                     | `type: 'BASIC' \| 'ALERT'`. Provider는 App.tsx에 이미 있음                                                           |
+| 토스트/스낵바        | `showSnackbar(message, { type })`                        | 컴포넌트 밖에서도 호출 가능. `SNACKBAR_TYPE` 사용                                                                    |
+| 바텀시트             | `components/common/BottomSheet` (ref 방식)               | @gorhom 기반. 새 시트는 이 래퍼로 작성. 시트 안에 가로 스크롤이 있으면 `enableContentPanningGesture` 끄기            |
+| 전역 로딩            | `LoadingOverlay` + `runWithSuppressedOverlay`            | 자체 로딩 UI가 있는 refetch는 오버레이 억제                                                                          |
+| 확인 모달            | `components/common/Modal/ConfirmModal`                   |                                                                                                                      |
+| 화면 헤더            | `components/common/Header` (+ `BackButton`)              | 네비게이터 headerTitle 옵션과 혼용하지 말 것 — 해당 스택의 기존 방식을 따른다                                        |
+| 당겨서 새로고침      | `components/common/PullToRefreshControl`                 |                                                                                                                      |
+| 날짜/시간 선택       | `components/common/DateTimePicker`                       |                                                                                                                      |
+| 입력 필드            | `components/common/Input`                                |                                                                                                                      |
+| 에러 화면            | `components/common/ErrorFallback`, `ScreenErrorBoundary` | 화면은 네비게이터 등록 시 `withScreenErrorBoundary`로 감싼다. 바텀시트는 공용 `BottomSheet`가 자동 처리(닫고 스낵바) |
 
 - RN 기본 `Alert`를 새로 도입하지 않는다 — 다이얼로그는 `useDialog`, 알림성 메시지는 스낵바.
 

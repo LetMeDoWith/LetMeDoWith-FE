@@ -43,6 +43,7 @@
 - 무한 스크롤은 `useFetchFeedbackAvailableDowithTasksInfinite` 패턴을 따른다: `initialPageParam: 0`, `getNextPageParam`에서 `currentPage + 1 < totalPage` 검사, 소비 측은 `hasNextPage && !isFetchingNextPage` 가드.
 - `QueryClient`는 `services/queryClient.ts`의 단일 인스턴스만 사용한다. 새로 만들지 않는다(테스트 제외).
 - 컴포넌트에서 응답의 일부만 쓰면 `select` 옵션으로 잘라 리렌더를 줄인다(성능 지침 참조).
+- 화면의 핵심 데이터(실패 시 0개·빈 목록·빈 상태로 보여 사실로 오해될 수 있는 데이터)를 조회할 때는 훅의 `{ throwOnError: true }`(또는 options에 `throwOnInitialError`)를 켠다. 첫 로딩 실패만 화면 에러 바운더리로 가고, 다시 받기 실패·E302는 던지지 않는다. 부가 데이터는 켜지 않는다. 같은 훅이 화면마다 핵심/부가가 다르므로 훅 기본값은 끈 상태로 두고 부르는 쪽에서 정한다.
 
 ## 폼 상태 (react-hook-form)
 
