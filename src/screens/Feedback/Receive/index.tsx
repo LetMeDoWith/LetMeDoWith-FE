@@ -5,11 +5,13 @@ import { runWithSuppressedOverlay } from 'stores/loadingOverlayStore';
 import { ReceivedComment, EmptyComment } from 'components/Feedback';
 import { PullToRefreshControl } from 'components/common/PullToRefreshControl';
 import { useFetchReceivedFeedbacks } from 'hooks/queries/feedback/useFetchReceivedFeedbacks';
+import { useCheckFeedback } from 'hooks/queries/feedback/useCheckFeedback';
 import type { receivedFeedbackSchemeType } from 'types/feedback/scheme/api';
 import { navigateByDeepLink } from 'utils/deepLink';
 
 const ReceiveFeedback = () => {
   const { data, isLoading, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useFetchReceivedFeedbacks();
+  const { mutate: checkFeedback } = useCheckFeedback();
 
   if (isLoading) {
     return (
@@ -38,9 +40,22 @@ const ReceiveFeedback = () => {
     );
   }
 
-  // 잡도리 항목을 탭하면 해당 도리가 등록된 홈 화면으로 이동 (deepLink 미제공 시 아무 동작 안 함)
+  /*
+   * 잡도리 항목을 탭하면 확인(읽음) 처리하고, 해당 도리가 등록된 홈 화면으로 이동한다.
+   * 이동은 확인 응답을 기다리지 않는다. 확인이 실패하면 읽지 않은 채로 남아 다음 탭 때 다시 시도된다.
+   */
+  const handlePressItem = (item: receivedFeedbackSchemeType) => {
+    if (!item.isChecked) {
+      checkFeedback(item.id);
+    }
+
+    if (item.deepLink) {
+      navigateByDeepLink(item.deepLink);
+    }
+  };
+
   const renderItem = ({ item, index }: { item: receivedFeedbackSchemeType; index: number }) => (
-    <Pressable disabled={!item.deepLink} onPress={() => navigateByDeepLink(item.deepLink)}>
+    <Pressable onPress={() => handlePressItem(item)}>
       <ReceivedComment
         profileImageUrl={item.senderProfileImageUrl}
         message={item.parsedMessage}
@@ -48,6 +63,7 @@ const ReceiveFeedback = () => {
         dowithTaskTitle={item.dowithTaskTitle}
         receivedAt={item.receivedAt}
         isLast={index === feedbacks.length - 1}
+        isChecked={item.isChecked}
       />
     </Pressable>
   );

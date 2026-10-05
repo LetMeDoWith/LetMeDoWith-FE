@@ -30,6 +30,7 @@ const FEEDBACK_QUERY_KEY = {
   TEMPLATES: ['feedback', 'templates'],
   DOWITH_TASK_AGGREGATE: ['feedback', 'dowith-task', 'aggregate'],
   DOWITH_TASK_FEEDBACKS: ['feedback', 'dowith-task', 'feedbacks'],
+  CHECK: ['feedback', 'check'],
 } as const;
 
 const NOTIFICATION_QUERY_KEY = {

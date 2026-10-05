@@ -11,6 +11,8 @@ interface Props {
   dowithTaskTitle?: string;
   receivedAt: string;
   isLast?: boolean;
+  /* 이미 확인한 잡도리. 알림 목록의 확인된 항목처럼 흐리게 보여 읽었음을 알린다. */
+  isChecked?: boolean;
 }
 
 const ReceivedComment = ({
@@ -20,9 +22,10 @@ const ReceivedComment = ({
   dowithTaskTitle,
   receivedAt,
   isLast = false,
+  isChecked = false,
 }: Props) => {
   return (
-    <View style={[styles.container, isLast && styles.noBorder]}>
+    <View style={[styles.container, isLast && styles.noBorder, isChecked && styles.checked]}>
       <ProfileImage uri={profileImageUrl} size={40} style={styles.image} />
       <View style={styles.content}>
         <Text style={styles.message}>{message}</Text>
@@ -51,6 +54,10 @@ const styles = StyleSheet.create({
   },
   noBorder: {
     borderBottomWidth: 0,
+  },
+  /* 알림 목록의 확인된 항목(itemConfirmed)과 같은 값 */
+  checked: {
+    opacity: 0.4,
   },
   image: {
     width: 40,

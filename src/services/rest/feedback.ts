@@ -1,6 +1,6 @@
 import { apiClient } from 'services/apiClient';
 import { FEEDBACK_API } from 'services/urls';
-import type { PageRequestSchemeType } from 'types/shared/scheme/api';
+import type { EmptyDataResponseSchemeType, PageRequestSchemeType } from 'types/shared/scheme/api';
 import type {
   fetchSentFeedbacksResponseSchemeType,
   fetchReceivedFeedbacksResponseSchemeType,
@@ -89,6 +89,14 @@ const fetchDowithTaskFeedbacks = async (
   }
 };
 
+/* 받은 잡도리 확인(읽음) 처리 */
+const checkFeedback = async (feedbackId: number): Promise<EmptyDataResponseSchemeType> => {
+  const result = await apiClient.patch<EmptyDataResponseSchemeType>(
+    FEEDBACK_API.CHECK.replace(':feedbackId', String(feedbackId)),
+  );
+  return result.data;
+};
+
 export {
   fetchSentFeedbacks,
   fetchReceivedFeedbacks,
@@ -96,4 +104,5 @@ export {
   createDowithFeedback,
   fetchDowithTaskFeedbackAggregates,
   fetchDowithTaskFeedbacks,
+  checkFeedback,
 };

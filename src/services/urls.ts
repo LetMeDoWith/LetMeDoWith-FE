@@ -35,6 +35,7 @@ const FEEDBACK_API = {
   RECEIVED: 'v1/feedbacks/received',
   TEMPLATES: 'v1/feedbacks/templates',
   DOWITH_TASK_FEEDBACKS: 'v1/feedbacks/dowith-task',
+  CHECK: 'v1/feedbacks/:feedbackId/check',
 } as const;
 
 const NOTIFICATION_API = {
