@@ -8,6 +8,7 @@ import { FeedNagList, FeedNagEmpty, SuccessTaskImageList } from 'components/Feed
 import { PullToRefreshControl } from 'components/common/PullToRefreshControl';
 import { useScheduledRefetch } from 'hooks/shared/useScheduledRefetch';
 import { useFetchFeedbackAvailableDowithTasksInfinite } from 'hooks/queries/task/useFetchFeedbackAvailableDowithTasksInfinite';
+import { useFetchSuccessDowithTasks } from 'hooks/queries/task/useFetchSuccessDowithTasks';
 import { TASK_QUERY_KEY } from 'constants/queries';
 import { getRevealScrollOffset } from 'utils/scroll';
 import { logEvent, resetDoriImpressions } from 'utils/analytics';
@@ -39,6 +40,11 @@ const Feed = () => {
 
   const queryClient = useQueryClient();
   const { data, isLoading } = useFetchFeedbackAvailableDowithTasksInfinite();
+  /*
+   * 인증 사진 목록은 화면에서 먼저 요청을 시작해 둔다. 이 목록을 그리는 컴포넌트(SuccessTaskImageList·FeedNagEmpty)는
+   * 잡도리 목록이 온 뒤에야 마운트되므로, 거기서 처음 요청하면 왕복을 두 번 차례로 기다린다.
+   */
+  useFetchSuccessDowithTasks();
   const hasNagTasks = (data?.pages[0]?.data.dowithTasks.length ?? 0) > 0;
 
   const scrollRef = useRef<ScrollView>(null);
