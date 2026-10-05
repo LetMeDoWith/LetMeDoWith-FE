@@ -77,8 +77,14 @@ const Item = memo(function Item({
 
   const [showUploadImageBottomSheet, setShowUploadImageBottomSheet] = useState(false);
 
-  // 도리고, 지정한 시작 시간을 초과했을 경우 (list의 selectedDate=task 날짜, startTime은 prop이라 상세 조회 불필요)
-  const isInvalidUpdateDowithTask = !isTodoMode && dayjs(`${selectedDate} ${startTime}`).isBefore(dayjs());
+  /*
+   * 도리의 시간 제한은 두 가지다(list의 selectedDate=task 날짜, startTime은 prop이라 상세 조회 불필요).
+   * - 수정·삭제: 시작 시간 전까지
+   * - 인증: 시작 후 1시간까지(등록 시트 안내 문구 '시작 후 한 시간 내로 인증 해야해요.')
+   */
+  const dowithStartAt = dayjs(`${selectedDate} ${startTime}`);
+  const isInvalidUpdateDowithTask = !isTodoMode && dowithStartAt.isBefore(dayjs());
+  const isCertifyExpired = !isTodoMode && dowithStartAt.add(1, 'hour').isBefore(dayjs());
   const isFailed = localStatus === TASK_STATUS_ENUM.enum.FAIL;
 
   // 인증 완료(성공)한 도리는 수정/삭제(관리 메뉴) 불가
@@ -281,7 +287,7 @@ const Item = memo(function Item({
         <Pressable
           style={styles.leftContainer}
           onPress={handleTaskStatus(mode, id, localStatus)}
-          disabled={isInvalidUpdateDowithTask || isFailed}
+          disabled={isCertifyExpired || isFailed}
         >
           <View
             ref={statusIconRef}
