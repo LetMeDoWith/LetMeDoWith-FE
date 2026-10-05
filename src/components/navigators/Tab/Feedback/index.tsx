@@ -7,6 +7,11 @@ import { ReceiveFeedback, SendFeedback } from 'screens/Feedback';
 import { Thunder } from 'components/common/icons/Thunder';
 import type { FeedbackTabParamList, RootStackParamList } from 'types/shared';
 import { theme } from 'styles/theme';
+import { withScreenErrorBoundary } from 'components/common/ScreenErrorBoundary';
+
+/* 화면 렌더 에러·핵심 데이터 첫 로딩 실패 시 내용 자리를 에러 화면으로 바꾼다(헤더·탭바는 유지) */
+const ReceiveFeedbackScreen = withScreenErrorBoundary(ReceiveFeedback);
+const SendFeedbackScreen = withScreenErrorBoundary(SendFeedback);
 
 const FeedbackTopTabNavigator = () => {
   const Tab = createMaterialTopTabNavigator<FeedbackTabParamList>();
@@ -26,8 +31,8 @@ const FeedbackTopTabNavigator = () => {
           tabBarIndicatorStyle: { backgroundColor: theme.COLORS.DEFAULT.BLACK },
         }}
       >
-        <Tab.Screen name="RECEIVE" component={ReceiveFeedback} options={{ tabBarLabel: '받은 잡도리' }} />
-        <Tab.Screen name="SEND" component={SendFeedback} options={{ tabBarLabel: '보낸 잡도리' }} />
+        <Tab.Screen name="RECEIVE" component={ReceiveFeedbackScreen} options={{ tabBarLabel: '받은 잡도리' }} />
+        <Tab.Screen name="SEND" component={SendFeedbackScreen} options={{ tabBarLabel: '보낸 잡도리' }} />
       </Tab.Navigator>
       <Pressable style={styles.fab} onPress={handlePressNag}>
         <Thunder width={16} height={16} fill={theme.COLORS.DEFAULT.WHITE} />

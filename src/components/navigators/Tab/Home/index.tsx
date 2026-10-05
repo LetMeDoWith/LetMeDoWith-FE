@@ -15,6 +15,13 @@ import { SettingsIcon } from 'components/common/icons/SettingsIcon';
 import { useFetchNotifications } from 'hooks/queries/notification/useFetchNotifications';
 import { theme } from 'styles/theme';
 import type { HomeTabParamList, RootStackScreenProps } from 'types/shared';
+import { withScreenErrorBoundary } from 'components/common/ScreenErrorBoundary';
+
+/* 화면 렌더 에러·핵심 데이터 첫 로딩 실패 시 내용 자리를 에러 화면으로 바꾼다(헤더·탭바는 유지) */
+const FeedScreen = withScreenErrorBoundary(Feed);
+/* 홈은 헤더를 화면 안에서 그려(headerShown: false) 에러 화면이 맨 위부터 덮는다 */
+const HomeScreen = withScreenErrorBoundary(Home, { withSafeAreaTop: true });
+const MypageScreen = withScreenErrorBoundary(Mypage);
 
 const MypageHeaderRight = ({ onNotification, onSetting }: { onNotification: () => void; onSetting: () => void }) => {
   const { data: normalData } = useFetchNotifications('NORMAL');
@@ -59,7 +66,7 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
     >
       <Screen
         name="FEED"
-        component={Feed}
+        component={FeedScreen}
         options={{
           headerTitle: '둘러보기',
           headerTitleAlign: 'left',
@@ -76,7 +83,7 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
       />
       <Screen
         name="MYTODO"
-        component={Home}
+        component={HomeScreen}
         options={{
           headerShown: false,
           tabBarLabel: '홈',
@@ -90,7 +97,7 @@ const BottomTabNavigator = ({ navigation }: RootStackScreenProps<'HOME'>) => {
       />
       <Screen
         name="MYPAGE"
-        component={Mypage}
+        component={MypageScreen}
         options={{
           headerTitle: '마이도리',
           headerTitleAlign: 'left',

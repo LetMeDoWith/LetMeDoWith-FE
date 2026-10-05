@@ -43,6 +43,7 @@ import {
   clearSentryUser,
   captureApiError,
   captureHandledError,
+  captureRenderError,
   normalizeEndpoint,
   setSentryScreen,
   getScreenPath,
@@ -213,5 +214,22 @@ describe('getScreenPath', () => {
   it('중첩이 없으면 화면 이름만, 상태가 없으면 undefined', () => {
     expect(getScreenPath({ index: 0, routes: [{ name: 'REALTIME_NAG' }] })).toBe('REALTIME_NAG');
     expect(getScreenPath(undefined)).toBeUndefined();
+  });
+});
+
+describe('captureRenderError', () => {
+  beforeEach(() => {
+    mockCaptureException.mockClear();
+  });
+
+  it('렌더 에러는 boundary 태그와 함께 보낸다', () => {
+    const error = new TypeError('render');
+    captureRenderError(error, 'screen');
+    expect(mockCaptureException).toHaveBeenCalledWith(error, { tags: { boundary: 'screen' } });
+  });
+
+  it('axios 에러는 전역 구독이 수집하므로 보내지 않는다', () => {
+    captureRenderError(Object.assign(new Error('axios'), { isAxiosError: true }), 'bottom-sheet');
+    expect(mockCaptureException).not.toHaveBeenCalled();
   });
 });

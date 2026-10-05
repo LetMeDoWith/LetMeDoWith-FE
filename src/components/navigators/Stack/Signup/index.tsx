@@ -8,6 +8,11 @@ import type { SignUpStackParamList } from 'types/shared';
 import { useDialog } from 'components/common/Dialog/Provider';
 import { BackButton } from 'components/common/Header/BackButton';
 import { useStore } from 'stores/index';
+import { withScreenErrorBoundary } from 'components/common/ScreenErrorBoundary';
+
+/* 화면 렌더 에러·핵심 데이터 첫 로딩 실패 시 내용 자리를 에러 화면으로 바꾼다(헤더·탭바는 유지) */
+const UserInfoScreen = withScreenErrorBoundary(UserInfo);
+const ServiceAgreeScreen = withScreenErrorBoundary(ServiceAgree);
 
 const SignupStackNavigator = () => {
   const { Navigator, Screen } = createStackNavigator<SignUpStackParamList>();
@@ -29,7 +34,7 @@ const SignupStackNavigator = () => {
     >
       <Screen
         name="SIGN_UP_USER_INFO"
-        component={UserInfo}
+        component={UserInfoScreen}
         options={{
           headerLeft: () => (
             <BackButton
@@ -52,7 +57,7 @@ const SignupStackNavigator = () => {
       />
       <Screen
         name="SIGN_UP_AGREEMENT"
-        component={ServiceAgree}
+        component={ServiceAgreeScreen}
         options={({ navigation: { goBack } }) => ({
           headerLeft: () => <BackButton onPress={goBack} />,
         })}

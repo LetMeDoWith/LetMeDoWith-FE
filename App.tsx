@@ -23,6 +23,9 @@ import { IS_DEV_MODE } from 'utils/env';
 // import { useLoadingOverlayStore } from 'stores/loadingOverlayStore';
 import { GlobalSnackbar } from 'components/common/GlobalSnackbar';
 import { DoriSuccessMotion } from 'components/common/DoriSuccessMotion';
+import { ErrorFallback } from 'components/common/ErrorFallback';
+import { ScreenErrorBoundary } from 'components/common/ScreenErrorBoundary';
+import { isErrorScreenShowing, isThrownToBoundary } from 'utils/error';
 import { queryClient } from 'services/queryClient';
 import { isErrorSnackbarSuppressed, showSnackbar, SNACKBAR_TYPE } from 'stores/snackbarStore';
 
@@ -104,6 +107,22 @@ const subscribeListener = (event: QueryCacheNotifyEvent | MutationCacheNotifyEve
 
     /* API 에러를 Sentry로 수집(E302는 내부에서 제외). 콘솔 로그·스낵바는 기존 동작 유지 */
     captureApiError(event.action.error, 'query' in event ? 'query' : 'mutation');
+
+    /*
+     * 화면 에러 바운더리로 던져진 조회(핵심 데이터 첫 로딩 실패)는 에러 화면이 안내하므로 공통 스낵바를 띄우지 않는다.
+     * Sentry 수집은 위에서 이미 끝났다.
+     */
+    if (isThrownToBoundary(event)) {
+      return;
+    }
+
+    /*
+     * 에러 화면이 이미 떠 있으면 다른 조회 실패도 스낵바로 겹쳐 안내하지 않는다. 같은 화면의 부가 데이터나
+     * 뒤늦게 도착한 핵심 조회 실패가 여기에 해당한다. 사용자가 직접 한 동작(mutation) 실패는 그대로 안내한다.
+     */
+    if ('query' in event && isErrorScreenShowing()) {
+      return;
+    }
 
     // 에러 타입에 따라 로깅
     if ('query' in event) {
@@ -306,7 +325,10 @@ function AppContent() {
           </KeyboardProvider>
         </SafeAreaProvider>
       ) : (
-        <Login />
+        /* 로그인은 네비게이터 밖에서 직접 그려 화면 HOC가 닿지 않는다 */
+        <ScreenErrorBoundary withSafeAreaTop>
+          <Login />
+        </ScreenErrorBoundary>
       )}
       {/* TODO(임시): isLoading(fetching/mutating) 오버레이 비활성화 → 하이드레이션 로딩만 유지 */}
       {!isHydrated && <LoadingOverlay />}
@@ -316,20 +338,31 @@ function AppContent() {
   );
 }
 
+/*
+ * 화면 바운더리 바깥(Provider·네비게이터 헤더·탭바·루트 다이얼로그)의 렌더 에러용 전체 화면.
+ * 없으면 React가 앱 트리 전체를 내려 릴리즈에서 하얀 화면이 된다. 수집은 Sentry.ErrorBoundary가 한다.
+ * Sentry.wrap(v7)은 대체 화면 옵션이 없어 바운더리를 직접 둔다.
+ */
+const renderRootErrorFallback = ({ resetError }: { resetError: () => void }) => (
+  <ErrorFallback variant="DEFAULT" onRetry={resetError} withSafeAreaTop />
+);
+
 function App() {
   return (
     <GestureHandlerRootView style={styles.container}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeContext.Provider value={theme}>
-          <PaperProvider>
-            <DialogProvider>
-              <AppStateProvider>
-                <AppContent />
-              </AppStateProvider>
-            </DialogProvider>
-          </PaperProvider>
-        </ThemeContext.Provider>
-      </QueryClientProvider>
+      <Sentry.ErrorBoundary fallback={renderRootErrorFallback}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeContext.Provider value={theme}>
+            <PaperProvider>
+              <DialogProvider>
+                <AppStateProvider>
+                  <AppContent />
+                </AppStateProvider>
+              </DialogProvider>
+            </PaperProvider>
+          </ThemeContext.Provider>
+        </QueryClientProvider>
+      </Sentry.ErrorBoundary>
       {ENABLE_DEVTOOLS && (
         <View style={styles.devToolsContainer} pointerEvents="box-none">
           <DevToolsRoot />

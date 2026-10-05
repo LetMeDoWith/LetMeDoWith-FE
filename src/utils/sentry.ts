@@ -184,6 +184,18 @@ const captureHandledError = (error: unknown, context: string) => {
   Sentry.captureException(error, { tags: { 'handled.context': context } });
 };
 
+/*
+ * 에러 바운더리가 잡은 렌더 에러를 보고한다.
+ * 바운더리로 던져진 API 에러(axios)는 App.tsx 전역 구독이 이미 수집하므로 보내지 않는다(중복 방지).
+ */
+const captureRenderError = (error: unknown, boundary: 'screen' | 'bottom-sheet') => {
+  if (axios.isAxiosError(error)) {
+    return;
+  }
+
+  Sentry.captureException(error, { tags: { boundary } });
+};
+
 /* react-navigation 상태 중 경로 계산에 필요한 부분만 — 중첩 내비게이터는 route.state로 이어진다 */
 type NavigationStateLike = {
   index?: number;
@@ -235,6 +247,7 @@ export {
   clearSentryUser,
   captureApiError,
   captureHandledError,
+  captureRenderError,
   normalizeEndpoint,
   setSentryScreen,
   getScreenPath,

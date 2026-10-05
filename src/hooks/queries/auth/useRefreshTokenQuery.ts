@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ApiError } from 'services/apiClient';
 
 import type { refreshTokenRequestSchemeType, refreshTokenResponseSchemeType } from 'types/auth/scheme/api';
@@ -7,11 +7,13 @@ import { AUTH_QUERY_KEY } from 'constants/queries';
 import { useStore } from 'stores/index';
 import { SESSION_EXPIRED_STATUS_CODES } from 'constants/shared';
 import { useDialog } from 'components/common/Dialog/Provider';
+import { refetchFailedQueries } from 'utils/error';
 
 /**
  * 토큰 재발급 Mutation Query Hook
  */
 const useRefreshTokenQuery = () => {
+  const queryClient = useQueryClient();
   const { showDialog, hideDialog } = useDialog();
   const { initAuthInfo, setTokenInfo, setIsNeedSignUp, setIsLoggedIn, setIsNeedRefreshToken, setMemberId } = useStore(
     ({
@@ -40,6 +42,9 @@ const useRefreshTokenQuery = () => {
       setIsNeedRefreshToken(false);
       setIsNeedSignUp(false);
       setMemberId(data.memberId);
+
+      /* 만료된 토큰(E302)으로 실패했던 조회를 새 토큰으로 다시 받는다 — 첫 로딩 실패 화면이 빈 채로 남지 않게 */
+      refetchFailedQueries(queryClient);
     },
     onError: e => {
       const errorCode = e.response?.data.statusCode;

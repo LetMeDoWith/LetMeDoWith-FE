@@ -18,6 +18,8 @@ import { CancelIcon } from 'components/common/icons/CancelIcon';
 import { BottomSheetBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop';
 import type { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { isAos } from 'utils/device';
+import { SheetContentBoundary } from 'components/common/BottomSheet/SheetContentBoundary';
+import { useContentErrorDismiss } from 'components/common/BottomSheet/useContentErrorDismiss';
 
 interface Props {
   title: string;
@@ -203,6 +205,13 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     return () => subscription.remove();
   }, [keyboardBlurBehavior, delegateKeyboardRestore]);
 
+  /* 시트 내용이 렌더 에러로 깨지면 시트를 닫고 알린다(열자마자 깨진 경우도 열림 확정 시 닫는다) */
+  const {
+    hasContentError,
+    handleContentError,
+    handleSheetChange: handleContentErrorSheetChange,
+  } = useContentErrorDismiss(innerRef);
+
   const handleClose = useCallback(() => {
     if (handleCloseButton) {
       handleCloseButton();
@@ -231,13 +240,14 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
     (index: number) => {
       const open = index >= 0;
       currentIndexRef.current = index;
+      handleContentErrorSheetChange(index);
       setIsOpen(open);
       if (open) {
         isClosingRef.current = false;
       }
       onChangeCallback?.(open);
     },
-    [onChangeCallback],
+    [onChangeCallback, handleContentErrorSheetChange],
   );
 
   // AOS 뒤로가기 버튼 클릭 시, 바텀 시트 닫힘 처리
@@ -333,12 +343,13 @@ const BottomSheet = forwardRef<BottomSheetModalMethods, PropsWithChildren<Props>
             style={styles.scrollArea}
             contentContainerStyle={styles.scrollContent}
           >
-            {children}
+            <SheetContentBoundary onError={handleContentError}>{children}</SheetContentBoundary>
           </BottomSheetScrollView>
         ) : (
-          children
+          <SheetContentBoundary onError={handleContentError}>{children}</SheetContentBoundary>
         )}
-        {buttonConfig && renderButton(buttonConfig, handleButtonSubmit)}
+        {/* 내용이 깨진 상태에서는 하단 버튼을 숨겨 깨진 폼이 제출되지 않게 한다 */}
+        {buttonConfig && !hasContentError && renderButton(buttonConfig, handleButtonSubmit)}
       </View>
     </BottomSheetModal>
   );
